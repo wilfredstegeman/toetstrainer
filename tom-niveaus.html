@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wat moet ik kunnen?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #f8f9fb;
+    --white: #ffffff;
+    --card: #ffffff;
+    --text: #1a1a2e;
+    --text-dim: #6b7280;
+    --text-light: #9ca3af;
+    --accent: #6366f1;
+    --accent-light: #eef2ff;
+    --green: #10b981;
+    --green-bg: #ecfdf5;
+    --orange: #f59e0b;
+    --orange-bg: #fffbeb;
+    --red: #ef4444;
+    --red-bg: #fef2f2;
+    --blue: #3b82f6;
+    --blue-bg: #eff6ff;
+    --border: #e5e7eb;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.03);
+    --bronze: #b45309;
+    --bronze-bg: #fffbeb;
+    --bronze-border: #fde68a;
+    --silver: #6b7280;
+    --silver-bg: #f3f4f6;
+    --silver-border: #d1d5db;
+    --gold: #b45309;
+    --gold-bg: #fef3c7;
+    --gold-border: #fcd34d;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; padding: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 480px; margin: 0 auto; padding: 0 16px 100px; }
+
+  .header {
+    text-align: center; padding: 20px 0 12px;
+    position: sticky; top: 0;
+    background: var(--bg); z-index: 10;
+  }
+  .header h1 {
+    font-size: 22px; font-weight: 800;
+    color: var(--accent);
+  }
+  .header .sub { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
+
+  .intro-box {
+    background: var(--blue-bg); border: 1.5px solid var(--blue-bg);
+    border-radius: 16px; padding: 14px 16px; margin: 12px 0 20px;
+    font-size: 13px; color: var(--text-dim); line-height: 1.6;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+  }
+  .intro-box strong { color: var(--blue); }
+  .intro-short { display: block; }
+  .intro-full { display: none; margin-top: 8px; }
+  .intro-box.open .intro-full { display: block; }
+  .intro-box.open .intro-short { display: none; }
+
+  /* Subject accordion */
+  .subject-block { margin-bottom: 10px; scroll-margin-top: 80px; }
+  .subject-header {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 16px; padding: 14px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; transition: all 0.15s;
+    user-select: none; box-shadow: var(--shadow);
+  }
+  .subject-header:active { transform: scale(0.98); }
+  .subject-header.open {
+    border-radius: 16px 16px 0 0;
+    border-bottom-color: transparent;
+  }
+  .subject-name { font-size: 15px; font-weight: 700; }
+  .subject-topic { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .subject-status { display: flex; align-items: center; gap: 8px; }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-red { background: var(--red); }
+  .dot-orange { background: var(--orange); }
+  .dot-green { background: var(--green); }
+  .chevron {
+    font-size: 16px; color: var(--text-light);
+    transition: transform 0.3s;
+  }
+  .subject-header.open .chevron { transform: rotate(180deg); }
+
+  .subject-content {
+    display: none; background: var(--card);
+    border: 1.5px solid var(--border); border-top: none;
+    border-radius: 0 0 16px 16px; padding: 0 16px 16px;
+    box-shadow: var(--shadow);
+  }
+  .subject-content.open { display: block; }
+
+  /* Level cards */
+  .level-card {
+    border-radius: 14px; padding: 14px; margin-top: 12px;
+    cursor: pointer;
+  }
+  .level-55 { background: var(--bronze-bg); border: 1.5px solid var(--bronze-border); }
+  .level-75 { background: var(--silver-bg); border: 1.5px solid var(--silver-border); }
+  .level-9 { background: var(--gold-bg); border: 1.5px solid var(--gold-border); }
+
+  .level-header {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .level-badge {
+    font-size: 14px; font-weight: 800; padding: 2px 10px;
+    border-radius: 8px; min-width: 36px; text-align: center;
+  }
+  .badge-55 { background: rgba(180,83,9,0.15); color: var(--bronze); }
+  .badge-75 { background: rgba(107,114,128,0.15); color: var(--silver); }
+  .badge-9 { background: rgba(180,83,9,0.15); color: #92400e; }
+  .level-title { font-size: 12px; font-weight: 600; }
+  .title-55 { color: var(--bronze); }
+  .title-75 { color: var(--silver); }
+  .title-9 { color: #92400e; }
+
+  .level-items {
+    list-style: none; padding: 0;
+    display: none; margin-top: 10px;
+  }
+  .level-card.open .level-items { display: block; }
+  .level-items li {
+    font-size: 13px; color: var(--text); line-height: 1.6;
+    padding: 4px 0 4px 20px; position: relative;
+  }
+  .level-items li::before {
+    content: '→'; position: absolute; left: 0;
+    color: var(--text-dim); font-size: 12px;
+  }
+  .level-items li em { color: var(--text-dim); font-style: normal; font-size: 12px; }
+
+  .level-hint {
+    font-size: 11px; color: var(--text-light);
+    text-align: center; margin-top: 6px;
+  }
+  .level-card.open .level-hint { display: none; }
+
+  /* Tip box */
+  .tip-box {
+    background: var(--accent-light); border: 1.5px solid rgba(99,102,241,0.15);
+    border-radius: 12px; padding: 12px 14px; margin-top: 12px;
+    font-size: 12px; color: var(--text-dim); line-height: 1.5;
+  }
+  .tip-box strong { color: var(--accent); }
+
+  /* Bottom nav */
+  /* Floating coach button */
+  .fab-coach {
+    position: fixed;
+    bottom: 80px;
+    right: 16px;
+    padding: 14px 22px;
+    border-radius: 28px;
+    background: var(--accent);
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    text-decoration: none;
+    box-shadow: 0 4px 16px rgba(99,102,241,0.35);
+    z-index: 25;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    animation: fab-pulse 3s infinite;
+  }
+  .fab-coach:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99,102,241,0.45);
+  }
+  .fab-coach:active {
+    transform: scale(0.95);
+  }
+  @keyframes fab-pulse {
+    0%, 100% { box-shadow: 0 4px 16px rgba(99,102,241,0.35); }
+    50% { box-shadow: 0 4px 24px rgba(99,102,241,0.55); }
+  }
+
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--white); border-top: 1px solid var(--border);
+    display: flex; justify-content: center; gap: 8px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    z-index: 20;
+  }
+  .nav-btn {
+    padding: 8px 20px; border-radius: 24px;
+    font-size: 13px; font-weight: 600; text-decoration: none;
+    border: 1.5px solid var(--border);
+    background: var(--white); color: var(--text-dim);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .nav-btn:active { transform: scale(0.96); }
+  .nav-btn.active-nav {
+    background: var(--accent); color: white;
+    border-color: var(--accent);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .subject-block { animation: fadeIn 0.3s ease-out backwards; }
+  .subject-block:nth-child(1) { animation-delay: 0.05s; }
+  .subject-block:nth-child(2) { animation-delay: 0.1s; }
+  .subject-block:nth-child(3) { animation-delay: 0.15s; }
+  .subject-block:nth-child(4) { animation-delay: 0.2s; }
+  .subject-block:nth-child(5) { animation-delay: 0.25s; }
+  .subject-block:nth-child(6) { animation-delay: 0.3s; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Wat moet ik kunnen?</h1>
+    <div class="sub">Tik op een vak · tik op een niveau</div>
+  </div>
+
+  <div class="intro-box" onclick="this.classList.toggle('open')">
+    <span class="intro-short"><strong>Hoe werkt dit?</strong> Tik voor uitleg ▾</span>
+    <span class="intro-full">
+      <strong>Per vak zie je 3 niveaus:</strong><br>
+      <strong>5.5</strong> = voldoende (genoeg om over te gaan)<br>
+      <strong>7.5</strong> = goed (je snapt het echt)<br>
+      <strong>9</strong> = uitstekend (bonus als je het leuk vindt)<br><br>
+      Kies zelf waar je energie in steekt.
+    </span>
+  </div>
+
+  <!-- WISKUNDE -->
+  <div class="subject-block" id="wiskunde">
+    <div class="subject-header" onclick="toggleSubject(this)">
+      <div>
+        <div class="subject-name">Wiskunde</div>
+        <div class="subject-topic">Exponentiële groei &amp; Machtregels</div>
+      </div>
+      <div class="subject-status">
+        <div class="status-dot dot-red"></div>
+        <div class="chevron">▾</div>
+      </div>
+    </div>
+    <div class="subject-content">
+      <div class="level-card level-55" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-55">5.5</div>
+          <div class="level-title title-55">Voldoende — je snapt de basis</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Percentage berekenen van een getal <em>(15% van 240)</em></li>
+          <li>Groeifactor berekenen <em>(+5% → ×1,05)</em></li>
+          <li>Herhaalde groei doorrekenen <em>(3 jaar 5% = ×1,05³)</em></li>
+          <li>Machtsregels: a² × a³ = a⁵ en (a²)³ = a⁶</li>
+          <li>Exponentiële formules invullen en uitrekenen</li>
+        </ul>
+      </div>
+      <div class="level-card level-75" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-75">7.5</div>
+          <div class="level-title title-75">Goed — je kunt het toepassen</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Alles van 5.5 +</li>
+          <li>Zelf exponentiële formule opstellen <em>("bacterie verdubbelt elke 3 uur")</em></li>
+          <li>Groeifactor terugrekenen uit begin- en eindwaarde</li>
+          <li>Verschil lineair vs exponentieel herkennen in grafiek</li>
+          <li>Machtsregels combineren <em>((2a³)² × a)</em></li>
+        </ul>
+      </div>
+      <div class="level-card level-9" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-9">9</div>
+          <div class="level-title title-9">Uitstekend — je doorziet het</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Alles van 7.5 +</li>
+          <li>Exponentiële vergelijkingen oplossen</li>
+          <li>Verhaaltje → formule → antwoord</li>
+          <li>Uitleggen WAAROM machtsregels werken</li>
+          <li>Uit grafiek aflezen of groei versnelt/vertraagt</li>
+        </ul>
+      </div>
+      <div class="tip-box">
+        <strong>💡 Tip:</strong> Wiskunde is sterk. Focus op TOEPASSEN — gebruik GeoGebra voor exponentiële grafieken.
+      </div>
+    </div>
+  </div>
+
+  <!-- NEDERLANDS -->
+  <div class="subject-block" id="nederlands">
+    <div class="subject-header" onclick="toggleSubject(this)">
+      <div>
+        <div class="subject-name">Nederlands</div>
+        <div class="subject-topic">Kritische Blik — Argumenteren</div>
+      </div>
+      <div class="subject-status">
+        <div class="status-dot dot-red"></div>
+        <div class="chevron">▾</div>
+      </div>
+    </div>
+    <div class="subject-content">
+      <div class="level-card level-55" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-55">5.5</div>
+          <div class="level-title title-55">Voldoende — je snapt de basis</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Verschil feit vs mening herkennen</li>
+          <li>Hoofdargument in een tekst aanwijzen</li>
+          <li>Subargumenten herkennen</li>
+          <li>Waarderende vs feitelijke uitspraak <em>("dit is het beste" vs "dit kost €5")</em></li>
+          <li>Simpel standpunt formuleren met 1-2 argumenten</li>
+        </ul>
+      </div>
+      <div class="level-card level-75" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-75">7.5</div>
+          <div class="level-title title-75">Goed — je kunt het toepassen</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Alles van 5.5 +</li>
+          <li>Argumentatiestructuur tekenen</li>
+          <li>Zwakke argumenten/drogredenen herkennen</li>
+          <li>Tegenargument bedenken</li>
+          <li>Kort betoog schrijven met standpunt + argumenten + conclusie</li>
+        </ul>
+      </div>
+      <div class="level-card level-9" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-9">9</div>
+          <div class="level-title title-9">Uitstekend — je doorziet het</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Alles van 7.5 +</li>
+          <li>Meerdere standpunten vergelijken</li>
+          <li>Verborgen aannames herkennen</li>
+          <li>Overtuigingstechnieken in reclame/nieuws spotten</li>
+          <li>Overtuigende tekst schrijven voor een doelgroep</li>
+        </ul>
+      </div>
+      <div class="tip-box">
+        <strong>💡 Aanpak:</strong> Argumenteren = debatteren op papier. Elk argument: standpunt → waarom → bewijs.
+      </div>
+    </div>
+  </div>
+
+  <!-- FRANS -->
+  <div class="subject-block" id="frans">
+    <div class="subject-header" onclick="toggleSubject(this)">
+      <div>
+        <div class="subject-name">Frans</div>
+        <div class="subject-topic">Eten &amp; Drinken</div>
+      </div>
+      <div class="subject-status">
+        <div class="status-dot dot-orange"></div>
+        <div class="chevron">▾</div>
+      </div>
+    </div>
+    <div class="subject-content">
+      <div class="level-card level-55" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-55">5.5</div>
+          <div class="level-title title-55">Je redt je in een restaurant</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Basiswoorden eten &amp; drinken <em>(le pain, l'eau, le fromage)</em></li>
+          <li>Simpele bestelling plaatsen <em>("Je voudrais...")</em></li>
+          <li>Menukaart begrijpen</li>
+          <li>Prijzen en getallen</li>
+          <li>Vragen wat iets is <em>("Qu'est-ce que c'est?")</em></li>
+        </ul>
+      </div>
+      <div class="level-card level-75" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-75">7.5</div>
+          <div class="level-title title-75">Je kunt een gesprek voeren</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Alles van 5.5 +</li>
+          <li>Volledig restaurantgesprek <em>(reserveren → bestellen → afrekenen)</em></li>
+          <li>Voorkeuren uitdrukken <em>("J'aime... je n'aime pas...")</em></li>
+          <li>Partitieve artikelen <em>(du, de la, des, de l')</em></li>
+          <li>Kort schrijfstukje over eetgewoonten</li>
+        </ul>
+      </div>
+      <div class="level-card level-9" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-9">9</div>
+          <div class="level-title title-9">Je bent op je gemak in het Frans</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Alles van 7.5 +</li>
+          <li>Frans recept lezen en begrijpen</li>
+          <li>Uitgebreid beschrijven wat je lekker vindt</li>
+          <li>Weinig fouten in werkwoordsvervoeging</li>
+          <li>Improviseren als je een woord niet weet</li>
+        </ul>
+      </div>
+      <div class="tip-box">
+        <strong>💡 Doe-tip:</strong> Bestel in je hoofd in het Frans bij het avondeten. Werkt beter dan woordjes stampen.
+      </div>
+    </div>
+  </div>
+
+  <!-- ENGELS -->
+  <div class="subject-block" id="engels">
+    <div class="subject-header" onclick="toggleSubject(this)">
+      <div>
+        <div class="subject-name">Engels</div>
+        <div class="subject-topic">Short Stories — Listening &amp; Writing</div>
+      </div>
+      <div class="subject-status">
+        <div class="status-dot dot-orange"></div>
+        <div class="chevron">▾</div>
+      </div>
+    </div>
+    <div class="subject-content">
+      <div class="level-card level-55" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-55">5.5</div>
+          <div class="level-title title-55">Je begrijpt en schrijft basisteksten</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Kort verhaal lezen en hoofdlijn navertellen</li>
+          <li>Story elements herkennen <em>(character, setting, plot, conflict)</em></li>
+          <li>Luisterfragment begrijpen en hoofdpunten noteren</li>
+          <li>Kort stukje Engels schrijven <em>(5-8 zinnen)</em></li>
+          <li>Basis past tense <em>(walked, saw, went)</em></li>
+        </ul>
+      </div>
+      <div class="level-card level-75" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-75">7.5</div>
+          <div class="level-title title-75">Je kunt analyseren en formuleren</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Alles van 5.5 +</li>
+          <li>Verhaal analyseren: thema + boodschap auteur</li>
+          <li>Details uit luisterfragment halen</li>
+          <li>Langere tekst met inleiding, middenstuk, afsluiting</li>
+          <li>Gevarieerde zinsbouw gebruiken</li>
+        </ul>
+      </div>
+      <div class="level-card level-9" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-9">9</div>
+          <div class="level-title title-9">Je schrijft en denkt in het Engels</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Alles van 7.5 +</li>
+          <li>Eigen kort verhaal schrijven met spanning en plot twist</li>
+          <li>Subtiliteit begrijpen <em>(ironie, symboliek)</em></li>
+          <li>Twee verhalen vergelijken</li>
+          <li>Natuurlijk Engels met uitdrukkingen en idioom</li>
+        </ul>
+      </div>
+      <div class="tip-box">
+        <strong>💡 Doe-tip:</strong> Engelse serie ZONDER ondertiteling. Games tellen ook — je leert meer Engels van gaming dan je denkt.
+      </div>
+    </div>
+  </div>
+
+  <!-- NATUUR -->
+  <div class="subject-block" id="natuur">
+    <div class="subject-header" onclick="toggleSubject(this)">
+      <div>
+        <div class="subject-name">Natuur</div>
+        <div class="subject-topic">Rekenen in de Natuur — proefwerk vr!</div>
+      </div>
+      <div class="subject-status">
+        <div class="status-dot dot-orange"></div>
+        <div class="chevron">▾</div>
+      </div>
+    </div>
+    <div class="subject-content">
+      <div class="level-card level-55" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-55">5.5</div>
+          <div class="level-title title-55">Je kunt de basisberekeningen</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Eenheden omrekenen <em>(km → m, kg → g)</em></li>
+          <li>Formule invullen <em>(snelheid = afstand / tijd)</em></li>
+          <li>Dichtheid berekenen <em>(massa / volume)</em></li>
+          <li>Aflezen uit tabellen en grafieken</li>
+          <li>Antwoord in juiste eenheid</li>
+        </ul>
+      </div>
+      <div class="level-card level-75" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-75">7.5</div>
+          <div class="level-title title-75">Je kunt formules omvormen</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Alles van 5.5 +</li>
+          <li>Formule omvormen <em>(tijd = afstand/snelheid)</em></li>
+          <li>Berekeningen met meerdere stappen</li>
+          <li>Resultaten interpreteren</li>
+          <li>Geen fouten bij eenheden in meerstapsproblemen</li>
+        </ul>
+      </div>
+      <div class="level-card level-9" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-9">9</div>
+          <div class="level-title title-9">Je lost problemen zelfstandig op</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Alles van 7.5 +</li>
+          <li>Zelf juiste formule kiezen bij beschrijving</li>
+          <li>Berekening opzetten bij onbekend probleem</li>
+          <li>Uitleggen waarom aanpak werkt</li>
+          <li>Schattingen maken en antwoord controleren</li>
+        </ul>
+      </div>
+      <div class="tip-box">
+        <strong>⚡ Proefwerk vrijdag!</strong> Focus: eenheden omrekenen + formule invullen = voldoende. Oefen 5 sommen.
+      </div>
+    </div>
+  </div>
+
+  <!-- MAATSCHAPPIJ -->
+  <div class="subject-block" id="maatschappij">
+    <div class="subject-header" onclick="toggleSubject(this)">
+      <div>
+        <div class="subject-name">Maatschappij</div>
+        <div class="subject-topic">Opkomst &amp; Ondergang</div>
+      </div>
+      <div class="subject-status">
+        <div class="status-dot dot-orange"></div>
+        <div class="chevron">▾</div>
+      </div>
+    </div>
+    <div class="subject-content">
+      <div class="level-card level-55" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-55">5.5</div>
+          <div class="level-title title-55">Je kent de hoofdlijnen</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Uitleggen hoe een rijk opkomt</li>
+          <li>Redenen waarom rijken ten onder gaan</li>
+          <li>Tijdlijn lezen en gebeurtenissen ordenen</li>
+          <li>Kernbegrippen <em>(opkomst, bloei, verval, ondergang)</em></li>
+        </ul>
+      </div>
+      <div class="level-card level-75" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-75">7.5</div>
+          <div class="level-title title-75">Je ziet de verbanden</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Alles van 5.5 +</li>
+          <li>Oorzaak-gevolg relaties uitleggen</li>
+          <li>Twee beschavingen vergelijken</li>
+          <li>Bronnen analyseren</li>
+          <li>Mening onderbouwen met voorbeelden</li>
+        </ul>
+      </div>
+      <div class="level-card level-9" onclick="this.classList.toggle('open')">
+        <div class="level-header">
+          <div class="level-badge badge-9">9</div>
+          <div class="level-title title-9">Je trekt parallellen</div>
+        </div>
+        <div class="level-hint">tik voor details ▾</div>
+        <ul class="level-items">
+          <li>Alles van 7.5 +</li>
+          <li>Patronen herkennen over tijdperken</li>
+          <li>Verband leggen met de wereld van nu</li>
+          <li>Meerdere bronnen combineren tot conclusie</li>
+          <li>Onderbouwd essay of presentatie geven</li>
+        </ul>
+      </div>
+      <div class="tip-box">
+        <strong>💡 Doe-tip:</strong> Denk aan Civilization, Age of Empires, Game of Thrones. Macht → groei → arrogantie → val. Zelfde patroon.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Floating coach button -->
+<a href="tom-coach.html" class="fab-coach">⚡ Wat nu?</a>
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <a href="index.html" class="nav-btn">📋 Week</a>
+  <a href="tom-coach.html" class="nav-btn">⚡ Buddy</a>
+  <a href="tom-niveaus.html" class="nav-btn active-nav">📖 Niveaus</a>
+</div>
+
+<script>
+function toggleSubject(el) {
+  el.classList.toggle('open');
+  el.nextElementSibling.classList.toggle('open');
+}
+
+// Auto-open from hash
+document.addEventListener('DOMContentLoaded', () => {
+  const hash = window.location.hash.replace('#', '');
+  if (hash) {
+    const block = document.getElementById(hash);
+    if (block) {
+      const header = block.querySelector('.subject-header');
+      if (header) toggleSubject(header);
+      setTimeout(() => block.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nederlands Trainer — Kritische blik</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #212529; max-width: 480px; margin: 0 auto; min-height: 100vh; }
+
+    /* NAV */
+    nav { position: sticky; top: 0; z-index: 100; background: #fff; border-bottom: 2px solid #e9ecef; display: flex; }
+    nav button { flex: 1; padding: 14px 4px; background: none; border: none; font-family: inherit; font-size: 11px; font-weight: 600; color: #868e96; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color .2s, border-color .2s; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    nav button .nav-icon { font-size: 18px; }
+    nav button.active { color: #228be6; border-bottom-color: #228be6; }
+
+    /* PANELS */
+    .panel { display: none; padding: 0 0 80px; }
+    .panel.active { display: block; }
+
+    /* HERO */
+    .hero { background: linear-gradient(135deg, #228be6 0%, #7950f2 100%); color: #fff; padding: 28px 20px 24px; text-align: center; }
+    .hero h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .hero .subtitle { font-size: 13px; opacity: .85; margin-bottom: 20px; }
+    .score-ring { position: relative; display: inline-block; }
+    .score-ring svg { transform: rotate(-90deg); }
+    .score-ring .ring-bg { fill: none; stroke: rgba(255,255,255,.25); stroke-width: 8; }
+    .score-ring .ring-fill { fill: none; stroke: #fff; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset .6s ease; }
+    .score-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+    .score-label .pct { font-size: 26px; font-weight: 700; line-height: 1; }
+    .score-label .lbl { font-size: 10px; opacity: .8; }
+    .hero-stats { display: flex; justify-content: center; gap: 24px; margin-top: 16px; }
+    .hero-stat { text-align: center; }
+    .hero-stat .val { font-size: 20px; font-weight: 700; }
+    .hero-stat .key { font-size: 10px; opacity: .8; }
+    .grade-badge { display: inline-block; margin-top: 12px; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; background: rgba(255,255,255,.2); }
+
+    /* SECTION HEADERS */
+    .section-header { padding: 18px 20px 8px; font-size: 13px; font-weight: 700; color: #868e96; text-transform: uppercase; letter-spacing: .05em; }
+
+    /* TOPIC CARDS */
+    .topic-card { margin: 0 12px 10px; background: #fff; border-radius: 12px; border: 1px solid #e9ecef; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .topic-header { padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+    .tier-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; }
+    .tier-1 { background: #fff5f5; color: #c92a2a; border: 1px solid #ffc9c9; }
+    .tier-2 { background: #fff9db; color: #e67700; border: 1px solid #ffec99; }
+    .tier-3 { background: #ebfbee; color: #2f9e44; border: 1px solid #b2f2bb; }
+    .topic-title { font-size: 15px; font-weight: 600; flex: 1; }
+    .topic-short { font-size: 12px; color: #868e96; margin-top: 1px; }
+    .topic-status { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .topic-status.known { background: #ebfbee; }
+    .topic-status.unknown { background: #f8f9fa; }
+    .topic-detail { padding: 0 16px 14px; font-size: 13px; line-height: 1.65; color: #495057; border-top: 1px solid #f1f3f5; display: none; }
+    .topic-detail.open { display: block; padding-top: 12px; }
+    .topic-detail span.key { background: #e7f5ff; color: #1971c2; padding: 1px 6px; border-radius: 4px; font-weight: 600; font-size: 12px; }
+    .topic-detail .warn { background: #fff9db; border-left: 3px solid #f59f00; padding: 8px 10px; border-radius: 0 6px 6px 0; margin-top: 8px; font-size: 12px; color: #664d03; }
+    .topic-chevron { font-size: 12px; color: #adb5bd; transition: transform .2s; }
+    .topic-chevron.open { transform: rotate(90deg); }
+
+    /* PROGRESS BAR */
+    .progress-row { padding: 6px 20px; display: flex; align-items: center; gap: 10px; }
+    .progress-bar { flex: 1; height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; transition: width .4s; }
+    .progress-label { font-size: 12px; color: #868e96; white-space: nowrap; }
+
+    /* FLASHCARD */
+    .flash-container { padding: 20px; }
+    .flash-progress { text-align: center; font-size: 12px; color: #868e96; margin-bottom: 16px; }
+    .flashcard { background: #fff; border-radius: 16px; border: 1px solid #e9ecef; min-height: 220px; display: flex; align-items: center; justify-content: center; padding: 28px 24px; text-align: center; cursor: pointer; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,.08); user-select: none; transition: transform .15s; }
+    .flashcard:active { transform: scale(.98); }
+    .flashcard .card-side { width: 100%; }
+    .flashcard .card-term { font-size: 22px; font-weight: 700; color: #212529; margin-bottom: 8px; }
+    .flashcard .card-short { font-size: 13px; color: #868e96; }
+    .flashcard .card-answer { font-size: 15px; line-height: 1.6; color: #495057; }
+    .flashcard .flip-hint { position: absolute; bottom: 12px; right: 16px; font-size: 11px; color: #adb5bd; }
+    .flash-actions { display: flex; gap: 10px; margin-top: 14px; }
+    .flash-actions button { flex: 1; padding: 14px; border: none; border-radius: 12px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+    .btn-known { background: #ebfbee; color: #2f9e44; }
+    .btn-unknown { background: #fff5f5; color: #c92a2a; }
+    .flash-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+    .flash-nav button { background: none; border: none; font-size: 22px; cursor: pointer; color: #adb5bd; padding: 6px 10px; }
+    .flash-nav button:disabled { opacity: .3; cursor: default; }
+    .flash-done { text-align: center; padding: 40px 20px; }
+    .flash-done .big-emoji { font-size: 48px; margin-bottom: 16px; }
+    .flash-done h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .flash-done p { font-size: 14px; color: #868e96; margin-bottom: 20px; }
+    .flash-done button { padding: 12px 28px; background: #228be6; color: #fff; border: none; border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+
+    /* QUIZ */
+    .quiz-start { padding: 28px 20px; text-align: center; }
+    .quiz-start h2 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    .quiz-start p { font-size: 14px; color: #868e96; margin-bottom: 28px; line-height: 1.6; }
+    .quiz-start button { padding: 14px 32px; background: #228be6; color: #fff; border: none; border-radius: 12px; font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+    .quiz-q-block { padding: 20px; }
+    .quiz-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .quiz-meta .qnum { font-size: 13px; color: #868e96; font-weight: 600; }
+    .quiz-question { font-size: 17px; font-weight: 600; line-height: 1.5; margin-bottom: 18px; }
+    .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+    .quiz-option { background: #fff; border: 2px solid #e9ecef; border-radius: 12px; padding: 14px 16px; font-family: inherit; font-size: 14px; font-weight: 500; color: #212529; cursor: pointer; text-align: left; transition: border-color .15s, background .15s; }
+    .quiz-option:hover:not(:disabled) { border-color: #74c0fc; background: #e7f5ff; }
+    .quiz-option.correct { border-color: #40c057; background: #ebfbee; color: #2f9e44; }
+    .quiz-option.wrong { border-color: #fa5252; background: #fff5f5; color: #c92a2a; }
+    .quiz-explain { background: #f1f3f5; border-radius: 10px; padding: 12px 14px; margin-top: 14px; font-size: 13px; color: #495057; line-height: 1.6; display: none; }
+    .quiz-explain.show { display: block; }
+    .quiz-next-btn { width: 100%; margin-top: 14px; padding: 14px; background: #228be6; color: #fff; border: none; border-radius: 12px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; display: none; }
+    .quiz-next-btn.show { display: block; }
+    .quiz-result { padding: 28px 20px; text-align: center; }
+    .quiz-result .big-score { font-size: 56px; font-weight: 700; color: #228be6; line-height: 1; }
+    .quiz-result .score-sub { font-size: 15px; color: #868e96; margin: 6px 0 20px; }
+    .quiz-result .grade-big { font-size: 36px; font-weight: 700; margin-bottom: 8px; }
+    .quiz-result p { font-size: 14px; color: #495057; margin-bottom: 24px; line-height: 1.6; }
+    .quiz-result button { padding: 13px 28px; background: #228be6; color: #fff; border: none; border-radius: 12px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+
+    /* SCORE PANEL */
+    .score-section { padding: 16px 20px 0; }
+    .score-section h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: #495057; }
+    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f3f5; }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-row .slabel { font-size: 13px; color: #495057; }
+    .stat-row .sval { font-size: 14px; font-weight: 700; }
+    .progress-block { margin: 12px 0; }
+    .progress-block .pb-label { display: flex; justify-content: space-between; font-size: 12px; color: #868e96; margin-bottom: 4px; }
+    .progress-block .pb-bar { height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden; }
+    .progress-block .pb-fill { height: 100%; border-radius: 4px; transition: width .5s; }
+    .history-list { padding: 0 20px 20px; }
+    .history-entry { background: #fff; border-radius: 10px; border: 1px solid #e9ecef; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .history-entry .hdate { font-size: 12px; color: #868e96; }
+    .history-entry .hscore { font-size: 15px; font-weight: 700; }
+    .reset-area { padding: 12px 20px 24px; text-align: center; }
+    .reset-btn { background: none; border: 1px solid #fa5252; color: #fa5252; border-radius: 8px; padding: 8px 18px; font-family: inherit; font-size: 12px; cursor: pointer; }
+    .grade-indicator { display: flex; gap: 8px; margin: 16px 20px 4px; }
+    .grade-box { flex: 1; padding: 10px 8px; border-radius: 10px; text-align: center; border: 2px solid #e9ecef; transition: all .3s; }
+    .grade-box .grade-emoji { font-size: 24px; display: block; margin-bottom: 4px; }
+    .grade-box .grade-label { font-size: 12px; font-weight: 700; display: block; }
+    .grade-box .grade-desc { font-size: 10px; color: #868e96; }
+    .grade-box.active-fail { border-color: #e03131; background: #fff5f5; }
+    .grade-box.active-fail .grade-label { color: #e03131; }
+    .grade-box.active-pass { border-color: #f59f00; background: #fffbeb; }
+    .grade-box.active-pass .grade-label { color: #e67700; }
+    .grade-box.active-great { border-color: #40c057; background: #ebfbee; }
+    .grade-box.active-great .grade-label { color: #2b8a3e; }
+    .readiness { margin: 20px 20px 0; padding: 20px; border-radius: 16px; text-align: center; }
+    .readiness.ready-great { background: #ebfbee; }
+    .readiness.ready-pass { background: #fffbeb; }
+    .readiness.ready-fail { background: #fff5f5; }
+    .readiness .emoji { font-size: 40px; }
+    .readiness h2 { font-size: 18px; margin: 8px 0 4px; }
+    .readiness p { font-size: 13px; color: #495057; }
+    .fc-feedback { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); padding: 10px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 200; animation: feedbackSlide .3s ease; opacity: 0; transition: opacity .3s; pointer-events: none; }
+    .fc-feedback.show { opacity: 1; }
+    .fc-feedback.good { background: #ebfbee; color: #2b8a3e; }
+    .fc-feedback.retry { background: #fff9db; color: #e67700; }
+    @keyframes feedbackSlide { from { transform: translateX(-50%) translateY(-10px); } to { transform: translateX(-50%) translateY(0); } }
+
+    .tc-videos { margin-top: 10px; padding-top: 8px; border-top: 1px dashed #dee2e6; }
+    .tc-videos .vid-label { font-size: 11px; font-weight: 700; color: #868e96; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+    .vid-link { display: flex; align-items: center; gap: 8px; padding: 8px 10px; margin-bottom: 4px; background: #f0f7ff; border-radius: 8px; text-decoration: none; color: #228be6; font-size: 12px; font-weight: 600; transition: background .15s; }
+    .vid-link:hover { background: #dbe8ff; }
+    .vid-link .vid-icon { font-size: 16px; flex-shrink: 0; }
+    .vid-link .vid-src { font-size: 10px; color: #868e96; font-weight: 400; margin-left: auto; }
+
+    /* CHAT PANEL */
+    .chat-container { display: flex; flex-direction: column; height: calc(100vh - 60px); }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .chat-msg { max-width: min(85%, 380px); padding: 12px 16px; border-radius: 18px; font-size: 15px; line-height: 1.5; animation: chatFade .2s ease; word-wrap: break-word; overflow-wrap: break-word; }
+    .chat-msg-user { align-self: flex-end; background: #228be6; color: #fff; border-bottom-right-radius: 6px; }
+    .chat-msg-ai { align-self: flex-start; background: #fff; color: #212529; border-bottom-left-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .chat-msg-ai p { margin-bottom: 8px; }
+    .chat-msg-ai p:last-child { margin-bottom: 0; }
+    .chat-msg-ai strong { color: #228be6; }
+    .chat-msg-ai a { color: #228be6; text-decoration: underline; }
+    .chat-msg-ai code { background: #e7f5ff; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+    .chat-msg-ai ul, .chat-msg-ai ol { margin: 4px 0 8px 16px; }
+    .chat-msg-ai li { margin-bottom: 2px; }
+    .chat-typing { align-self: flex-start; background: #fff; padding: 12px 20px; border-radius: 18px; border-bottom-left-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.06); display: none; }
+    .chat-typing.active { display: flex; gap: 4px; align-items: center; }
+    .chat-typing-dot { width: 7px; height: 7px; border-radius: 50%; background: #adb5bd; animation: chatBounce 1.4s infinite; }
+    .chat-typing-dot:nth-child(2) { animation-delay: .2s; }
+    .chat-typing-dot:nth-child(3) { animation-delay: .4s; }
+    @keyframes chatBounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+    @keyframes chatFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .chat-quick { padding: 8px 16px; display: flex; gap: 8px; overflow-x: auto; flex-shrink: 0; }
+    .chat-quick::-webkit-scrollbar { display: none; }
+    .chat-quick-btn { flex-shrink: 0; padding: 8px 16px; border-radius: 20px; border: 1.5px solid #e9ecef; background: #fff; color: #495057; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; font-family: inherit; transition: all 0.15s; }
+    .chat-quick-btn:active { transform: scale(.96); background: #e7f5ff; border-color: #228be6; color: #228be6; }
+    .chat-input-area { padding: 8px 16px 16px; background: #fff; border-top: 1px solid #e9ecef; display: flex; gap: 8px; align-items: flex-end; }
+    .chat-input { flex: 1; padding: 10px 16px; border-radius: 22px; border: 1.5px solid #e9ecef; font-size: 14px; font-family: inherit; outline: none; resize: none; max-height: 100px; line-height: 1.4; background: #f8f9fa; }
+    .chat-input:focus { border-color: #228be6; }
+    .chat-send { width: 40px; height: 40px; border-radius: 50%; background: #228be6; border: none; color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .chat-send:disabled { background: #adb5bd; cursor: not-allowed; }
+    .chat-send:active { transform: scale(.92); }
+    #panel-chat { padding-bottom: 0; }
+    #panel-chat.active { display: flex; }
+  </style>
+</head>
+<body>
+
+<div class="fc-feedback" id="fc-feedback"></div>
+
+<nav>
+  <button class="active" onclick="showPanel('overzicht')" id="nav-overzicht">
+    <span class="nav-icon">📋</span>Overzicht
+  </button>
+  <button onclick="showPanel('flashcards')" id="nav-flashcards">
+    <span class="nav-icon">🃏</span>Flashcards
+  </button>
+  <button onclick="showPanel('toets')" id="nav-toets">
+    <span class="nav-icon">✍️</span>Toets
+  </button>
+  <button onclick="showPanel('score')" id="nav-score">
+    <span class="nav-icon">📊</span>Score
+  </button>
+  <button class="nav-btn" onclick="showPanel('chat')" id="nav-chat">
+    <span class="nav-icon">💬</span>Chat
+  </button>
+</nav>
+
+<!-- OVERZICHT PANEL -->
+<div class="panel active" id="panel-overzicht">
+  <div class="hero">
+    <h1>Kritische blik 🔍</h1>
+    <div class="subtitle">Meting 3: Kritische blik. Alle begrippen over drogredenen, feit vs mening en argumentatie op een rij. Flashcards doorlopen, toets doen, klaar. Jij bepaalt je eigen tempo.</div>
+    <div class="score-ring">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle class="ring-bg" cx="50" cy="50" r="40"/>
+        <circle class="ring-fill" id="hero-ring" cx="50" cy="50" r="40" stroke-dasharray="251.3" stroke-dashoffset="251.3"/>
+      </svg>
+      <div class="score-label">
+        <div class="pct" id="hero-pct">—</div>
+        <div class="lbl">totaal</div>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="val" id="hero-flash">—</div><div class="key">kaarten</div></div>
+      <div class="hero-stat"><div class="val" id="hero-quiz">—</div><div class="key">toets</div></div>
+    </div>
+    <div class="grade-badge" id="hero-grade">Begin met oefenen</div>
+  </div>
+
+  <div class="section-header">🎯 KERN — Dit brengt je naar een voldoende (5,5+). Mik net iets hoger voor zekerheid</div>
+  <div id="kern-cards"></div>
+
+  <div class="section-header">📌 BELANGRIJK — Grote kans dat dit gevraagd wordt</div>
+  <div id="belang-cards"></div>
+
+  <div class="section-header">⭐ BONUS — Ken je dit ook? Dan richting een 8+</div>
+  <div id="bonus-cards"></div>
+
+  <div class="progress-row">
+    <span style="font-size:12px;color:#868e96">Flashcards geleerd</span>
+    <div class="progress-bar" style="flex:1;margin:0 10px"><div class="progress-fill" id="ov-flash-bar" style="background:#40c057;width:0%"></div></div>
+    <span class="progress-label" id="ov-flash-pct">0%</span>
+  </div>
+</div>
+
+<!-- FLASHCARDS PANEL -->
+<div class="panel" id="panel-flashcards">
+  <div class="flash-container">
+    <p style="font-size:13px;color:#868e96;text-align:center;margin-bottom:12px;line-height:1.5">Zeg hardop in je eigen woorden wat dit begrip betekent (stil in je hoofd mag natuurlijk ook). Tik daarna op de kaart om het juiste antwoord te zien.</p>
+    <div class="flash-progress" id="flash-progress">Kaart 1 van 16</div>
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+      <div class="card-side" id="card-front">
+        <div class="card-term" id="card-term">—</div>
+        <div class="card-short" id="card-short">—</div>
+        <div class="flip-hint">Tik om te draaien ↩</div>
+      </div>
+      <div class="card-side" id="card-back" style="display:none">
+        <div class="card-answer" id="card-answer">—</div>
+        <div class="flip-hint">Tik om terug ↩</div>
+      </div>
+    </div>
+    <div class="flash-actions" id="flash-actions" style="display:none">
+      <button class="btn-unknown" onclick="markCard(false)">❌ Nog niet</button>
+      <button class="btn-known" onclick="markCard(true)">✅ Ken ik!</button>
+    </div>
+    <div class="flash-nav">
+      <button onclick="prevCard()" id="flash-prev">◀</button>
+      <span id="flash-tier-badge"></span>
+      <button onclick="nextCard()" id="flash-next">▶</button>
+    </div>
+    <div class="flash-done" id="flash-done" style="display:none">
+      <div class="big-emoji">🎉</div>
+      <h3>Alle kaarten gedaan!</h3>
+      <p id="flash-done-msg">Goed gedaan.</p>
+      <button onclick="restartFlash()">Opnieuw oefenen</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOETS PANEL -->
+<div class="panel" id="panel-toets">
+  <div class="quiz-start" id="quiz-start">
+    <h2>✍️ Toets jezelf</h2>
+    <p>De toets is een manier om aan jezelf te bewijzen dat je de stof echt kent. Je krijgt 15 willekeurige vragen, elke keer andere. Kijk achteraf of je er tevreden mee bent: wil je net een voldoende halen, of ga je voor een ruime voldoende? Jij bepaalt wat goed genoeg is.</p>
+    <button onclick="startQuiz()">Start toets →</button>
+  </div>
+  <div id="quiz-area" style="display:none"></div>
+</div>
+
+<!-- SCORE PANEL -->
+<div class="panel" id="panel-score">
+  <div class="score-section">
+    <h3>Flashcards gekend</h3>
+    <div class="progress-block">
+      <div class="pb-label"><span>0%</span><span id="sc-flash-pct">0 / 16</span><span>100%</span></div>
+      <div class="pb-bar"><div class="pb-fill" id="sc-flash-bar" style="background:#40c057;width:0%"></div></div>
+    </div>
+  </div>
+  <div class="score-section">
+    <h3>Laatste toetsscore</h3>
+    <div class="progress-block">
+      <div class="pb-label"><span>0%</span><span id="sc-quiz-pct">Nog niet gemaakt</span><span>100%</span></div>
+      <div class="pb-bar"><div class="pb-fill" id="sc-quiz-bar" style="background:#228be6;width:0%"></div></div>
+    </div>
+  </div>
+  <div class="score-section">
+    <h3>Totale paraatheid</h3>
+    <div class="progress-block">
+      <div class="pb-label"><span>0%</span><span>Jij kiest je doel ↓</span><span>100%</span></div>
+      <div class="pb-bar"><div class="pb-fill" id="sc-total-bar" style="background:#7950f2;width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="grade-indicator" id="grade-indicator">
+    <div class="grade-box" id="grade-fail">
+      <span class="grade-emoji">😬</span>
+      <span class="grade-label">Onder 5,5</span>
+      <span class="grade-desc">Onvoldoende</span>
+    </div>
+    <div class="grade-box" id="grade-pass">
+      <span class="grade-emoji">👍</span>
+      <span class="grade-label">5,5 - 7</span>
+      <span class="grade-desc">Voldoende</span>
+    </div>
+    <div class="grade-box" id="grade-great">
+      <span class="grade-emoji">🔥</span>
+      <span class="grade-label">7 of meer</span>
+      <span class="grade-desc">Goed!</span>
+    </div>
+  </div>
+
+  <div id="readiness-box" class="readiness ready-fail">
+    <div class="emoji">🎯</div>
+    <h2 id="ready-title">Nog even oefenen</h2>
+    <p id="ready-text">Doe de flashcards en de toets om je score op te bouwen.</p>
+  </div>
+
+  <div class="score-section">
+    <h3>📈 Voortgang over tijd</h3>
+  </div>
+  <div class="history-list" id="history-list"><p style="font-size:13px;color:#868e96">Nog geen toetsen gemaakt.</p></div>
+  <div class="reset-area">
+    <button class="reset-btn" onclick="resetAll()">🔄 Alles resetten</button>
+  </div>
+</div>
+
+<!-- CHAT PANEL -->
+<div id="panel-chat" class="panel">
+  <div class="chat-container">
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-msg chat-msg-ai">
+        <p>Hey! Ik help je met <strong>Kritische blik</strong>. Vraag me alles over <strong>drogredenen</strong>, <strong>feit vs mening</strong>, <strong>argumenten</strong> of <strong>tekstbegrip</strong>. Ik kan je quizzen met echte teksten of uitleggen hoe je drogredenen herkent.</p>
+      </div>
+    </div>
+    <div class="chat-typing" id="chat-typing">
+      <div class="chat-typing-dot"></div>
+      <div class="chat-typing-dot"></div>
+      <div class="chat-typing-dot"></div>
+    </div>
+    <div class="chat-quick" id="chat-quick">
+      <button class="chat-quick-btn" onclick="chatSend('Quiz me over drogredenen')">Quiz me over drogredenen</button>
+      <button class="chat-quick-btn" onclick="chatSend('Geef een tekst waar ik feit en mening moet herkennen')">Oefen feit vs mening</button>
+      <button class="chat-quick-btn" onclick="chatSend('Leg het verschil uit tussen stroman en ad hominem')">Verschil stroman en ad hominem</button>
+      <button class="chat-quick-btn" onclick="chatSend('Oefen hoofdzaken en bijzaken herkennen')">Oefen hoofdzaak en bijzaak</button>
+      <button class="chat-quick-btn" onclick="chatSend('Wat zijn de belangrijkste drogredenen?')">Overzicht alle drogredenen</button>
+    </div>
+    <div class="chat-input-area">
+      <textarea class="chat-input" id="chat-input" placeholder="Stel een vraag over Nederlands..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSendInput()}"></textarea>
+      <button class="chat-send" id="chat-send-btn" onclick="chatSendInput()">↑</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ────────────────────────────────────────────────────────────────
+const TOPICS = [
+  // ── TIER 1: KERN ──
+  {
+    id:'feit-mening', tier:1,
+    term:'Feit vs Mening',
+    short:'Het verschil begrijpen',
+    detail:`Een <span class="key">feit</span> is iets wat je kunt <strong>bewijzen of controleren</strong>. Het klopt voor iedereen, ongeacht wat je vindt.<br><br>
+Een <span class="key">mening</span> is een <strong>persoonlijke opvatting</strong>. Andere mensen kunnen er anders over denken.<br><br>
+<div class="warn">Let op: feiten kunnen onjuist zijn (bijv. "De aarde is plat"), maar ze worden wél als feit gepresenteerd omdat ze in principe controleerbaar zijn.</div><div class="tc-videos"><div class="vid-label">Video uitleg</div><a class="vid-link" href="https://www.youtube.com/watch?v=xyNsdaKmkDg" target="_blank"><span class="vid-icon">▶</span>Wat is een mening en wat is een feit?<span class="vid-src">Het Klokhuis</span></a><a class="vid-link" href="https://www.youtube.com/watch?v=2n6MhUGPWXk" target="_blank"><span class="vid-icon">▶</span>Wat is het verschil tussen een feit en een mening?<span class="vid-src">Clipphanger</span></a></div>`,
+    answer:'Feit = controleerbaar / te bewijzen. Mening = persoonlijke opvatting, niet voor iedereen geldig.'
+  },
+  {
+    id:'signaalwoorden', tier:1,
+    term:'Signaalwoorden',
+    short:'Hoe herken je feit of mening?',
+    detail:`Signaalwoorden helpen je te herkennen of een zin een feit of mening is.<br><br>
+<span class="key">Mening-signaalwoorden:</span> ik vind, ik denk, naar mijn mening, gelukkig, helaas, jammer genoeg, prachtig, verschrikkelijk, het beste, te veel…<br><br>
+<span class="key">Feit-signaalwoorden:</span> uit onderzoek blijkt, vastgesteld, bewezen, gemeten, volgens cijfers van…<br><br>
+<div class="warn">Opletten: niet elke zin zonder signaalwoord is automatisch een feit! Lees altijd kritisch.</div><div class="tc-videos"><div class="vid-label">Video uitleg</div><a class="vid-link" href="https://www.youtube.com/watch?v=9efePMIDpEc" target="_blank"><span class="vid-icon">▶</span>Signaalwoorden en tekstverbanden<span class="vid-src">Meneer Leijssius</span></a></div>`,
+    answer:'Mening: ik vind / helaas / gelukkig. Feit: uit onderzoek blijkt / bewezen / gemeten.'
+  },
+  {
+    id:'hoofdzaak', tier:1,
+    term:'Hoofdzaak',
+    short:'De kern van een tekst of alinea',
+    detail:`De <span class="key">hoofdzaak</span> is het <strong>belangrijkste punt</strong> dat de schrijver wil overbrengen. In een alinea staat dat vaak in de <em>kernzin</em>.<br><br>
+De kernzin staat meestal <strong>aan het begin of eind</strong> van een alinea. De andere zinnen ondersteunen die hoofdzaak.<br><br>
+<div class="warn">Tip: vraag jezelf af — "Wat is de schrijver hier eigenlijk mee bezig?" Dat is de hoofdzaak.</div><div class="tc-videos"><div class="vid-label">Video uitleg</div><a class="vid-link" href="https://www.youtube.com/watch?v=4aQxW6BWFZQ" target="_blank"><span class="vid-icon">▶</span>Hoofd- en bijzaken, onderwerp en hoofdgedachte<span class="vid-src">Rudolf Hermans</span></a><a class="vid-link" href="https://www.youtube.com/watch?v=_WakCwSDI-M" target="_blank"><span class="vid-icon">▶</span>De hoofdgedachte (in het examen)<span class="vid-src">Arnoud Kuijpers</span></a></div>`,
+    answer:'Hoofdzaak = het belangrijkste punt in een alinea of tekst. Staat vaak in de kernzin (begin of eind).'
+  },
+  {
+    id:'bijzaak', tier:1,
+    term:'Bijzaak',
+    short:'Details die de hoofdzaak ondersteunen',
+    detail:`Een <span class="key">bijzaak</span> is een <strong>detail, voorbeeld of uitleg</strong> die de hoofdzaak ondersteunt of verduidelijkt.<br><br>
+Bijzaken zijn niet onbelangrijk — ze maken de hoofdzaak geloofwaardiger — maar ze zijn <em>niet</em> het hoofdpunt.<br><br>
+Voorbeelden van bijzaken: een statistiek, een anekdote, een vergelijking, een opsomming van voorbeelden.<div class="tc-videos"><div class="vid-label">Video uitleg</div><a class="vid-link" href="https://www.youtube.com/watch?v=4aQxW6BWFZQ" target="_blank"><span class="vid-icon">▶</span>Hoofd- en bijzaken, onderwerp en hoofdgedachte<span class="vid-src">Rudolf Hermans</span></a></div>`,
+    answer:'Bijzaak = detail of voorbeeld dat de hoofdzaak ondersteunt. Niet het hoofdpunt, maar wel nuttig.'
+  },
+  {
+    id:'drogreden', tier:1,
+    term:'Drogreden',
+    short:'Een fout in de redenering',
+    detail:`Een <span class="key">drogreden</span> (ook wel: <em>sofisme</em> of <em>denkfout</em>) is een redenering die <strong>lijkt te kloppen maar dat niet doet</strong>.<br><br>
+Drogredenen worden soms bewust gebruikt om mensen te overtuigen. Ze klinken logisch, maar er zit een fout in de redenering.<br><br>
+<div class="warn">Er zijn veel soorten drogredenen: ad hominem, stroman, generalisatie, schijntegenstelling, post hoc, appel aan massa en meer.</div><div class="tc-videos"><div class="vid-label">Video uitleg</div><a class="vid-link" href="https://www.youtube.com/watch?v=EBEZJm3ozIA" target="_blank"><span class="vid-icon">▶</span>Drogredenen<span class="vid-src">Arnoud Kuijpers</span></a><a class="vid-link" href="https://www.youtube.com/watch?v=TfKclPkCAFI" target="_blank"><span class="vid-icon">▶</span>Nederlands - Drogredenen<span class="vid-src">Digistudies</span></a></div>`,
+    answer:'Drogreden = redenering die lijkt te kloppen maar een fout bevat. Wordt gebruikt om mensen te overtuigen.'
+  },
+  {
+    id:'ad-hominem', tier:1,
+    term:'Ad hominem',
+    short:'Aanval op de persoon, niet het argument',
+    detail:`<span class="key">Ad hominem</span> betekent letterlijk "naar de man". Je reageert niet op het <em>argument</em> van iemand, maar je <strong>valt de persoon zelf aan</strong>.<br><br>
+Voorbeeld: "Jij rookt zelf ook, dus jij mag niet zeggen dat roken ongezond is."<br><br>
+<div class="warn">Fout: of de persoon iets doet of niet, zegt niets over of zijn argument klopt. Het argument staat los van de persoon.</div><div class="tc-videos"><div class="vid-label">Video uitleg</div><a class="vid-link" href="https://www.youtube.com/watch?v=EBEZJm3ozIA" target="_blank"><span class="vid-icon">▶</span>Drogredenen<span class="vid-src">Arnoud Kuijpers</span></a></div>`,
+    answer:'Ad hominem = aanvallen van de persoon in plaats van reageren op zijn argument.'
+  },
+
+  // ── TIER 2: BELANGRIJK ──
+  {
+    id:'subjectief-objectief', tier:2,
+    term:'Subjectief vs Objectief',
+    short:'Taalgebruik beoordelen',
+    detail:`<span class="key">Objectief taalgebruik</span> is <strong>neutraal en zakelijk</strong>. Het beschrijft feiten zonder gevoel of oordeel: "De vergadering duurde 45 minuten."<br><br>
+<span class="key">Subjectief taalgebruik</span> is <strong>gekleurd door gevoel of mening</strong>: "De vergadering was eindeloos saai en nutteloos."<br><br>
+<div class="warn">Journalisten, wetenschappers en rechters proberen objectief te schrijven. Columns en opiniestukken zijn vaak subjectief.</div><div class="tc-videos"><div class="vid-label">Video uitleg</div><a class="vid-link" href="https://www.youtube.com/watch?v=9m4plCZ0WBM" target="_blank"><span class="vid-icon">▶</span>Objectief en subjectief taalgebruik<span class="vid-src">Jeroen Simons</span></a><a class="vid-link" href="https://www.youtube.com/watch?v=Ix_NvpGUejk" target="_blank"><span class="vid-icon">▶</span>Objectief VS Subjectief<span class="vid-src">Uitgeversgroep</span></a></div>`,
+    answer:'Objectief = neutraal, geen oordeel. Subjectief = gekleurd door gevoel of mening.'
+  },
+  {
+    id:'schijntegenstelling', tier:2,
+    term:'Schijntegenstelling',
+    short:'Ook wel: vals dilemma of false dilemma',
+    detail:`Bij een <span class="key">schijntegenstelling</span> doe je alsof er maar <strong>twee opties</strong> zijn, terwijl er in werkelijkheid meer mogelijkheden zijn.<br><br>
+Voorbeeld: "Je bent óf voor ons, óf tegen ons." (Er zijn ook mensen die neutraal zijn.)<br><br>
+Ander voorbeeld: "Je kunt óf studeren óf van het leven genieten." (Beide kan ook!)<br><br>
+<div class="warn">Doel: de ander in een hoek drijven zodat hij één van jouw twee opties moet kiezen.</div><div class="tc-videos"><div class="vid-label">Video uitleg</div><a class="vid-link" href="https://www.youtube.com/watch?v=EBEZJm3ozIA" target="_blank"><span class="vid-icon">▶</span>Drogredenen<span class="vid-src">Arnoud Kuijpers</span></a></div>`,
+    answer:'Schijntegenstelling = doen alsof er maar 2 keuzes zijn, terwijl er meer opties bestaan.'
+  },
+  {
+    id:'stroman', tier:2,
+    term:'Stroman',
+    short:'Het argument van de ander verdraaid aanvallen',
+    detail:`Bij een <span class="key">stroman</span> verander je het argument van je tegenstander in iets <strong>extremers of zwakkers</strong>, en val je dát aan in plaats van het echte argument.<br><br>
+Voorbeeld: Iemand zegt "We moeten minder vlees eten." Jij antwoordt: "Dus jij wil dat iedereen vegetariër wordt?"<br><br>
+<div class="warn">Je maakt een 'stroman': een nep-versie van het argument die makkelijker te verslaan is.</div><div class="tc-videos"><div class="vid-label">Video uitleg</div><a class="vid-link" href="https://www.youtube.com/watch?v=EBEZJm3ozIA" target="_blank"><span class="vid-icon">▶</span>Drogredenen<span class="vid-src">Arnoud Kuijpers</span></a></div>`,
+    answer:'Stroman = het argument van de ander verdraaien naar een extreme versie die makkelijker te aanvallen is.'
+  },
+  {
+    id:'generalisatie', tier:2,
+    term:'Generalisatie',
+    short:'Te snel een conclusie trekken over een groep',
+    detail:`Bij een <span class="key">generalisatie</span> trek je een <strong>algemene conclusie</strong> op basis van te weinig voorbeelden.<br><br>
+Voorbeeld: "Mijn buurman is Turks en altijd luidruchtig. Turken zijn dus altijd luidruchtig."<br><br>
+Dit is een denkfout: één voorbeeld (of zelfs een paar) zegt niets over een hele groep.<br><br>
+<div class="warn">Generalisaties liggen aan de basis van veel vooroordelen en stereotypen.</div><div class="tc-videos"><div class="vid-label">Video uitleg</div><a class="vid-link" href="https://www.youtube.com/watch?v=EBEZJm3ozIA" target="_blank"><span class="vid-icon">▶</span>Drogredenen<span class="vid-src">Arnoud Kuijpers</span></a></div>`,
+    answer:'Generalisatie = te snel een conclusie trekken over een hele groep op basis van te weinig gevallen.'
+  },
+  {
+    id:'appel-autoriteit', tier:2,
+    term:'Appel aan autoriteit',
+    short:'Expert gebruiken die niet relevant is',
+    detail:`Bij een <span class="key">appel aan autoriteit</span> gebruik je iemand die als expert geldt om je argument te ondersteunen — maar die persoon is <strong>geen expert op dat gebied</strong>.<br><br>
+Voorbeeld: "Voetballer X drinkt dit energiedrankje, dus het is gezond."<br><br>
+Een voetballer is geen voedingskundige. Zijn mening over voeding telt hier niet als bewijs.<br><br>
+<div class="warn">Echt appel aan autoriteit: een wetenschapper die wél op dat vakgebied onderzoek heeft gedaan.</div><div class="tc-videos"><div class="vid-label">Video uitleg</div><a class="vid-link" href="https://www.youtube.com/watch?v=jFNnKnMeKHA" target="_blank"><span class="vid-icon">▶</span>Drogredenen in het eindexamen<span class="vid-src">Arnoud Kuijpers</span></a></div>`,
+    answer:'Appel aan autoriteit = iemand aanhalen als expert die dat eigenlijk niet is op het desbetreffende gebied.'
+  },
+  {
+    id:'post-hoc', tier:2,
+    term:'Post hoc',
+    short:'Na dit, dus door dit — oorzaak en gevolg verwisselen',
+    detail:`De volledige naam is <span class="key">post hoc ergo propter hoc</span> (Latijn: "na dit, dus door dit").<br><br>
+Je concludeert dat A de oorzaak is van B, puur omdat A eerder gebeurde dan B.<br><br>
+Voorbeeld: "Ik droeg mijn rode trui en Ajax won. Dus de rode trui brengt geluk."<br><br>
+<div class="warn">Volgorde in tijd ≠ oorzaak-gevolgrelatie! Dit is een van de meest voorkomende denkfouten.</div><div class="tc-videos"><div class="vid-label">Video uitleg</div><a class="vid-link" href="https://www.youtube.com/watch?v=jFNnKnMeKHA" target="_blank"><span class="vid-icon">▶</span>Drogredenen in het eindexamen<span class="vid-src">Arnoud Kuijpers</span></a></div>`,
+    answer:'Post hoc = aannemen dat A de oorzaak van B is, puur omdat A eerder gebeurde dan B.'
+  },
+
+  // ── TIER 3: BONUS ──
+  {
+    id:'appel-massa', tier:3,
+    term:'Appel aan massa',
+    short:'Iedereen doet het, dus het klopt',
+    detail:`Bij een <span class="key">appel aan massa</span> (ook: bandwagon) gebruik je populariteit als argument: <strong>omdat iedereen het doet, moet het wel goed zijn</strong>.<br><br>
+Voorbeeld: "Dit is het best verkochte merk ter wereld — dat kan geen toeval zijn!"<br><br>
+<div class="warn">Populariteit zegt niets over kwaliteit of juistheid. Veel mensen kunnen het ook gewoon bij het verkeerde eind hebben.</div><div class="tc-videos"><div class="vid-label">Video uitleg</div><a class="vid-link" href="https://www.youtube.com/watch?v=EBEZJm3ozIA" target="_blank"><span class="vid-icon">▶</span>Drogredenen<span class="vid-src">Arnoud Kuijpers</span></a></div>`,
+    answer:'Appel aan massa = populariteit gebruiken als argument: "Iedereen doet het, dus het klopt."'
+  },
+  {
+    id:'cirkelredenering', tier:3,
+    term:'Cirkelredenering',
+    short:'Het bewijs = de stelling zelf',
+    detail:`Bij een <span class="key">cirkelredenering</span> gebruik je de stelling zelf als bewijs voor die stelling.<br><br>
+Voorbeeld: "God bestaat, want dat staat in de Bijbel. En de Bijbel is betrouwbaar, want die is door God geschreven."<br><br>
+<div class="warn">Er is geen onafhankelijk bewijs — je draait in kringetjes. Vandaar de naam.</div><div class="tc-videos"><div class="vid-label">Video uitleg</div><a class="vid-link" href="https://www.youtube.com/watch?v=EBEZJm3ozIA" target="_blank"><span class="vid-icon">▶</span>Drogredenen<span class="vid-src">Arnoud Kuijpers</span></a></div>`,
+    answer:'Cirkelredenering = de stelling gebruiken als bewijs voor zichzelf. Er is geen onafhankelijk argument.'
+  },
+  {
+    id:'kernzin', tier:3,
+    term:'Kernzin herkennen',
+    short:'Techniek voor het vinden van de hoofdzaak',
+    detail:`De <span class="key">kernzin</span> is de zin die de <strong>hoofdgedachte van een alinea</strong> uitdrukt.<br><br>
+Techniek: lees de alinea en vraag: "Welke zin kan ik weghalen zonder dat de alinea zijn betekenis verliest?" — dat is een bijzin. De zin die je <em>niet</em> weg kunt halen is de kernzin.<br><br>
+<div class="warn">Staat hij niet letterlijk? Formuleer hem dan zelf: "De schrijver wil zeggen dat…"</div><div class="tc-videos"><div class="vid-label">Video uitleg</div><a class="vid-link" href="https://www.youtube.com/watch?v=15GySyrXDo4" target="_blank"><span class="vid-icon">▶</span>Lezen deel 1: Leesstrategieën<span class="vid-src">Arnoud Kuijpers</span></a></div>`,
+    answer:'Kernzin = zin die de hoofdgedachte van een alinea uitdrukt. Staat aan begin of eind, of moet zelf geformuleerd worden.'
+  },
+  {
+    id:'onderbouwing', tier:3,
+    term:'Stelling en onderbouwing',
+    short:'Hoe ziet een argument eruit?',
+    detail:`Een goed argument bestaat uit twee delen:<br><br>
+<span class="key">Stelling</span> = wat je beweert ("Huisdieren zijn goed voor je gezondheid.")<br><br>
+<span class="key">Onderbouwing</span> = waarom / het bewijs ("Uit onderzoek blijkt dat mensen met een huisdier minder stress hebben.")<br><br>
+<div class="warn">Zonder onderbouwing is het alleen een mening. Met onderbouwing is het een argument.</div><div class="tc-videos"><div class="vid-label">Video uitleg</div><a class="vid-link" href="https://www.youtube.com/watch?v=zELHb87K89Q" target="_blank"><span class="vid-icon">▶</span>Argumenteren: de basis<span class="vid-src">Arnoud Kuijpers</span></a><a class="vid-link" href="https://www.youtube.com/watch?v=qERc61OzLfM" target="_blank"><span class="vid-icon">▶</span>Argumenteren: argumentatiestructuren<span class="vid-src">Arnoud Kuijpers</span></a></div>`,
+    answer:'Argument = stelling + onderbouwing. Zonder onderbouwing is het slechts een mening.'
+  }
+];
+
+// ── QUIZ QUESTIONS ───────────────────────────────────────────────────────
+const QUIZ_POOL = [
+  {
+    q: 'Wat is de beste definitie van een FEIT?',
+    options: ['Een zin zonder gevoel', 'Iets wat je kunt bewijzen of controleren', 'Wat de meeste mensen geloven', 'Een uitspraak van een expert'],
+    correct: 1,
+    explain: 'Een feit is iets wat je in principe kunt bewijzen of controleren — ongeacht of het ook echt waar is.'
+  },
+  {
+    q: 'Wat is de beste definitie van een MENING?',
+    options: ['Een zin met veel details', 'Een wetenschappelijk bewijs', 'Een persoonlijke opvatting die niet voor iedereen geldt', 'Iets wat in een krant staat'],
+    correct: 2,
+    explain: 'Een mening is een persoonlijke opvatting. Andere mensen kunnen er anders over denken.'
+  },
+  {
+    q: 'Welke zin is een FEIT?',
+    options: [
+      'Zwemmen is de beste sport ter wereld.',
+      'De Olympische Spelen van 2024 waren in Parijs.',
+      'Het is jammer dat zoveel mensen te weinig bewegen.',
+      'Tegenwoordig zijn mensen veel te lui.'
+    ],
+    correct: 1,
+    explain: 'De Olympische Spelen van 2024 waren inderdaad in Parijs — dat is controleerbaar en voor iedereen hetzelfde.'
+  },
+  {
+    q: 'Welke zin is een MENING?',
+    options: [
+      'Amsterdam heeft circa 900.000 inwoners.',
+      'Het regent gemiddeld 780 mm per jaar in Nederland.',
+      'De aarde draait om de zon.',
+      'Zomers zijn veel te kort in Nederland.'
+    ],
+    correct: 3,
+    explain: '"Te kort" is een waardeoordeel — iemand anders vindt de zomer misschien juist lang genoeg. Het is een mening.'
+  },
+  {
+    q: 'Welk signaalwoord hoort bij een MENING?',
+    options: [
+      '"Uit cijfers van het CBS blijkt dat…"',
+      '"Wetenschappers hebben aangetoond dat…"',
+      '"Naar mijn mening is dit de beste aanpak."',
+      '"Gemeten over de afgelopen tien jaar…"'
+    ],
+    correct: 2,
+    explain: '"Naar mijn mening" is een typisch mening-signaalwoord. Het geeft aan dat het om een persoonlijke opvatting gaat.'
+  },
+  {
+    q: 'Wat is de HOOFDZAAK van een tekst of alinea?',
+    options: [
+      'De langste zin in de alinea',
+      'Het belangrijkste punt dat de schrijver wil overbrengen',
+      'De eerste zin van de tekst',
+      'Alle feiten bij elkaar opgeteld'
+    ],
+    correct: 1,
+    explain: 'De hoofdzaak is het kernpunt dat de schrijver wil overbrengen. Bijzaken ondersteunen de hoofdzaak.'
+  },
+  {
+    q: 'Wat is een BIJZAAK?',
+    options: [
+      'Een fout in de redenering',
+      'De conclusie van een tekst',
+      'Een detail of voorbeeld dat de hoofdzaak ondersteunt',
+      'Een zin met een signaalwoord'
+    ],
+    correct: 2,
+    explain: 'Bijzaken zijn details, voorbeelden of uitleg die de hoofdzaak onderbouwen. Ze zijn niet het kernpunt.'
+  },
+  {
+    q: 'Wat is een DROGREDEN?',
+    options: [
+      'Een mening die je niet kunt bewijzen',
+      'Een redenering die lijkt te kloppen maar dat niet doet',
+      'Een feit dat niemand gelooft',
+      'Een tekst zonder onderbouwing'
+    ],
+    correct: 1,
+    explain: 'Een drogreden is een redenering met een verborgen fout. Het klinkt logisch, maar klopt eigenlijk niet.'
+  },
+  {
+    q: 'Iemand zegt: "Jij rookt zelf ook, dus jij mag mij niet vertellen dat roken ongezond is." Welke drogreden is dit?',
+    options: ['Stroman', 'Ad hominem', 'Post hoc', 'Generalisatie'],
+    correct: 1,
+    explain: 'Ad hominem = je reageert op de persoon, niet op het argument. Of iemand rookt, zegt niets over of roken ongezond is.'
+  },
+  {
+    q: 'Iemand zegt over minder vlees eten: "Dus jij wil dat iedereen vegetariër wordt!" Welke drogreden is dit?',
+    options: ['Ad hominem', 'Post hoc', 'Stroman', 'Appel aan autoriteit'],
+    correct: 2,
+    explain: 'Stroman: het argument ("minder vlees eten") wordt verdraaid naar iets extremers ("iedereen vegetariër") zodat het makkelijker aan te vallen is.'
+  },
+  {
+    q: '"Mijn buurman is Turks en nooit vriendelijk. Turken zijn nooit vriendelijk." Welke drogreden is dit?',
+    options: ['Schijntegenstelling', 'Appel aan massa', 'Post hoc', 'Generalisatie'],
+    correct: 3,
+    explain: 'Generalisatie: op basis van één geval wordt een conclusie getrokken over een hele groep.'
+  },
+  {
+    q: '"Je bent óf voor ons, óf tegen ons — er is geen middenweg." Welke drogreden is dit?',
+    options: ['Ad hominem', 'Post hoc', 'Schijntegenstelling', 'Cirkelredenering'],
+    correct: 2,
+    explain: 'Schijntegenstelling (vals dilemma): er worden maar twee opties gepresenteerd, terwijl er meer mogelijk zijn (bijv. neutraal zijn).'
+  },
+  {
+    q: 'Wat is SUBJECTIEF taalgebruik?',
+    options: [
+      'Taalgebruik dat alleen feiten beschrijft',
+      'Taalgebruik dat gekleurd is door gevoel of oordeel',
+      'Taalgebruik in wetenschappelijke artikelen',
+      'Taalgebruik zonder signaalwoorden'
+    ],
+    correct: 1,
+    explain: 'Subjectief = persoonlijk gekleurd. Je brengt een gevoel of oordeel over in de formulering.'
+  },
+  {
+    q: 'Welke zin is OBJECTIEF?',
+    options: [
+      'De minister sprak veel te lang en saai.',
+      'De minister sprak precies 12 minuten lang.',
+      'De minister had beter kunnen zwijgen.',
+      'Gelukkig sprak de minister niet al te lang.'
+    ],
+    correct: 1,
+    explain: '"Precies 12 minuten" is meetbaar en neutraal — dat is objectief. De andere zinnen bevatten oordelen.'
+  },
+  {
+    q: 'Voetballer Ronaldo adverteert voor een energiedrankje en zegt: "Dit geeft me energie." Welke drogreden bevat deze reclame?',
+    options: ['Post hoc', 'Stroman', 'Appel aan autoriteit', 'Generalisatie'],
+    correct: 2,
+    explain: 'Appel aan autoriteit: Ronaldo is een autoriteit in voetbal, maar geen voedingskundige. Zijn uitspraak geldt niet als wetenschappelijk bewijs.'
+  },
+  {
+    q: 'Wat betekent "post hoc ergo propter hoc"?',
+    options: [
+      'Na mij de zondvloed',
+      '"Na dit, dus door dit" — volgorde in tijd = oorzaak',
+      'De meerderheid heeft altijd gelijk',
+      'Een aanval op de persoon in plaats van het argument'
+    ],
+    correct: 1,
+    explain: 'Post hoc betekent dat je concludeert dat A de oorzaak van B is, alleen omdat A eerder plaatsvond dan B.'
+  },
+  {
+    q: '"Ik droeg mijn rode trui en Ajax won. Mijn trui brengt geluk!" Welke drogreden is dit?',
+    options: ['Stroman', 'Ad hominem', 'Appel aan massa', 'Post hoc'],
+    correct: 3,
+    explain: 'Post hoc: alleen omdat de trui werd gedragen vóór de overwinning, wordt geconcludeerd dat de trui de oorzaak is.'
+  },
+  {
+    q: 'Wat is een CIRKELREDENERING?',
+    options: [
+      'Een redenering die rond gaat in kringen zonder onafhankelijk bewijs',
+      'Een redenering die steeds sterker wordt',
+      'Een aanval op iemands karakter',
+      'Een argument dat op populariteit steunt'
+    ],
+    correct: 0,
+    explain: 'Cirkelredenering: je gebruikt de stelling zelf als bewijs. Er is geen onafhankelijk argument — je draait in kringetjes.'
+  },
+  {
+    q: '"Dit merk is het best verkochte ter wereld — dat kan geen toeval zijn, dus het is de beste kwaliteit." Welke drogreden is dit?',
+    options: ['Post hoc', 'Schijntegenstelling', 'Appel aan massa', 'Stroman'],
+    correct: 2,
+    explain: 'Appel aan massa (bandwagon): populariteit wordt gebruikt als bewijs voor kwaliteit. Veel mensen kunnen het ook gewoon bij het verkeerde eind hebben.'
+  },
+  {
+    q: 'Hoe herken je de HOOFDZAAK in een alinea?',
+    options: [
+      'Het is altijd de laatste zin',
+      'Het is de zin die alle andere zinnen ondersteunen',
+      'Het is de langste zin',
+      'Het is altijd een feit, nooit een mening'
+    ],
+    correct: 1,
+    explain: 'De hoofdzaak is de zin waar alle andere zinnen omheen draaien. Ze geven uitleg, voorbeelden of bewijs voor die ene kerngedachte.'
+  },
+  {
+    q: 'Welk van deze zinnen is een FEIT-signaalwoord?',
+    options: [
+      '"Helaas is het zo dat…"',
+      '"Ik vind dat…"',
+      '"Naar mijn mening…"',
+      '"Uit onderzoek van de WHO blijkt dat…"'
+    ],
+    correct: 3,
+    explain: '"Uit onderzoek van de WHO blijkt" verwijst naar een gecontroleerd feit. De andere zinnen zijn mening-signaalwoorden.'
+  },
+  {
+    q: 'De zin "Het is niet erg populair om gezond te eten" — is dit subjectief of objectief?',
+    options: [
+      'Objectief, want het gaat over populairheid',
+      'Subjectief, want "niet erg populair" is een waardeoordeel',
+      'Objectief, want er staan geen emotiewoorden in',
+      'Subjectief, want de zin is negatief'
+    ],
+    correct: 1,
+    explain: '"Niet erg populair" is een vage waardeoordeel — je kunt dit niet meten. De zin is subjectief.'
+  },
+  {
+    q: '"Mijn opa rookte zijn hele leven en werd 90. Roken is dus niet zo gevaarlijk." Welke drogreden is dit?',
+    options: ['Schijntegenstelling', 'Ad hominem', 'Generalisatie', 'Appel aan autoriteit'],
+    correct: 2,
+    explain: 'Generalisatie: op basis van één geval (opa) wordt een conclusie getrokken over een heel complex fenomeen.'
+  },
+  {
+    q: 'Waarmee bestaat een volledig ARGUMENT?',
+    options: [
+      'Alleen een stelling',
+      'Stelling + onderbouwing (reden/bewijs)',
+      'Feiten + meningen gemengd',
+      'Conclusie + signaalwoorden'
+    ],
+    correct: 1,
+    explain: 'Een argument = stelling (wat je beweert) + onderbouwing (waarom / het bewijs). Zonder onderbouwing is het slechts een mening.'
+  },
+  {
+    q: 'Welk van deze voorbeelden is GEEN drogreden?',
+    options: [
+      '"Jij bent ook niet perfect, dus jij mag mij niet bekritiseren."',
+      '"Wetenschappers meten de zeespiegel al 50 jaar nauwkeurig."',
+      '"Iedereen koopt dit merk, dus het zal wel goed zijn."',
+      '"Ik heb mijn paraplu thuis gelaten en het regende. Mijn paraplu houdt de regen weg."'
+    ],
+    correct: 1,
+    explain: 'Wetenschappers die iets 50 jaar nauwkeurig meten, is een feitelijke uitspraak — geen drogreden. De anderen zijn resp. ad hominem, appel aan massa en post hoc.'
+  }
+];
+
+const QUIZ_SIZE = 15;
+
+
+// ── STATE & STORAGE ──────────────────────────────────────────────────────
+const LS_FLASH   = 'nl-krit-flash';
+const LS_QUIZ    = 'nl-krit-quiz';
+const LS_HISTORY = 'nl-krit-history';
+
+let flashKnown = JSON.parse(localStorage.getItem(LS_FLASH) || '{}');
+let quizScore  = JSON.parse(localStorage.getItem(LS_QUIZ)  || 'null');
+let history    = JSON.parse(localStorage.getItem(LS_HISTORY) || '[]');
+
+function saveFlash()   { localStorage.setItem(LS_FLASH,   JSON.stringify(flashKnown)); }
+function saveQuiz()    { localStorage.setItem(LS_QUIZ,    JSON.stringify(quizScore));  }
+function saveHistory() { localStorage.setItem(LS_HISTORY, JSON.stringify(history));    }
+
+// ── HELPERS ──────────────────────────────────────────────────────────────
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getFlashPct() {
+  const known = TOPICS.filter(t => flashKnown[t.id]).length;
+  return Math.round((known / TOPICS.length) * 100);
+}
+
+function getQuizPct() {
+  if (quizScore === null) return null;
+  return Math.round((quizScore / QUIZ_SIZE) * 100);
+}
+
+function getTotalPct() {
+  const fp = getFlashPct();
+  const qp = getQuizPct();
+  if (qp === null) return fp * 0.4;
+  return Math.round(fp * 0.4 + qp * 0.6);
+}
+
+function getGrade(pct) {
+  if (pct >= 70) return { text: '7+ 🎉 Goed gedaan!', color: '#40c057' };
+  if (pct >= 37) return { text: '5.5+ ✅ Voldoende', color: '#f59f00' };
+  return { text: '< 5.5 — Meer oefenen!', color: '#fa5252' };
+}
+
+// ── PANEL NAVIGATION ─────────────────────────────────────────────────────
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'overzicht')   renderOverview();
+  if (name === 'flashcards')  initFlash();
+  if (name === 'score')       updateScorePanel();
+}
+
+// ── OVERVIEW ──────────────────────────────────────────────────────────────
+function renderOverview() {
+  const containers = { 1: 'kern-cards', 2: 'belang-cards', 3: 'bonus-cards' };
+  [1, 2, 3].forEach(tier => {
+    const el = document.getElementById(containers[tier]);
+    el.innerHTML = '';
+    TOPICS.filter(t => t.tier === tier).forEach(t => {
+      const known = flashKnown[t.id];
+      const tierLabel = ['', 'KERN', 'BELANGRIJK', 'BONUS'][tier];
+      const tierClass = ['', 'tier-1', 'tier-2', 'tier-3'][tier];
+      el.innerHTML += `
+        <div class="topic-card" id="card-${t.id}">
+          <div class="topic-header" onclick="toggleDetail('${t.id}')">
+            <div>
+              <div class="topic-title">${t.term}</div>
+              <div class="topic-short">${t.short}</div>
+            </div>
+            <span class="tier-badge ${tierClass}">${tierLabel}</span>
+            <div class="topic-status ${known ? 'known' : 'unknown'}">${known ? '✅' : '○'}</div>
+            <span class="topic-chevron" id="chev-${t.id}">▶</span>
+          </div>
+          <div class="topic-detail" id="detail-${t.id}">${t.detail}</div>
+        </div>`;
+    });
+  });
+
+  // hero ring
+  const total = getTotalPct();
+  const qp = getQuizPct();
+  const fp = getFlashPct();
+  document.getElementById('hero-pct').textContent   = total > 0 ? total + '%' : '—';
+  document.getElementById('hero-flash').textContent = fp + '%';
+  document.getElementById('hero-quiz').textContent  = qp !== null ? qp + '%' : '—';
+  const circumference = 251.3;
+  const offset = circumference - (circumference * total / 100);
+  document.getElementById('hero-ring').style.strokeDashoffset = offset;
+  const g = getGrade(total);
+  const badge = document.getElementById('hero-grade');
+  badge.textContent = total > 0 ? g.text : 'Begin met oefenen';
+  badge.style.background = total > 0 ? g.color + '33' : '';
+
+  // flash progress bar
+  document.getElementById('ov-flash-bar').style.width = fp + '%';
+  document.getElementById('ov-flash-pct').textContent = fp + '%';
+}
+
+function toggleDetail(id) {
+  const det  = document.getElementById('detail-' + id);
+  const chev = document.getElementById('chev-' + id);
+  const open = det.classList.toggle('open');
+  chev.classList.toggle('open', open);
+}
+
+// ── FLASHCARDS ────────────────────────────────────────────────────────────
+let flashOrder = [];
+let flashIdx   = 0;
+let flashFlipped = false;
+
+function initFlash() {
+  flashOrder = shuffleArray(TOPICS.map((_, i) => i));
+  flashIdx   = 0;
+  flashFlipped = false;
+  document.getElementById('flash-done').style.display = 'none';
+  document.getElementById('flashcard').style.display  = 'flex';
+  document.getElementById('flash-actions').style.display = 'none';
+  showFlashcard();
+}
+
+function showFlashcard() {
+  if (flashIdx >= flashOrder.length) {
+    showFlashDone();
+    return;
+  }
+  const t = TOPICS[flashOrder[flashIdx]];
+  flashFlipped = false;
+  document.getElementById('card-front').style.display = 'block';
+  document.getElementById('card-back').style.display  = 'none';
+  document.getElementById('flash-actions').style.display = 'none';
+  document.getElementById('card-term').textContent   = t.term;
+  document.getElementById('card-short').textContent  = t.short;
+  document.getElementById('card-answer').textContent = t.answer;
+  document.getElementById('flash-progress').textContent = `Kaart ${flashIdx + 1} van ${TOPICS.length}`;
+
+  const tierLabel = ['', '🔴 KERN', '🟡 BELANGRIJK', '🟢 BONUS'][t.tier];
+  document.getElementById('flash-tier-badge').innerHTML =
+    `<span class="tier-badge tier-${t.tier}">${tierLabel}</span>`;
+
+  document.getElementById('flash-prev').disabled = flashIdx === 0;
+  document.getElementById('flash-next').disabled = flashIdx >= flashOrder.length - 1;
+}
+
+function flipCard() {
+  if (flashIdx >= flashOrder.length) return;
+  flashFlipped = !flashFlipped;
+  document.getElementById('card-front').style.display = flashFlipped ? 'none'  : 'block';
+  document.getElementById('card-back').style.display  = flashFlipped ? 'block' : 'none';
+  document.getElementById('flash-actions').style.display = flashFlipped ? 'flex' : 'none';
+}
+
+const encourageMessages = [
+  'Komt goed! Herhaling is de sleutel 💪',
+  'Geen stress, volgende ronde beter! 🔄',
+  'Bijna! Lees het antwoord nog even goed door 👀',
+  'Niet erg, oefening baart kunst! ✨',
+  'Volgende keer pak je hem! 🎯'
+];
+const correctMessages = ['Nice! 🎉', 'Top! 💪', 'Goed zo! ✅', 'Klopt! 🔥', 'Helemaal goed! 🎯'];
+
+function showFeedback(isCorrect) {
+  const el = document.getElementById('fc-feedback');
+  const msgs = isCorrect ? correctMessages : encourageMessages;
+  el.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+  el.className = 'fc-feedback ' + (isCorrect ? 'good' : 'retry') + ' show';
+  setTimeout(() => { el.classList.remove('show'); }, 2000);
+}
+
+function markCard(known) {
+  const t = TOPICS[flashOrder[flashIdx]];
+  flashKnown[t.id] = known;
+  saveFlash();
+
+  if (known) {
+    if (typeof confetti === 'function') {
+      confetti({ particleCount: 60, spread: 55, origin: { y: 0.7 }, colors: ['#228be6', '#40c057', '#fcc419'] });
+    }
+    showFeedback(true);
+  } else {
+    showFeedback(false);
+  }
+
+  flashIdx++;
+  flashFlipped = false;
+  document.getElementById('flash-actions').style.display = 'none';
+  showFlashcard();
+}
+
+function nextCard() { if (flashIdx < flashOrder.length - 1) { flashIdx++; showFlashcard(); } }
+function prevCard() { if (flashIdx > 0) { flashIdx--; showFlashcard(); } }
+
+function showFlashDone() {
+  const known = TOPICS.filter(t => flashKnown[t.id]).length;
+  document.getElementById('flashcard').style.display  = 'none';
+  document.getElementById('flash-actions').style.display = 'none';
+  document.getElementById('flash-done').style.display = 'block';
+  document.getElementById('flash-done-msg').textContent =
+    `Je kent ${known} van de ${TOPICS.length} begrippen. ${known >= TOPICS.length * 0.8 ? 'Geweldig!' : 'Ga door, je komt er!'} `;
+}
+
+function restartFlash() {
+  initFlash();
+}
+
+
+// ── QUIZ ──────────────────────────────────────────────────────────────────
+let _quizPool    = [];
+let _quizIdx     = 0;
+let _quizAnswers = [];
+let _quizOptions = [];  // shuffled option order per question
+
+function startQuiz() {
+  _quizPool    = shuffleArray(QUIZ_POOL).slice(0, QUIZ_SIZE);
+  _quizIdx     = 0;
+  _quizAnswers = new Array(QUIZ_SIZE).fill(null);
+  _quizOptions = _quizPool.map(q => {
+    const mapped = q.options.map((opt, i) => ({ opt, origIdx: i }));
+    return shuffleArray(mapped);
+  });
+
+  document.getElementById('quiz-start').style.display = 'none';
+  document.getElementById('quiz-area').style.display  = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  if (_quizIdx >= QUIZ_SIZE) { finishQuiz(); return; }
+  const q   = _quizPool[_quizIdx];
+  const opts = _quizOptions[_quizIdx];
+  const area = document.getElementById('quiz-area');
+
+  let optHtml = opts.map((o, i) =>
+    `<button class="quiz-option" onclick="answerQuiz(${i})" id="qopt-${i}">${o.opt}</button>`
+  ).join('');
+
+  area.innerHTML = `
+    <div class="quiz-q-block">
+      <div class="quiz-meta">
+        <span class="qnum">Vraag ${_quizIdx + 1} van ${QUIZ_SIZE}</span>
+      </div>
+      <div class="quiz-question">${q.q}</div>
+      <div class="quiz-options">${optHtml}</div>
+      <div class="quiz-explain" id="quiz-explain">${q.explain}</div>
+      <button class="quiz-next-btn" id="quiz-next-btn" onclick="nextQuestion()">
+        ${_quizIdx < QUIZ_SIZE - 1 ? 'Volgende vraag →' : 'Bekijk resultaat →'}
+      </button>
+    </div>`;
+}
+
+function answerQuiz(optIdx) {
+  if (_quizAnswers[_quizIdx] !== null) return;  // already answered
+
+  const q         = _quizPool[_quizIdx];
+  const opts      = _quizOptions[_quizIdx];
+  const chosen    = opts[optIdx];
+  const isCorrect = chosen.origIdx === q.correct;
+
+  _quizAnswers[_quizIdx] = isCorrect ? 1 : 0;
+
+  // Disable all buttons, show correct/wrong
+  document.querySelectorAll('.quiz-option').forEach((btn, i) => {
+    btn.disabled = true;
+    if (opts[i].origIdx === q.correct) btn.classList.add('correct');
+    else if (i === optIdx && !isCorrect) btn.classList.add('wrong');
+  });
+
+  document.getElementById('quiz-explain').classList.add('show');
+  document.getElementById('quiz-next-btn').classList.add('show');
+}
+
+function nextQuestion() {
+  _quizIdx++;
+  renderQuestion();
+}
+
+function finishQuiz() {
+  const correct = _quizAnswers.filter(a => a === 1).length;
+  quizScore = correct;
+  saveQuiz();
+
+  // save to history
+  history.unshift({ date: new Date().toLocaleDateString('nl-NL'), score: correct, total: QUIZ_SIZE });
+  if (history.length > 10) history.pop();
+  saveHistory();
+
+  const pct = Math.round((correct / QUIZ_SIZE) * 100);
+  const g   = getGrade(pct);
+
+  document.getElementById('quiz-area').innerHTML = `
+    <div class="quiz-result">
+      <div class="big-score">${correct}/${QUIZ_SIZE}</div>
+      <div class="score-sub">${pct}% goed</div>
+      <div class="grade-big" style="color:${g.color}">${g.text}</div>
+      <p>Flashcards: ${getFlashPct()}% · Toets: ${pct}%<br>
+         Totaalscore: <strong>${getTotalPct()}%</strong></p>
+      <button onclick="retryQuiz()">Opnieuw →</button>
+    </div>`;
+}
+
+function retryQuiz() {
+  document.getElementById('quiz-start').style.display = 'block';
+  document.getElementById('quiz-area').style.display  = 'none';
+  document.getElementById('quiz-area').innerHTML      = '';
+}
+
+// ── SCORE PANEL ───────────────────────────────────────────────────────────
+function updateScorePanel() {
+  const fp    = getFlashPct();
+  const qp    = getQuizPct();
+  const total = getTotalPct();
+  const known = TOPICS.filter(t => flashKnown[t.id]).length;
+
+  document.getElementById('sc-flash-bar').style.width  = fp + '%';
+  document.getElementById('sc-flash-pct').textContent  = `${known} / ${TOPICS.length}`;
+
+  if (qp !== null) {
+    document.getElementById('sc-quiz-bar').style.width  = qp + '%';
+    document.getElementById('sc-quiz-pct').textContent  = qp + '%';
+  }
+  document.getElementById('sc-total-bar').style.width = total + '%';
+
+  // Grade indicator boxes
+  const gf = document.getElementById('grade-fail');
+  const gp = document.getElementById('grade-pass');
+  const gg = document.getElementById('grade-great');
+  gf.className = 'grade-box'; gp.className = 'grade-box'; gg.className = 'grade-box';
+  if (total >= 70) { gg.className = 'grade-box active-great'; }
+  else if (total >= 37) { gp.className = 'grade-box active-pass'; }
+  else { gf.className = 'grade-box active-fail'; }
+
+  // Readiness box
+  const box = document.getElementById('readiness-box');
+  const readyTitle = document.getElementById('ready-title');
+  const readyText = document.getElementById('ready-text');
+  if (total >= 70) {
+    box.className = 'readiness ready-great';
+    readyTitle.textContent = 'Je bent er klaar voor!';
+    readyText.textContent = 'Je beheerst de stof goed. Vertrouw op jezelf bij de meting.';
+  } else if (total >= 37) {
+    box.className = 'readiness ready-pass';
+    readyTitle.textContent = 'Je bent op de goede weg';
+    readyText.textContent = 'Je hebt al een basis. Oefen de kaarten die je nog niet kent voor een betere score.';
+  } else if (total > 0) {
+    box.className = 'readiness ready-fail';
+    readyTitle.textContent = 'Nog even oefenen';
+    readyText.textContent = 'Loop de flashcards door en doe daarna de toets. Je komt er!';
+  } else {
+    box.className = 'readiness ready-fail';
+    readyTitle.textContent = 'Nog even oefenen';
+    readyText.textContent = 'Doe de flashcards en de toets om je score op te bouwen.';
+  }
+
+  renderHistory();
+}
+
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (history.length === 0) {
+    el.innerHTML = '<p style="font-size:13px;color:#868e96">Nog geen toetsen gemaakt.</p>';
+    return;
+  }
+  el.innerHTML = history.map(h => {
+    const pct = Math.round(h.score / h.total * 100);
+    const color = pct >= 70 ? '#40c057' : pct >= 37 ? '#f59f00' : '#fa5252';
+    return `<div class="history-entry">
+      <span class="hdate">${h.date}</span>
+      <span class="hscore" style="color:${color}">${h.score}/${h.total} (${pct}%)</span>
+    </div>`;
+  }).join('');
+}
+
+// ── RESET ─────────────────────────────────────────────────────────────────
+function resetAll() {
+  if (!confirm('Weet je het zeker? Al je voortgang wordt verwijderd.')) return;
+  flashKnown = {};
+  quizScore  = null;
+  history    = [];
+  localStorage.removeItem(LS_FLASH);
+  localStorage.removeItem(LS_QUIZ);
+  localStorage.removeItem(LS_HISTORY);
+  renderOverview();
+  updateScorePanel();
+  initFlash();
+  document.getElementById('quiz-start').style.display = 'block';
+  document.getElementById('quiz-area').style.display  = 'none';
+  document.getElementById('quiz-area').innerHTML      = '';
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+renderOverview();
+initFlash();
+
+// ── CHAT ──────────────────────────────────────────────────────────────
+const CHAT_CONTEXT = `[CONTEXT: De leerling is bezig met Nederlands, Meting 3: Kritische blik (Tekstbegrip 2). De toetsstof gaat over: feit vs mening (en signaalwoorden), hoofdzaken en bijzaken, drogredenen (ad hominem, stroman, generalisatie, schijntegenstelling, cirkelredenering, appel aan autoriteit, appel aan massa, post hoc), objectief vs subjectief taalgebruik, argumentatieschema (standpunt + onderbouwing), en kernzin herkennen. Niveau: 3 havo/vwo. De meting is deze week, op papier, met NL-NL woordenboek. Geef concrete oefeningen met echte teksten. Doe alles in de chat, Duolingo-stijl. Bij drogredenen: gebruik altijd herkenbare voorbeelden uit het echte leven (reclame, nieuws, social media).]`;
+
+let chatHistory = [];
+
+function chatSend(text) {
+  if (!text.trim()) return;
+  const messagesEl = document.getElementById('chat-messages');
+  const typingEl = document.getElementById('chat-typing');
+  const quickEl = document.getElementById('chat-quick');
+
+  const userDiv = document.createElement('div');
+  userDiv.className = 'chat-msg chat-msg-user';
+  userDiv.textContent = text;
+  messagesEl.appendChild(userDiv);
+  quickEl.style.display = 'none';
+
+  if (chatHistory.length === 0) {
+    chatHistory.push({ role: 'user', content: CHAT_CONTEXT + '\n\n' + text });
+  } else {
+    chatHistory.push({ role: 'user', content: text });
+  }
+
+  typingEl.classList.add('active');
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages: chatHistory.slice(-20), mode: 'chill' })
+  }).then(response => {
+    if (!response.ok) throw new Error('API error');
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let aiText = '';
+    let aiDiv = null;
+
+    function processStream() {
+      reader.read().then(({ done, value }) => {
+        if (done) {
+          typingEl.classList.remove('active');
+          if (aiText) chatHistory.push({ role: 'assistant', content: aiText });
+          return;
+        }
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+                if (!aiDiv) {
+                  typingEl.classList.remove('active');
+                  aiDiv = document.createElement('div');
+                  aiDiv.className = 'chat-msg chat-msg-ai';
+                  messagesEl.appendChild(aiDiv);
+                }
+                aiText += parsed.delta.text;
+                aiDiv.innerHTML = formatChat(aiText);
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+              }
+            } catch (e) {}
+          }
+        }
+        processStream();
+      });
+    }
+    processStream();
+  }).catch(err => {
+    typingEl.classList.remove('active');
+    const errDiv = document.createElement('div');
+    errDiv.className = 'chat-msg chat-msg-ai';
+    errDiv.innerHTML = '<p>Oeps, geen verbinding. Probeer opnieuw.</p>';
+    messagesEl.appendChild(errDiv);
+  });
+}
+
+function chatSendInput() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+  chatSend(text);
+}
+
+function formatChat(text) {
+  let html = text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+  // Zet antwoordopties (A) B) C) D) of A. B. C. D.) op aparte regels
+  html = html.replace(/\s+([A-D][).:])\s/g, '\n$1 ');
+
+  // Markdown lijsten
+  html = html.replace(/^[-*] (.+)$/gm, '• $1');
+
+  // Paragrafen en line breaks
+  html = html.split('\n\n').map(para =>
+    '<p>' + para.replace(/\n/g, '<br>') + '</p>'
+  ).join('');
+
+  // Lege paragrafen opruimen
+  html = html.replace(/<p><\/p>/g, '');
+
+  return html;
+}
+
+</script>
+</body>
+</html>

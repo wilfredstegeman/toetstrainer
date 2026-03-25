@@ -1,0 +1,14 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "vercel": "^50.27.0"
+  },
+  "dependencies": {
+    "playwright": "^1.58.2"
+  },
+  "scripts": {
+    "its:login": "node scripts/itslearning-login.js",
+    "its:scrape": "node scripts/itslearning-scrape.js",
+    "its:scrape:visible": "node scripts/itslearning-scrape.js --visible"
+  }
+}

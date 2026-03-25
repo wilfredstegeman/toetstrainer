@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Maatschappij Trainer — AK Klimaat</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
+
+/* NAV */
+.nav { display: flex; background: #fff; border-bottom: 2px solid #e9ecef; position: sticky; top: 0; z-index: 100; }
+.nav-btn { flex: 1; padding: 14px 8px; text-align: center; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #868e96; border-bottom: 3px solid transparent; transition: all .2s; }
+.nav-btn.active { color: #228be6; border-bottom-color: #228be6; }
+.nav-btn .nav-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+
+/* PANELS */
+.panel { display: none; padding: 16px; max-width: 600px; margin: 0 auto; padding-bottom: 100px; }
+.panel.active { display: block; }
+
+/* OVERVIEW PANEL */
+.hero { background: linear-gradient(135deg, #228be6, #7950f2); color: #fff; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+.hero h1 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.hero p { font-size: 13px; opacity: .85; }
+.score-ring { display: flex; align-items: center; gap: 16px; margin-top: 12px; }
+.ring-container { position: relative; width: 64px; height: 64px; }
+.ring-container svg { transform: rotate(-90deg); }
+.ring-container .ring-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; }
+.score-label { font-size: 13px; line-height: 1.4; }
+.score-label strong { font-size: 15px; display: block; }
+
+.tier-section { margin-bottom: 20px; }
+.tier-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.tier-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #fff; }
+.tier-1 .tier-badge { background: #e03131; }
+.tier-2 .tier-badge { background: #f59f00; }
+.tier-3 .tier-badge { background: #40c057; }
+.tier-title { font-size: 14px; font-weight: 700; }
+
+/* TOPIC CARDS */
+.topic-card { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.06); cursor: pointer; transition: all .2s; border-left: 4px solid #dee2e6; }
+.topic-card.mastered { border-left-color: #40c057; background: #f1faf4; }
+.topic-card.learning { border-left-color: #f59f00; }
+.topic-card .tc-top { display: flex; justify-content: space-between; align-items: center; }
+.topic-card h3 { font-size: 14px; font-weight: 600; }
+.topic-card .tc-status { font-size: 16px; color: #adb5bd; transition: transform .2s; }
+.topic-card.open .tc-status { transform: rotate(180deg); }
+.topic-card .tc-desc { font-size: 12px; color: #868e96; margin-top: 4px; }
+.topic-card .tc-detail { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e9ecef; font-size: 13px; line-height: 1.6; }
+.topic-card.open .tc-detail { display: block; }
+.tc-detail .key { font-weight: 600; color: #228be6; }
+.tc-detail .warn { background: #fff3bf; padding: 8px 10px; border-radius: 8px; margin-top: 8px; font-size: 12px; }
+.tc-detail .warn::before { content: '⚠️ '; }
+
+/* VIDEO LINKS */
+.tc-videos { margin-top: 10px; padding-top: 8px; border-top: 1px dashed #dee2e6; }
+.tc-videos .vid-label { font-size: 11px; font-weight: 700; color: #868e96; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.vid-link { display: flex; align-items: center; gap: 8px; padding: 8px 10px; margin-bottom: 4px; background: #f0f7ff; border-radius: 8px; text-decoration: none; color: #228be6; font-size: 12px; font-weight: 600; transition: background .15s; }
+.vid-link:hover { background: #dbe8ff; }
+.vid-link .vid-icon { font-size: 16px; flex-shrink: 0; }
+.vid-link .vid-src { font-size: 10px; color: #868e96; font-weight: 400; margin-left: auto; }
+
+/* FLASHCARD PANEL — REDESIGNED */
+.fc-progress { text-align: center; font-size: 13px; color: #868e96; margin-bottom: 12px; }
+.fc-progress strong { color: #228be6; }
+.fc-instruction { background: #f0f7ff; border-radius: 12px; padding: 14px; margin-bottom: 14px; text-align: center; }
+.fc-instruction p { font-size: 13px; color: #495057; line-height: 1.5; }
+
+.flashcard { background: #fff; border-radius: 16px; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,.08); position: relative; user-select: none; }
+.fc-label { font-size: 11px; font-weight: 600; color: #868e96; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+.fc-term { font-size: 22px; font-weight: 800; }
+.fc-answer { font-size: 15px; line-height: 1.6; }
+
+.fc-flip-hint { font-size: 12px; color: #228be6; margin-top: 12px; font-weight: 500; }
+.fc-answer { font-size: 14px; line-height: 1.6; margin-top: 12px; padding-top: 12px; border-top: 2px solid #40c057; color: #1a1a2e; }
+.flashcard { cursor: pointer; transition: all .2s; }
+.flashcard:active { transform: scale(.98); }
+
+
+.fc-buttons { display: flex; gap: 10px; margin-top: 14px; }
+.fc-btn { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; }
+.fc-btn.know { background: #40c057; color: #fff; }
+.fc-btn.dunno { background: #e9ecef; color: #495057; }
+.fc-btn.know:active { transform: scale(.97); }
+.fc-btn.dunno:active { transform: scale(.97); }
+.fc-btn-nav { display: flex; gap: 10px; margin-top: 10px; }
+.fc-nav { flex: 1; padding: 10px; border: 2px solid #e9ecef; border-radius: 10px; background: #fff; font-size: 13px; font-weight: 600; cursor: pointer; color: #495057; }
+
+/* QUIZ PANEL */
+.quiz-info { text-align: center; padding: 20px; }
+.quiz-info h2 { font-size: 18px; margin-bottom: 8px; }
+.quiz-info p { font-size: 13px; color: #868e96; line-height: 1.5; margin-bottom: 16px; }
+.start-quiz { padding: 14px 32px; background: #228be6; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; }
+.quiz-q { background: #fff; border-radius: 16px; padding: 20px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.quiz-q .q-num { font-size: 11px; font-weight: 700; color: #228be6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.quiz-q .q-text { font-size: 15px; font-weight: 600; margin-bottom: 14px; line-height: 1.4; }
+.quiz-q .option { display: block; width: 100%; text-align: left; padding: 12px 14px; margin-bottom: 6px; border: 2px solid #e9ecef; border-radius: 10px; background: #fff; font-size: 14px; cursor: pointer; transition: all .15s; font-family: inherit; }
+.quiz-q .option:hover { border-color: #228be6; background: #f0f7ff; }
+.quiz-q .option.correct { border-color: #40c057; background: #ebfbee; }
+.quiz-q .option.wrong { border-color: #e03131; background: #fff5f5; }
+.quiz-q .option.disabled { pointer-events: none; }
+.quiz-q .q-feedback { margin-top: 10px; padding: 10px; border-radius: 8px; font-size: 13px; line-height: 1.5; display: none; }
+.quiz-q .q-feedback.show { display: block; }
+.quiz-q .q-feedback.good { background: #ebfbee; color: #2b8a3e; }
+.quiz-q .q-feedback.bad { background: #fff5f5; color: #c92a2a; }
+
+/* RESULTS */
+.results { text-align: center; padding: 24px; }
+.results .big-score { font-size: 64px; font-weight: 800; }
+.results .big-score.great { color: #40c057; }
+.results .big-score.pass { color: #f59f00; }
+.results .big-score.fail { color: #e03131; }
+.results h2 { font-size: 20px; margin: 8px 0; }
+.results p { font-size: 14px; color: #868e96; line-height: 1.5; }
+.results .retry { margin-top: 16px; padding: 14px 32px; background: #228be6; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; }
+.results .weak-list { text-align: left; margin-top: 16px; background: #fff5f5; padding: 14px; border-radius: 10px; }
+.results .weak-list h4 { font-size: 13px; color: #c92a2a; margin-bottom: 6px; }
+.results .weak-list li { font-size: 13px; margin-bottom: 4px; list-style: none; }
+.results .weak-list li::before { content: '❌ '; }
+
+/* SCORE PANEL */
+.score-card { background: #fff; border-radius: 16px; padding: 20px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.06); text-align: center; }
+.score-card h3 { font-size: 14px; color: #868e96; margin-bottom: 8px; }
+.progress-bar { height: 12px; background: #e9ecef; border-radius: 6px; overflow: hidden; margin-bottom: 6px; position: relative; }
+.progress-fill { height: 100%; border-radius: 6px; transition: width .5s; }
+.progress-fill.good { background: linear-gradient(90deg, #40c057, #51cf66); }
+.progress-fill.mid { background: linear-gradient(90deg, #f59f00, #fcc419); }
+.progress-fill.low { background: linear-gradient(90deg, #e03131, #ff6b6b); }
+.threshold { display: flex; justify-content: space-between; font-size: 11px; color: #adb5bd; }
+
+/* GRADE INDICATOR */
+.grade-indicator { display: flex; gap: 8px; margin: 16px 0 4px; }
+.grade-box { flex: 1; padding: 10px 8px; border-radius: 10px; text-align: center; border: 2px solid #e9ecef; transition: all .3s; }
+.grade-box .grade-emoji { font-size: 24px; display: block; margin-bottom: 4px; }
+.grade-box .grade-label { font-size: 12px; font-weight: 700; display: block; }
+.grade-box .grade-desc { font-size: 10px; color: #868e96; }
+.grade-box.active-fail { border-color: #e03131; background: #fff5f5; }
+.grade-box.active-fail .grade-label { color: #e03131; }
+.grade-box.active-pass { border-color: #f59f00; background: #fffbeb; }
+.grade-box.active-pass .grade-label { color: #e67700; }
+.grade-box.active-great { border-color: #40c057; background: #ebfbee; }
+.grade-box.active-great .grade-label { color: #2b8a3e; }
+
+.readiness { margin-top: 20px; padding: 20px; border-radius: 16px; text-align: center; }
+.readiness.ready-great { background: #ebfbee; }
+.readiness.ready-pass { background: #fffbeb; }
+.readiness.ready-fail { background: #fff5f5; }
+.readiness .emoji { font-size: 40px; }
+.readiness h2 { font-size: 18px; margin: 8px 0 4px; }
+.readiness p { font-size: 13px; color: #495057; }
+.reset-btn { margin-top: 16px; padding: 10px 20px; background: #e9ecef; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; color: #495057; }
+
+/* HISTORY */
+.history-section { margin-top: 16px; }
+.history-section h3 { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #495057; }
+.history-entry { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #fff; border-radius: 10px; margin-bottom: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.04); font-size: 12px; }
+.history-entry .he-date { color: #868e96; font-weight: 600; min-width: 80px; }
+.history-entry .he-scores { display: flex; gap: 10px; flex: 1; }
+.history-entry .he-badge { padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 11px; }
+.he-badge.flash { background: #f0f7ff; color: #228be6; }
+.he-badge.quiz { background: #ebfbee; color: #2b8a3e; }
+.he-badge.quiz-fail { background: #fff5f5; color: #c92a2a; }
+.no-history { text-align: center; padding: 16px; font-size: 13px; color: #adb5bd; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showPanel('overview')"><span class="nav-icon">📋</span>Overzicht</button>
+  <button class="nav-btn" onclick="showPanel('flash')"><span class="nav-icon">🃏</span>Flashcards</button>
+  <button class="nav-btn" onclick="showPanel('quiz')"><span class="nav-icon">✍️</span>Toets</button>
+  <button class="nav-btn" onclick="showPanel('score')"><span class="nav-icon">📊</span>Score</button>
+</nav>
+
+<!-- OVERVIEW PANEL -->
+<div id="panel-overview" class="panel active">
+  <div class="hero">
+    <h1>Maatschappij — AK Klimaat</h1>
+    <p>Toets morgen! Hier staan alle begrippen over klimaat, weer, Köppen en klimaatverandering. Flashcards doorlopen, toets doen, klaar. Je kent het al aardig, dit is de laatste check.</p>
+    <div class="score-ring">
+      <div class="ring-container">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="6"/>
+          <circle id="hero-ring" cx="32" cy="32" r="28" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-dasharray="175.9" stroke-dashoffset="175.9"/>
+        </svg>
+        <div class="ring-text" id="hero-pct" style="color:#fff">0%</div>
+      </div>
+      <div class="score-label">
+        <strong id="hero-status">Start met leren!</strong>
+        <span id="hero-sub">Flashcards → Toets → Klaar</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tier-section tier-1">
+    <div class="tier-header"><span class="tier-badge">KERN</span><span class="tier-title">Dit MOET je weten voor een 7</span></div>
+    <div id="tier1-cards"></div>
+  </div>
+  <div class="tier-section tier-2">
+    <div class="tier-header"><span class="tier-badge">BELANGRIJK</span><span class="tier-title">Grote kans dat dit gevraagd wordt</span></div>
+    <div id="tier2-cards"></div>
+  </div>
+  <div class="tier-section tier-3">
+    <div class="tier-header"><span class="tier-badge">BONUS</span><span class="tier-title">Ken je dit ook? Dan richting een 8+</span></div>
+    <div id="tier3-cards"></div>
+  </div>
+</div>
+
+<!-- FLASHCARD PANEL — REDESIGNED WITH TYPE-FIRST -->
+<div id="panel-flash" class="panel">
+  <div class="fc-progress"><strong id="fc-counter">1 / 15</strong> begrippen &nbsp;|&nbsp; ✅ <span id="fc-known">0</span> gekend</div>
+
+  <div class="fc-instruction" id="fc-instruction">
+    <p id="fc-step-text">Zeg hardop in je eigen woorden wat dit begrip betekent (stil in je hoofd mag natuurlijk ook). Tik daarna op de kaart om het juiste antwoord te zien.</p>
+  </div>
+
+  <div class="flashcard" id="flashcard" onclick="flipCard()">
+    <div class="fc-label" id="fc-label">BEGRIP</div>
+    <div class="fc-term" id="fc-front">—</div>
+    <div class="fc-answer" id="fc-back" style="display:none"></div>
+    <div class="fc-flip-hint" id="fc-flip-hint">Tik op de kaart om het antwoord te zien</div>
+  </div>
+
+  <div class="fc-buttons" id="fc-buttons" style="display:none">
+    <button class="fc-btn dunno" onclick="markCard(false)">🤔 Niet helemaal</button>
+    <button class="fc-btn know" onclick="markCard(true)">✅ Klopte!</button>
+  </div>
+
+  <div class="fc-btn-nav">
+    <button class="fc-nav" onclick="prevCard()">← Vorige</button>
+    <button class="fc-nav" onclick="nextCard()">Volgende →</button>
+  </div>
+</div>
+
+<!-- QUIZ PANEL -->
+<div id="panel-quiz" class="panel">
+  <div class="quiz-info" id="quiz-start">
+    <h2>Test jezelf</h2>
+    <p>De toets is een manier om aan jezelf te bewijzen dat je de stof echt kent. Je krijgt 15 willekeurige vragen — elke keer andere. Kijk achteraf of je er tevreden mee bent: wil je net een voldoende halen, of ga je voor een ruime voldoende? Jij bepaalt wat goed genoeg is.</p>
+    <button class="start-quiz" onclick="startQuiz()">Start de toets</button>
+  </div>
+  <div id="quiz-questions" style="display:none"></div>
+  <div id="quiz-results" style="display:none"></div>
+</div>
+
+<!-- SCORE PANEL -->
+<div id="panel-score" class="panel">
+  <div class="score-card">
+    <h3>Flashcards gekend</h3>
+    <div class="progress-bar"><div class="progress-fill good" id="sc-flash-bar" style="width:0%"></div></div>
+    <div class="threshold"><span>0%</span><span id="sc-flash-pct">0 / 14</span><span>100%</span></div>
+  </div>
+  <div class="score-card">
+    <h3>Laatste toetsscore</h3>
+    <div class="progress-bar"><div class="progress-fill mid" id="sc-quiz-bar" style="width:0%"></div></div>
+    <div class="threshold"><span>0%</span><span id="sc-quiz-pct">Nog niet gemaakt</span><span>100%</span></div>
+  </div>
+  <div class="score-card">
+    <h3>Totale paraatheid</h3>
+    <div class="progress-bar"><div class="progress-fill low" id="sc-total-bar" style="width:0%"></div></div>
+    <div class="threshold"><span>0%</span><span>Jij kiest je doel ↓</span><span>100%</span></div>
+  </div>
+
+  <div class="grade-indicator" id="grade-indicator">
+    <div class="grade-box" id="grade-fail">
+      <span class="grade-emoji">😬</span>
+      <span class="grade-label">Onder 5,5</span>
+      <span class="grade-desc">Onvoldoende</span>
+    </div>
+    <div class="grade-box" id="grade-pass">
+      <span class="grade-emoji">👍</span>
+      <span class="grade-label">5,5 — 7</span>
+      <span class="grade-desc">Voldoende</span>
+    </div>
+    <div class="grade-box" id="grade-great">
+      <span class="grade-emoji">🔥</span>
+      <span class="grade-label">7 of meer</span>
+      <span class="grade-desc">Goed!</span>
+    </div>
+  </div>
+
+  <div id="readiness-box" class="readiness ready-fail">
+    <div class="emoji">🎯</div>
+    <h2 id="ready-title">Nog even oefenen</h2>
+    <p id="ready-text">Doe de flashcards en de toets om je score op te bouwen.</p>
+  </div>
+
+  <!-- HISTORY SECTION -->
+  <div class="history-section" id="history-section">
+    <h3>📈 Voortgang over tijd</h3>
+    <div id="history-list"><div class="no-history">Nog geen eerdere pogingen opgeslagen</div></div>
+  </div>
+
+  <button class="reset-btn" onclick="resetAll()">🔄 Alles resetten</button>
+</div>
+
+<script>
+// ===== DATA =====
+const topics = [
+  // TIER 1 — KERN (must know for a 7)
+  { id:'weer-klimaat', tier:1, term:'Weer vs Klimaat', short:'Momentopname vs langjarig gemiddelde', detail:'<span class="key">Weer</span> = de toestand van de atmosfeer op een <span class="key">bepaald moment</span> (vandaag regent het, morgen schijnt de zon).<br><span class="key">Klimaat</span> = het gemiddelde weer over een periode van <span class="key">minimaal 30 jaar</span>.<br><br>Als iemand zegt "het is vandaag 25 graden" → dat is weer.<br>Als iemand zegt "de gemiddelde temperatuur in juli is 20 graden" → dat is klimaat.', answer:'Weer = momentopname (wat gebeurt er NU). Klimaat = gemiddelde over minimaal 30 jaar. Een uitspraak over een specifiek moment = weer. Een uitspraak over een langjarig gemiddelde = klimaat.',
+    videos:[] },
+  { id:'stuwingsregen', tier:1, term:'Stuwingsregen', short:'Wind tegen berg = neerslag aan loefzijde', detail:'Hoe ontstaat stuwingsregen:<br>1. Wind waait tegen een berg en wordt <span class="key">omhoog geduwd</span> (gestuwd)<br>2. Stijgende lucht <span class="key">koelt af</span><br>3. Afgekoelde lucht <span class="key">condenseert</span> en wordt zwaarder (wolken)<br>4. Wolken blijven hangen aan de <span class="key">loefzijde</span> (windzijde) en het regent<br><br>Aan de andere kant (lijzijde) is het vaak droog.', answer:'Stuwingsregen: wind tegen berg → lucht stijgt → koelt af → condenseert → neerslag aan de loefzijde (windzijde). Lijzijde = droog.',
+    videos:[] },
+  { id:'broeikaseffect', tier:1, term:'Broeikaseffect', short:'Hoe de aarde warm blijft', detail:'Het <span class="key">broeikaseffect</span> in 3 stappen:<br>1. Zonnestralen gaan door de atmosfeer heen naar de aarde<br>2. Een deel van de warmte wordt <span class="key">weerkaatst</span> richting het heelal<br>3. Een ander deel wordt <span class="key">vastgehouden</span> door broeikasgassen in de atmosfeer<br><br>Zonder broeikaseffect zou het op aarde gemiddeld -18°C zijn. Het is dus op zich een goed iets!', answer:'Broeikaseffect: zonnestralen bereiken aarde, deel warmte gaat terug naar heelal, deel wordt vastgehouden door broeikasgassen. Houdt de aarde warm.',
+    videos:[] },
+  { id:'versterkt-broeikaseffect', tier:1, term:'Versterkt broeikaseffect', short:'Mens stoot extra broeikasgassen uit', detail:'De mens <span class="key">versterkt</span> het broeikaseffect door meer broeikasgassen in de atmosfeer te brengen:<br><br>• <span class="key">CO₂</span> (koolstofdioxide): door fossiele brandstoffen te verbranden (olie, gas, steenkool) voor energie en transport<br>• <span class="key">CH₄</span> (methaan): door grote hoeveelheden vee te houden (bio-industrie)<br><br><div class="warn">Let op: bij het voorbeeld MOET je het specifieke broeikasgas benoemen (CO₂ of CH₄)!</div>', answer:'De mens versterkt het broeikaseffect door extra broeikasgassen uit te stoten. CO₂ door verbranding fossiele brandstoffen. CH₄ (methaan) door veeteelt/bio-industrie. Noem altijd het specifieke gas!',
+    videos:[] },
+  { id:'koppen', tier:1, term:'Köppen klimaatclassificatie', short:'Systeem om klimaten in te delen met letters', detail:'Het systeem van <span class="key">Köppen</span> deelt klimaten in met letters:<br><br><span class="key">A</span> = Tropisch (warm, veel neerslag)<br><span class="key">B</span> = Droog (woestijn/steppe)<br><span class="key">C</span> = Gematigd (milde winters)<br><span class="key">D</span> = Continentaal (koude winters)<br><span class="key">E</span> = Polair (koud)<br><br>Tweede letter: <span class="key">f</span> = geen droog seizoen, <span class="key">w</span> = droge winter, <span class="key">s</span> = droge zomer<br><span class="key">T</span> = toendra (bij E)<br><br>Voorbeelden: Af = tropisch regenwoud, Cs = mediterraan, Df = continentaal zonder droog seizoen', answer:'Köppen: A=tropisch, B=droog, C=gematigd, D=continentaal, E=polair. Tweede letter: f=geen droog seizoen, w=droge winter, s=droge zomer, T=toendra.',
+    videos:[] },
+  { id:'waterberging', tier:1, term:'Waterberging', short:'Water opslaan (bergen) voor later', detail:'Nederland heeft 3 manieren om met water om te gaan:<br><br>1. <span class="key">Vasthouden</span>: water laten staan waar het valt (bijv. in de grond)<br>2. <span class="key">Bergen</span>: water opslaan voor later gebruik (bijv. waterberging onder parkeergarage Rotterdam)<br>3. <span class="key">Afvoeren</span>: water wegpompen naar zee of rivieren<br><br>Door klimaatverandering is er meer piekneerslag EN meer droogte → we moeten meer water <span class="key">bergen</span> (opslaan).', answer:'Drie manieren: vasthouden (laten staan), bergen (opslaan voor later), afvoeren (wegpompen). Door klimaatverandering is bergen steeds belangrijker.',
+    videos:[] },
+
+  // TIER 2 — BELANGRIJK
+  { id:'klimaatfactoren', tier:2, term:'6 Klimaatfactoren', short:'Wat bepaalt het klimaat van een plek?', detail:'Er zijn 6 factoren die het klimaat van een plek bepalen:<br><br>1. <span class="key">Breedteligging</span>: hoe dicht bij de evenaar, hoe warmer<br>2. <span class="key">Hoogteligging</span>: hoger = kouder<br>3. <span class="key">Afstand tot zee</span>: zee matigt het klimaat<br>4. <span class="key">Zeestromingen</span>: warme/koude zeestromingen beïnvloeden temperatuur<br>5. <span class="key">Windrichting</span>: bepaalt of lucht van zee of land komt<br>6. <span class="key">Luchtdruk</span>: hogedruk = droog, lagedruk = nat', answer:'6 klimaatfactoren: breedteligging, hoogteligging, afstand tot zee, zeestromingen, windrichting, luchtdruk.',
+    videos:[] },
+  { id:'aanlandige-wind', tier:2, term:'Aanlandige wind', short:'Wind van zee naar land', detail:'<span class="key">Aanlandige wind</span> = wind die van de zee naar het land waait.<br><br>In het <span class="key">voorjaar</span> is de zee nog relatief koud. Een aanlandige wind brengt dan koude lucht naar de kust → de kust is <span class="key">kouder</span> dan het binnenland.<br><br>Dit verklaart waarom het in april aan de kust vaak frisser is dan in bijvoorbeeld Limburg.', answer:'Aanlandige wind = wind van zee naar land. In het voorjaar is de zee nog koud, dus aanlandige wind koelt de kust af. Kust dan kouder dan binnenland.',
+    videos:[] },
+  { id:'temp-hoogte', tier:2, term:'Temperatuur en hoogte', short:'Hoger = kouder, en waarom', detail:'Waarom is het hoger in de atmosfeer kouder?<br><br>1. Luchtdeeltjes <span class="key">trillen</span>, daardoor komt warmte vrij (kinetische energie)<br>2. Hoger in de atmosfeer is de <span class="key">dichtheid lager</span> (minder deeltjes per m³)<br>3. Minder deeltjes = minder trillingen = <span class="key">minder warmte</span><br><br>Per 1000 meter omhoog daalt de temperatuur met ongeveer 6°C.', answer:'Hoger = minder luchtdeeltjes = minder trillingen = minder warmte. Temperatuur daalt ~6°C per 1000m hoogte.',
+    videos:[] },
+  { id:'loef-lij', tier:2, term:'Loefzijde vs Lijzijde', short:'Windzijde (nat) vs luwezijde (droog)', detail:'<span class="key">Loefzijde</span> = de kant van de berg waar de wind tegenaan blaast (windzijde). Hier regent het veel door stuwingsregen.<br><br><span class="key">Lijzijde</span> = de andere kant van de berg (luwezijde). Hier is het droog, want de wolken zijn al leeggeregend aan de loefzijde.', answer:'Loefzijde = windzijde van de berg, veel neerslag (stuwingsregen). Lijzijde = luwezijde, droog.',
+    videos:[] },
+  { id:'piekneerslag', tier:2, term:'Piekneerslag', short:'Extreme regenbuien door klimaatverandering', detail:'Door klimaatverandering worden regenbuien <span class="key">extremer en onvoorspelbaarder</span>.<br><br>Het probleem: onze afvoersystemen (riolen, grachten) zijn niet berekend op zulke extreme buien → <span class="key">wateroverlast</span>.<br><br>Oplossing: meer water <span class="key">bergen</span> (opslaan), bijvoorbeeld waterpleinen, groene daken, ondergrondse waterberging.', answer:'Piekneerslag = extreme regenbuien. Onze afvoersystemen kunnen dit niet aan. Oplossing: meer waterberging.',
+    videos:[] },
+
+  // TIER 3 — BONUS
+  { id:'klimaatverandering-nl', tier:3, term:'Klimaatverandering gevolgen NL', short:'Meer regen, meer droogte, zeespiegel stijgt', detail:'Gevolgen van klimaatverandering voor Nederland:<br><br>• Meer <span class="key">piekneerslag</span> (extreme regenbuien)<br>• Langere periodes van <span class="key">droogte</span><br>• <span class="key">Zeespiegelstijging</span><br>• Hogere temperaturen<br><br>Nederland moet daarom meer water bergen EN de dijken versterken.', answer:'Gevolgen NL: meer piekneerslag, langere droogte, zeespiegelstijging, hogere temperaturen. Meer waterberging en sterkere dijken nodig.',
+    videos:[] },
+  { id:'houd-methode', tier:3, term:'HOUD-methode', short:'Structuur voor uitleg geven', detail:'De <span class="key">HOUD-methode</span> is een manier om uitleg te structureren:<br><br><span class="key">H</span> = Hoofd (de hoofdvraag/het onderwerp)<br><span class="key">O</span> = Onderbouwing (waarom is dit zo?)<br><span class="key">U</span> = Uitleg (leg het uit in eigen woorden)<br><span class="key">D</span> = Detail (geef een voorbeeld of extra info)', answer:'HOUD-methode: H=Hoofd (onderwerp), O=Onderbouwing (waarom), U=Uitleg (eigen woorden), D=Detail (voorbeeld).',
+    videos:[] },
+  { id:'condensatie', tier:3, term:'Condensatie', short:'Waterdamp wordt vloeibaar water', detail:'<span class="key">Condensatie</span> = het proces waarbij waterdamp (gas) overgaat in vloeibaar water.<br><br>Dit gebeurt als warme, vochtige lucht <span class="key">afkoelt</span>. Je ziet het als wolken, dauw op gras, of wasem op een spiegel na het douchen.<br><br>Bij stuwingsregen condenseert de lucht als die omhoog wordt geduwd en afkoelt.', answer:'Condensatie: waterdamp (gas) wordt vloeibaar water door afkoeling. Gebeurt bij stuwingsregen als lucht stijgt en afkoelt.',
+    videos:[] },
+];
+
+// ===== QUIZ QUESTIONS — POOL (25 vragen, 15 per toets) =====
+const quizPool = [
+  { q:'"Het is vandaag 25 graden in Utrecht." Gaat dit over weer of klimaat?', options:['Klimaat','Weer','Allebei','Geen van beide'], correct:1, explain:'Dit is weer, want het gaat over een specifiek moment (vandaag). Klimaat gaat over een gemiddelde over minimaal 30 jaar.' },
+  { q:'Klimaat is het gemiddelde weer over een periode van minimaal...', options:['1 jaar','10 jaar','30 jaar','100 jaar'], correct:2, explain:'Klimaat = gemiddelde weer over minimaal 30 jaar.' },
+  { q:'Wat gebeurt er bij stuwingsregen als lucht tegen een berg wordt geduwd?', options:['Lucht daalt en warmt op','Lucht stijgt en koelt af','Lucht stijgt en warmt op','Lucht blijft op dezelfde hoogte'], correct:1, explain:'Bij stuwingsregen wordt lucht omhoog geduwd (gestuwd), en stijgende lucht koelt af.' },
+  { q:'Aan welke kant van de berg valt de meeste neerslag bij stuwingsregen?', options:['Lijzijde','Loefzijde','Allebei evenveel','De top'], correct:1, explain:'De loefzijde (windzijde) krijgt de meeste neerslag. De lijzijde (luwezijde) is droog.' },
+  { q:'Hoe heet het type neerslag dat ontstaat als wind tegen een berg wordt geblazen?', options:['Convectieregen','Frontregen','Stuwingsregen','Moessonregen'], correct:2, explain:'Stuwingsregen (stuwingsneerslag) ontstaat als wind tegen een berg wordt geduwd.' },
+  { q:'Waarom is het kouder hoger in de atmosfeer?', options:['Er is meer wind','Er zijn minder luchtdeeltjes, dus minder trillingen en minder warmte','De zon is verder weg','Er is meer water in de lucht'], correct:1, explain:'Hoger = lagere luchtdichtheid = minder deeltjes = minder trillingen (kinetische energie) = minder warmte.' },
+  { q:'Nederland had in april een aanlandige wind. Waarom was de kust kouder dan het binnenland?', options:['De wind kwam uit de Sahara','De zee is in het voorjaar nog relatief koud','Er was een hogedrukgebied','Het had net geregend'], correct:1, explain:'In het voorjaar is de zee nog koud. Aanlandige wind (van zee naar land) brengt koude lucht naar de kust.' },
+  { q:'Wat is een aanlandige wind?', options:['Wind van land naar zee','Wind van zee naar land','Wind langs de kust','Wind van boven naar beneden'], correct:1, explain:'Aanlandige wind = wind die van de zee naar het land waait.' },
+  { q:'Welk klimaattype hoort bij "tropisch regenwoud" in de Köppen-classificatie?', options:['Cs','Af','Df','ET'], correct:1, explain:'Af = tropisch (A) zonder droog seizoen (f). Dat is tropisch regenwoud.' },
+  { q:'Wat betekent de letter "C" in het Köppen-systeem?', options:['Continentaal','Polair','Gematigd','Droog'], correct:2, explain:'C = gematigd klimaat (milde winters). D = continentaal, E = polair, B = droog.' },
+  { q:'Wat betekent de kleine letter "s" bij Köppen (bijv. Cs)?', options:['Sneeuw','Droge zomer','Droge winter','Steppe'], correct:1, explain:'s = droge zomer. Cs = gematigd klimaat met droge zomer (mediterraan klimaat).' },
+  { q:'Wat is stap 1 van het broeikaseffect?', options:['Broeikasgassen absorberen warmte','Warmte gaat terug naar het heelal','Zonnestralen gaan door de atmosfeer naar de aarde','De aarde koelt af'], correct:2, explain:'Stap 1: zonnestralen gaan door de atmosfeer heen naar het aardoppervlak.' },
+  { q:'Wat doet de mens waardoor het broeikaseffect sterker wordt?', options:['Meer bomen planten','Meer broeikasgassen uitstoten','Minder water gebruiken','De atmosfeer dunner maken'], correct:1, explain:'De mens versterkt het broeikaseffect door meer broeikasgassen (CO₂, CH₄) in de atmosfeer te brengen.' },
+  { q:'Welk broeikasgas komt vrij bij het verbranden van fossiele brandstoffen?', options:['CH₄ (methaan)','O₂ (zuurstof)','CO₂ (koolstofdioxide)','N₂ (stikstof)'], correct:2, explain:'Bij verbranding van fossiele brandstoffen (olie, gas, steenkool) komt CO₂ (koolstofdioxide) vrij.' },
+  { q:'Welk broeikasgas komt vrij door veeteelt (bio-industrie)?', options:['CO₂','CH₄ (methaan)','O₃ (ozon)','H₂O (waterdamp)'], correct:1, explain:'Door grote hoeveelheden vee (runderen) te houden komt CH₄ (methaan) vrij.' },
+  { q:'Wat betekent "bergen" in de context van waterbeheer?', options:['Water naar de bergen brengen','Water afvoeren naar zee','Water opslaan voor later','Water laten verdampen'], correct:2, explain:'Bergen = water opslaan. Bijvoorbeeld in een ondergrondse waterberging onder een parkeergarage.' },
+  { q:'Waarom is waterberging in Nederland steeds belangrijker?', options:['Er valt minder regen','De piekneerslag is hoger en er zijn langere droogtes','De rivieren worden breder','Er komen meer bergen'], correct:1, explain:'Door klimaatverandering: meer extreme regenbuien (afvoersystemen niet berekend) EN langere droogtes (water vasthouden nodig).' },
+  { q:'Wat zijn de 3 manieren van wateromgang in Nederland?', options:['Drinken, wassen, zwemmen','Pompen, dijken, sluizen','Vasthouden, bergen, afvoeren','Filteren, zuiveren, lozen'], correct:2, explain:'De 3 manieren: vasthouden (laten staan), bergen (opslaan), afvoeren (wegpompen).' },
+  { q:'Welke klimaatcode past bij een continentaal klimaat zonder droog seizoen?', options:['Cs','Aw','Df','ET'], correct:2, explain:'D = continentaal, f = geen droog seizoen. Df = continentaal klimaat zonder droog seizoen.' },
+  { q:'Hoeveel klimaatfactoren zijn er?', options:['3','4','6','8'], correct:2, explain:'Er zijn 6 klimaatfactoren: breedteligging, hoogteligging, afstand tot zee, zeestromingen, windrichting, luchtdruk.' },
+  { q:'Welke klimaatfactor verklaart waarom het bij de evenaar warmer is dan bij de polen?', options:['Hoogteligging','Windrichting','Breedteligging','Zeestromingen'], correct:2, explain:'Breedteligging: hoe dichter bij de evenaar, hoe directer de zonnestralen en hoe warmer het is.' },
+  { q:'Wat is condensatie?', options:['Water wordt ijs','Waterdamp wordt vloeibaar water','Vloeibaar water wordt waterdamp','Ijs wordt water'], correct:1, explain:'Condensatie = waterdamp (gas) wordt vloeibaar water door afkoeling. Je ziet het als wolken of dauw.' },
+  { q:'Welke klimaatcode past bij een savannegebied met droge winter?', options:['Af','Aw','Cs','Cw'], correct:1, explain:'A = tropisch, w = droge winter. Aw = tropisch savanneklimaat met droge winter.' },
+  { q:'Wat is een gevolg van klimaatverandering voor Nederland?', options:['Minder regen het hele jaar','Meer piekneerslag en langere droogte','Lagere zeespiegel','Koudere winters'], correct:1, explain:'Klimaatverandering in NL: meer extreme regenbuien, langere droogte, zeespiegelstijging, hogere temperaturen.' },
+  { q:'Waar staat de H voor in de HOUD-methode?', options:['Hypothese','Hoofd','Hulpbron','Historisch'], correct:1, explain:'HOUD: H=Hoofd (het hoofdonderwerp/de hoofdvraag), O=Onderbouwing, U=Uitleg, D=Detail.' },
+];
+
+const QUIZ_SIZE = 15;
+
+// ===== STATE =====
+let flashKnown = JSON.parse(localStorage.getItem('maat-klimaat-flash') || '{}');
+let quizScore = JSON.parse(localStorage.getItem('maat-klimaat-quiz') || 'null');
+let history = JSON.parse(localStorage.getItem('maat-klimaat-history') || '[]');
+let fcIndex = 0;
+
+// ===== NAV =====
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if(id==='flash') showFlashcard();
+  if(id==='score') updateScorePanel();
+  updateHero();
+}
+
+// ===== OVERVIEW =====
+function renderOverview() {
+  [1,2,3].forEach(tier => {
+    const container = document.getElementById('tier'+tier+'-cards');
+    container.innerHTML = '';
+    topics.filter(t=>t.tier===tier).forEach(t => {
+      const known = flashKnown[t.id];
+      const cls = known ? 'mastered' : '';
+      const status = known ? '✅ ▾' : '▾';
+      let videoHtml = '';
+      if(t.videos && t.videos.length > 0) {
+        videoHtml = `<div class="tc-videos"><div class="vid-label">🎬 Filmpjes</div>` +
+          t.videos.map(v => `<a class="vid-link" href="${v.url}" target="_blank" onclick="event.stopPropagation()"><span class="vid-icon">▶️</span>${v.title}<span class="vid-src">${v.src}</span></a>`).join('') +
+          `</div>`;
+      }
+      container.innerHTML += `
+        <div class="topic-card ${cls}" onclick="this.classList.toggle('open')">
+          <div class="tc-top"><h3>${t.term}</h3><span class="tc-status">${status}</span></div>
+          <div class="tc-desc">${t.short}</div>
+          <div class="tc-detail">${t.detail}${videoHtml}</div>
+        </div>`;
+    });
+  });
+}
+
+// ===== HERO =====
+function updateHero() {
+  const knownCount = Object.values(flashKnown).filter(Boolean).length;
+  const total = topics.length;
+  const pct = Math.round((knownCount/total)*100);
+  const quizPct = quizScore !== null ? Math.round((quizScore/QUIZ_SIZE)*100) : 0;
+  const totalPct = Math.round((pct*0.4 + quizPct*0.6));
+
+  document.getElementById('hero-pct').textContent = totalPct+'%';
+  const ring = document.getElementById('hero-ring');
+  ring.style.strokeDashoffset = 175.9 - (175.9 * totalPct / 100);
+
+  const status = document.getElementById('hero-status');
+  const sub = document.getElementById('hero-sub');
+  if(totalPct >= 70) { status.textContent = '🔥 Richting een 7+!'; sub.textContent = 'Je kent de kernstof goed.'; }
+  else if(totalPct >= 37) { status.textContent = '👍 Boven een 5,5'; sub.textContent = 'Voldoende — wil je hoger? Oefen door!'; }
+  else if(totalPct > 0) { status.textContent = '😬 Nog onder een 5,5'; sub.textContent = 'Oefen de begrippen die je nog mist.'; }
+  else { status.textContent = 'Start met leren!'; sub.textContent = 'Flashcards → Toets → Klaar'; }
+}
+
+// ===== FLASHCARDS — TYPE-FIRST SYSTEM =====
+let fcFlipped = false;
+
+function showFlashcard() {
+  fcFlipped = false;
+  const t = topics[fcIndex];
+
+  // Update progress
+  document.getElementById('fc-counter').textContent = (fcIndex+1)+' / '+topics.length;
+  document.getElementById('fc-known').textContent = Object.values(flashKnown).filter(Boolean).length;
+
+  // Show term, hide answer
+  document.getElementById('fc-label').textContent = t.tier===1?'🔴 KERN':t.tier===2?'🟡 BELANGRIJK':'🟢 BONUS';
+  document.getElementById('fc-front').textContent = t.term;
+  document.getElementById('fc-back').style.display = 'none';
+  document.getElementById('fc-back').innerHTML = '';
+  document.getElementById('fc-flip-hint').style.display = 'block';
+
+  // Update instruction
+  if(flashKnown[t.id]) {
+    document.getElementById('fc-step-text').textContent = '✅ Dit begrip had je al goed. Zeg het nog een keer hardop voor jezelf en tik op de kaart om te checken.';
+  } else {
+    document.getElementById('fc-step-text').textContent = 'Zeg hardop in je eigen woorden wat dit begrip betekent (stil in je hoofd mag natuurlijk ook). Tik daarna op de kaart om het juiste antwoord te zien.';
+  }
+
+  // Hide buttons
+  document.getElementById('fc-buttons').style.display = 'none';
+}
+
+function flipCard() {
+  if(!fcFlipped) {
+    // Show answer
+    fcFlipped = true;
+    const t = topics[fcIndex];
+    document.getElementById('fc-back').innerHTML = t.answer;
+    document.getElementById('fc-back').style.display = 'block';
+    document.getElementById('fc-flip-hint').style.display = 'none';
+    document.getElementById('fc-step-text').textContent = 'Klopte het met wat je had bedacht? Wees eerlijk naar jezelf — alleen zo weet je wat je nog moet oefenen.';
+    document.getElementById('fc-buttons').style.display = 'flex';
+  } else {
+    // Already flipped, ignore
+  }
+}
+
+function markCard(known) {
+  flashKnown[topics[fcIndex].id] = known;
+  localStorage.setItem('maat-klimaat-flash', JSON.stringify(flashKnown));
+  nextCard();
+}
+
+function nextCard() {
+  fcIndex = (fcIndex + 1) % topics.length;
+  showFlashcard();
+}
+function prevCard() {
+  fcIndex = (fcIndex - 1 + topics.length) % topics.length;
+  showFlashcard();
+}
+
+// ===== QUIZ — RANDOM 15 FROM 25, SHUFFLED OPTIONS =====
+function shuffleArray(arr) {
+  const a = [...arr];
+  for(let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startQuiz() {
+  document.getElementById('quiz-start').style.display = 'none';
+  document.getElementById('quiz-results').style.display = 'none';
+  const container = document.getElementById('quiz-questions');
+  container.style.display = 'block';
+  container.innerHTML = '';
+
+  // Pick random 15 from pool of 25
+  const shuffledPool = shuffleArray(quizPool);
+  const selected = shuffledPool.slice(0, QUIZ_SIZE);
+
+  // For each question, also shuffle the answer options
+  const prepared = selected.map(q => {
+    const indices = q.options.map((_, i) => i);
+    const shuffledIndices = shuffleArray(indices);
+    const newOptions = shuffledIndices.map(i => q.options[i]);
+    const newCorrect = shuffledIndices.indexOf(q.correct);
+    return { ...q, options: newOptions, correct: newCorrect };
+  });
+
+  prepared.forEach((q, i) => {
+    const optionsHtml = q.options.map((opt, j) =>
+      `<button class="option" data-q="${i}" data-o="${j}" onclick="answerQuiz(${i},${j})">${opt}</button>`
+    ).join('');
+    container.innerHTML += `
+      <div class="quiz-q" id="qq-${i}" data-correct="${q.correct}">
+        <div class="q-num">Vraag ${i+1} van ${QUIZ_SIZE}</div>
+        <div class="q-text">${q.q}</div>
+        ${optionsHtml}
+        <div class="q-feedback" id="qf-${i}">${q.explain}</div>
+      </div>`;
+  });
+
+  container.innerHTML += `<button class="start-quiz" onclick="finishQuiz()" style="width:100%;margin-top:12px">Bekijk resultaat</button>`;
+
+  window._quizPrepared = prepared;
+  window._quizAnswers = {};
+}
+
+function answerQuiz(qIdx, optIdx) {
+  const qq = document.getElementById('qq-'+qIdx);
+  const correct = parseInt(qq.dataset.correct);
+  const buttons = qq.querySelectorAll('.option');
+
+  buttons.forEach(b => b.classList.add('disabled'));
+  buttons[correct].classList.add('correct');
+  if(optIdx !== correct) buttons[optIdx].classList.add('wrong');
+
+  const fb = document.getElementById('qf-'+qIdx);
+  fb.classList.add('show', optIdx === correct ? 'good' : 'bad');
+
+  window._quizAnswers[qIdx] = optIdx === correct;
+}
+
+function finishQuiz() {
+  const answers = window._quizAnswers;
+  const total = QUIZ_SIZE;
+  const correct = Object.values(answers).filter(Boolean).length;
+  const pct = Math.round((correct/total)*100);
+
+  quizScore = correct;
+  localStorage.setItem('maat-klimaat-quiz', JSON.stringify(quizScore));
+
+  // Save to history
+  const knownCount = Object.values(flashKnown).filter(Boolean).length;
+  history.push({
+    date: new Date().toISOString(),
+    flashKnown: knownCount,
+    flashTotal: topics.length,
+    quizScore: correct,
+    quizTotal: total
+  });
+  localStorage.setItem('maat-klimaat-history', JSON.stringify(history));
+
+  document.getElementById('quiz-questions').style.display = 'none';
+  const results = document.getElementById('quiz-results');
+  results.style.display = 'block';
+
+  let gradeClass, gradeMsg;
+  if(pct >= 70) { gradeClass = 'great'; gradeMsg = 'Richting een 7 of meer!'; }
+  else if(pct >= 37) { gradeClass = 'pass'; gradeMsg = 'Boven een 5,5 — voldoende!'; }
+  else { gradeClass = 'fail'; gradeMsg = 'Nog onder een 5,5'; }
+
+  let weakTopics = [];
+  window._quizPrepared.forEach((q, i) => {
+    if(!answers[i]) weakTopics.push(q.q);
+  });
+
+  results.innerHTML = `
+    <div class="results">
+      <div class="big-score ${gradeClass}">${pct}%</div>
+      <h2>${gradeMsg}</h2>
+      <p>${correct} van ${total} goed</p>
+      ${weakTopics.length > 0 ? `
+        <div class="weak-list">
+          <h4>Hier nog even naar kijken:</h4>
+          ${weakTopics.map(w=>'<li>'+w+'</li>').join('')}
+        </div>
+      ` : ''}
+      <button class="retry" onclick="retryQuiz()">Opnieuw proberen (andere vragen!)</button>
+    </div>`;
+
+  updateHero();
+  updateScorePanel();
+}
+
+function retryQuiz() {
+  document.getElementById('quiz-results').style.display = 'none';
+  document.getElementById('quiz-start').style.display = 'block';
+}
+
+// ===== SCORE PANEL =====
+function updateScorePanel() {
+  const knownCount = Object.values(flashKnown).filter(Boolean).length;
+  const flashPct = Math.round((knownCount/topics.length)*100);
+  document.getElementById('sc-flash-bar').style.width = flashPct+'%';
+  document.getElementById('sc-flash-pct').textContent = knownCount+' / '+topics.length;
+
+  if(quizScore !== null) {
+    const quizPct = Math.round((quizScore/QUIZ_SIZE)*100);
+    document.getElementById('sc-quiz-bar').style.width = quizPct+'%';
+    document.getElementById('sc-quiz-pct').textContent = quizScore+' / '+QUIZ_SIZE+' ('+quizPct+'%)';
+    document.getElementById('sc-quiz-bar').className = 'progress-fill '+(quizPct>=70?'good':quizPct>=37?'mid':'low');
+  }
+
+  const quizPct = quizScore !== null ? Math.round((quizScore/QUIZ_SIZE)*100) : 0;
+  const totalPct = Math.round((flashPct*0.4 + quizPct*0.6));
+  document.getElementById('sc-total-bar').style.width = totalPct+'%';
+  document.getElementById('sc-total-bar').className = 'progress-fill '+(totalPct>=70?'good':totalPct>=37?'mid':'low');
+  document.getElementById('sc-flash-bar').className = 'progress-fill '+(flashPct>=70?'good':flashPct>=37?'mid':'low');
+
+  // Grade indicator boxes
+  const gf = document.getElementById('grade-fail');
+  const gp = document.getElementById('grade-pass');
+  const gg = document.getElementById('grade-great');
+  gf.className = 'grade-box'; gp.className = 'grade-box'; gg.className = 'grade-box';
+  if(totalPct >= 70) { gg.className = 'grade-box active-great'; }
+  else if(totalPct >= 37) { gp.className = 'grade-box active-pass'; }
+  else { gf.className = 'grade-box active-fail'; }
+
+  // Readiness message
+  const box = document.getElementById('readiness-box');
+  const title = document.getElementById('ready-title');
+  const text = document.getElementById('ready-text');
+  if(totalPct >= 70) {
+    box.className = 'readiness ready-great';
+    title.textContent = '🔥 Richting een 7 of meer!';
+    text.textContent = 'Je kent de kernstof goed. Wil je stoppen? Prima. Wil je hoger? Doe de bonus-begrippen.';
+  } else if(totalPct >= 37) {
+    box.className = 'readiness ready-pass';
+    title.textContent = '👍 Boven een 5,5 — voldoende';
+    text.textContent = 'Je haalt het zo. Wil je richting een 7? Oefen de begrippen die je nog mist en doe de toets nog een keer.';
+  } else if(totalPct > 0) {
+    box.className = 'readiness ready-fail';
+    title.textContent = '😬 Nog onder een 5,5';
+    text.textContent = 'Je staat nu onvoldoende. Doe de flashcards en maak de toets om boven de 5,5 te komen.';
+  } else {
+    box.className = 'readiness ready-fail';
+    title.textContent = '🎯 Begin met leren';
+    text.textContent = 'Doe de flashcards en de toets om je score op te bouwen. Jij kiest je doel!';
+  }
+
+  // Render history
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  if(history.length === 0) {
+    list.innerHTML = '<div class="no-history">Nog geen eerdere pogingen opgeslagen. Maak een toets om je voortgang bij te houden!</div>';
+    return;
+  }
+
+  list.innerHTML = history.slice().reverse().map((h, i) => {
+    const d = new Date(h.date);
+    const dateStr = d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    const quizPct = Math.round((h.quizScore / h.quizTotal) * 100);
+    const flashPct = Math.round((h.flashKnown / h.flashTotal) * 100);
+    const quizClass = quizPct >= 37 ? 'quiz' : 'quiz-fail';
+    return `
+      <div class="history-entry">
+        <span class="he-date">${dateStr}</span>
+        <div class="he-scores">
+          <span class="he-badge flash">🃏 ${flashPct}%</span>
+          <span class="he-badge ${quizClass}">✍️ ${quizPct}%</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function resetAll() {
+  if(!confirm('Weet je zeker dat je alles wilt resetten? Je score-geschiedenis blijft bewaard.')) return;
+  flashKnown = {};
+  quizScore = null;
+  localStorage.removeItem('maat-klimaat-flash');
+  localStorage.removeItem('maat-klimaat-quiz');
+  renderOverview();
+  updateHero();
+  updateScorePanel();
+}
+
+// ===== INIT =====
+renderOverview();
+updateHero();
+</script>
+</body>
+</html>

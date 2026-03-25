@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Wiskunde Trainer — Snijpunten & ABC-formule</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; min-height: 100vh; }
+
+/* NAV */
+.nav { display: flex; background: #fff; border-bottom: 2px solid #e9ecef; position: sticky; top: 0; z-index: 100; }
+.nav-btn { flex: 1; padding: 14px 8px; text-align: center; font-size: 13px; font-weight: 600; border: none; background: none; cursor: pointer; color: #868e96; border-bottom: 3px solid transparent; transition: all .2s; }
+.nav-btn.active { color: #228be6; border-bottom-color: #228be6; }
+.nav-btn .nav-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+
+/* PANELS */
+.panel { display: none; padding: 16px; max-width: 480px; margin: 0 auto; padding-bottom: 100px; }
+.panel.active { display: block; }
+
+/* OVERVIEW PANEL */
+.hero { background: linear-gradient(135deg, #228be6, #7950f2); color: #fff; border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+.hero h1 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.hero p { font-size: 13px; opacity: .85; }
+.score-ring { display: flex; align-items: center; gap: 16px; margin-top: 12px; }
+.ring-container { position: relative; width: 64px; height: 64px; }
+.ring-container svg { transform: rotate(-90deg); }
+.ring-container .ring-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; }
+.score-label { font-size: 13px; line-height: 1.4; }
+.score-label strong { font-size: 15px; display: block; }
+
+.tier-section { margin-bottom: 20px; }
+.tier-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.tier-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #fff; }
+.tier-1 .tier-badge { background: #e03131; }
+.tier-2 .tier-badge { background: #f59f00; }
+.tier-3 .tier-badge { background: #40c057; }
+.tier-title { font-size: 14px; font-weight: 700; }
+
+/* TOPIC CARDS */
+.topic-card { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.06); cursor: pointer; transition: all .2s; border-left: 4px solid #dee2e6; }
+.topic-card.mastered { border-left-color: #40c057; background: #f1faf4; }
+.topic-card.learning { border-left-color: #f59f00; }
+.topic-card .tc-top { display: flex; justify-content: space-between; align-items: center; }
+.topic-card h3 { font-size: 14px; font-weight: 600; }
+.topic-card .tc-status { font-size: 16px; color: #adb5bd; transition: transform .2s; }
+.topic-card.open .tc-status { transform: rotate(180deg); }
+.topic-card .tc-desc { font-size: 12px; color: #868e96; margin-top: 4px; }
+.topic-card .tc-detail { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e9ecef; font-size: 13px; line-height: 1.6; }
+.topic-card.open .tc-detail { display: block; }
+.tc-detail .key { font-weight: 600; color: #228be6; }
+.tc-detail .warn { background: #fff3bf; padding: 8px 10px; border-radius: 8px; margin-top: 8px; font-size: 12px; }
+.tc-detail .warn::before { content: '⚠️ '; }
+
+/* VIDEO LINKS */
+.tc-videos { margin-top: 10px; padding-top: 8px; border-top: 1px dashed #dee2e6; }
+.tc-videos .vid-label { font-size: 11px; font-weight: 700; color: #868e96; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.vid-link { display: flex; align-items: center; gap: 8px; padding: 8px 10px; margin-bottom: 4px; background: #f0f7ff; border-radius: 8px; text-decoration: none; color: #228be6; font-size: 12px; font-weight: 600; transition: background .15s; }
+.vid-link:hover { background: #dbe8ff; }
+.vid-link .vid-icon { font-size: 16px; flex-shrink: 0; }
+.vid-link .vid-src { font-size: 10px; color: #868e96; font-weight: 400; margin-left: auto; }
+
+/* FLASHCARD PANEL — REDESIGNED */
+.fc-progress { text-align: center; font-size: 13px; color: #868e96; margin-bottom: 12px; }
+.fc-progress strong { color: #228be6; }
+.fc-instruction { background: #f0f7ff; border-radius: 12px; padding: 14px; margin-bottom: 14px; text-align: center; }
+.fc-instruction p { font-size: 13px; color: #495057; line-height: 1.5; }
+
+.flashcard { background: #fff; border-radius: 16px; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,.08); position: relative; user-select: none; }
+.fc-label { font-size: 11px; font-weight: 600; color: #868e96; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+.fc-term { font-size: 22px; font-weight: 800; }
+.fc-answer { font-size: 15px; line-height: 1.6; }
+
+.fc-flip-hint { font-size: 12px; color: #228be6; margin-top: 12px; font-weight: 500; }
+.fc-answer { font-size: 14px; line-height: 1.6; margin-top: 12px; padding-top: 12px; border-top: 2px solid #40c057; color: #1a1a2e; }
+.flashcard { cursor: pointer; transition: all .2s; }
+.flashcard:active { transform: scale(.98); }
+
+
+.fc-buttons { display: flex; gap: 10px; margin-top: 14px; }
+.fc-btn { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; }
+.fc-btn.know { background: #40c057; color: #fff; }
+.fc-btn.dunno { background: #e9ecef; color: #495057; }
+.fc-btn.know:active { transform: scale(.97); }
+.fc-btn.dunno:active { transform: scale(.97); }
+.fc-btn-nav { display: flex; gap: 10px; margin-top: 10px; }
+.fc-nav { flex: 1; padding: 10px; border: 2px solid #e9ecef; border-radius: 10px; background: #fff; font-size: 13px; font-weight: 600; cursor: pointer; color: #495057; }
+
+/* QUIZ PANEL */
+.quiz-info { text-align: center; padding: 20px; }
+.quiz-info h2 { font-size: 18px; margin-bottom: 8px; }
+.quiz-info p { font-size: 13px; color: #868e96; line-height: 1.5; margin-bottom: 16px; }
+.start-quiz { padding: 14px 32px; background: #228be6; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; }
+.quiz-q { background: #fff; border-radius: 16px; padding: 20px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.quiz-q .q-num { font-size: 11px; font-weight: 700; color: #228be6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.quiz-q .q-text { font-size: 15px; font-weight: 600; margin-bottom: 14px; line-height: 1.4; }
+.quiz-q .option { display: block; width: 100%; text-align: left; padding: 12px 14px; margin-bottom: 6px; border: 2px solid #e9ecef; border-radius: 10px; background: #fff; font-size: 14px; cursor: pointer; transition: all .15s; font-family: inherit; }
+.quiz-q .option:hover { border-color: #228be6; background: #f0f7ff; }
+.quiz-q .option.correct { border-color: #40c057; background: #ebfbee; }
+.quiz-q .option.wrong { border-color: #e03131; background: #fff5f5; }
+.quiz-q .option.disabled { pointer-events: none; }
+.quiz-q .q-feedback { margin-top: 10px; padding: 10px; border-radius: 8px; font-size: 13px; line-height: 1.5; display: none; }
+.quiz-q .q-feedback.show { display: block; }
+.quiz-q .q-feedback.good { background: #ebfbee; color: #2b8a3e; }
+.quiz-q .q-feedback.bad { background: #fff5f5; color: #c92a2a; }
+
+/* RESULTS */
+.results { text-align: center; padding: 24px; }
+.results .big-score { font-size: 64px; font-weight: 800; }
+.results .big-score.great { color: #40c057; }
+.results .big-score.pass { color: #f59f00; }
+.results .big-score.fail { color: #e03131; }
+.results h2 { font-size: 20px; margin: 8px 0; }
+.results p { font-size: 14px; color: #868e96; line-height: 1.5; }
+.results .retry { margin-top: 16px; padding: 14px 32px; background: #228be6; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; }
+.results .weak-list { text-align: left; margin-top: 16px; background: #fff5f5; padding: 14px; border-radius: 10px; }
+.results .weak-list h4 { font-size: 13px; color: #c92a2a; margin-bottom: 6px; }
+.results .weak-list li { font-size: 13px; margin-bottom: 4px; list-style: none; }
+.results .weak-list li::before { content: '❌ '; }
+
+/* SCORE PANEL */
+.score-card { background: #fff; border-radius: 16px; padding: 20px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.06); text-align: center; }
+.score-card h3 { font-size: 14px; color: #868e96; margin-bottom: 8px; }
+.progress-bar { height: 12px; background: #e9ecef; border-radius: 6px; overflow: hidden; margin-bottom: 6px; position: relative; }
+.progress-fill { height: 100%; border-radius: 6px; transition: width .5s; }
+.progress-fill.good { background: linear-gradient(90deg, #40c057, #51cf66); }
+.progress-fill.mid { background: linear-gradient(90deg, #f59f00, #fcc419); }
+.progress-fill.low { background: linear-gradient(90deg, #e03131, #ff6b6b); }
+.threshold { display: flex; justify-content: space-between; font-size: 11px; color: #adb5bd; }
+
+/* GRADE INDICATOR */
+.grade-indicator { display: flex; gap: 8px; margin: 16px 0 4px; }
+.grade-box { flex: 1; padding: 10px 8px; border-radius: 10px; text-align: center; border: 2px solid #e9ecef; transition: all .3s; }
+.grade-box .grade-emoji { font-size: 24px; display: block; margin-bottom: 4px; }
+.grade-box .grade-label { font-size: 12px; font-weight: 700; display: block; }
+.grade-box .grade-desc { font-size: 10px; color: #868e96; }
+.grade-box.active-fail { border-color: #e03131; background: #fff5f5; }
+.grade-box.active-fail .grade-label { color: #e03131; }
+.grade-box.active-pass { border-color: #f59f00; background: #fffbeb; }
+.grade-box.active-pass .grade-label { color: #e67700; }
+.grade-box.active-great { border-color: #40c057; background: #ebfbee; }
+.grade-box.active-great .grade-label { color: #2b8a3e; }
+
+.readiness { margin-top: 20px; padding: 20px; border-radius: 16px; text-align: center; }
+.readiness.ready-great { background: #ebfbee; }
+.readiness.ready-pass { background: #fffbeb; }
+.readiness.ready-fail { background: #fff5f5; }
+.readiness .emoji { font-size: 40px; }
+.readiness h2 { font-size: 18px; margin: 8px 0 4px; }
+.readiness p { font-size: 13px; color: #495057; }
+.reset-btn { margin-top: 16px; padding: 10px 20px; background: #e9ecef; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; color: #495057; }
+
+/* HISTORY */
+.history-section { margin-top: 16px; }
+.history-section h3 { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #495057; }
+.history-entry { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #fff; border-radius: 10px; margin-bottom: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.04); font-size: 12px; }
+.history-entry .he-date { color: #868e96; font-weight: 600; min-width: 80px; }
+.history-entry .he-scores { display: flex; gap: 10px; flex: 1; }
+.history-entry .he-badge { padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 11px; }
+.he-badge.flash { background: #f0f7ff; color: #228be6; }
+.he-badge.quiz { background: #ebfbee; color: #2b8a3e; }
+.he-badge.quiz-fail { background: #fff5f5; color: #c92a2a; }
+.no-history { text-align: center; padding: 16px; font-size: 13px; color: #adb5bd; }
+
+/* CHAT PANEL */
+#panel-chat { padding-bottom: 0; }
+#panel-chat.active { display: flex; }
+.chat-container { display: flex; flex-direction: column; height: calc(100vh - 60px); }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.chat-msg { max-width: min(85%, 380px); padding: 12px 16px; border-radius: 18px; font-size: 15px; line-height: 1.5; animation: chatFade .2s ease; word-wrap: break-word; overflow-wrap: break-word; }
+.chat-msg-user { align-self: flex-end; background: #228be6; color: #fff; border-bottom-right-radius: 6px; }
+.chat-msg-ai { align-self: flex-start; background: #fff; color: #1a1a2e; border-bottom-left-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.chat-msg-ai p { margin-bottom: 8px; }
+.chat-msg-ai p:last-child { margin-bottom: 0; }
+.chat-msg-ai strong { color: #228be6; }
+.chat-msg-ai a { color: #228be6; text-decoration: underline; }
+.chat-msg-ai code { background: #f0f7ff; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+.chat-msg-ai ul, .chat-msg-ai ol { margin: 4px 0 8px 16px; }
+.chat-msg-ai li { margin-bottom: 2px; }
+.chat-typing { align-self: flex-start; background: #fff; padding: 12px 20px; border-radius: 18px; border-bottom-left-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.06); display: none; }
+.chat-typing.active { display: flex; gap: 4px; align-items: center; }
+.chat-typing-dot { width: 7px; height: 7px; border-radius: 50%; background: #adb5bd; animation: chatBounce 1.4s infinite; }
+.chat-typing-dot:nth-child(2) { animation-delay: .2s; }
+.chat-typing-dot:nth-child(3) { animation-delay: .4s; }
+@keyframes chatBounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+@keyframes chatFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.chat-quick { padding: 8px 16px; display: flex; gap: 8px; overflow-x: auto; flex-shrink: 0; }
+.chat-quick::-webkit-scrollbar { display: none; }
+.chat-quick-btn { flex-shrink: 0; padding: 8px 16px; border-radius: 20px; border: 1.5px solid #e9ecef; background: #fff; color: #495057; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; font-family: inherit; transition: all 0.15s; }
+.chat-quick-btn:active { transform: scale(.96); background: #f0f7ff; border-color: #228be6; color: #228be6; }
+.chat-input-area { padding: 8px 16px 16px; background: #fff; border-top: 1px solid #e9ecef; display: flex; gap: 8px; align-items: flex-end; }
+.chat-input { flex: 1; padding: 10px 16px; border-radius: 22px; border: 1.5px solid #e9ecef; font-size: 14px; font-family: inherit; outline: none; resize: none; max-height: 100px; line-height: 1.4; background: #f8f9fa; }
+.chat-input:focus { border-color: #228be6; }
+.chat-send { width: 40px; height: 40px; border-radius: 50%; background: #228be6; border: none; color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.chat-send:disabled { background: #adb5bd; cursor: not-allowed; }
+.chat-send:active { transform: scale(.92); }
+
+.fc-feedback { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); padding: 10px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 200; animation: feedbackSlide .3s ease; opacity: 0; transition: opacity .3s; pointer-events: none; }
+.fc-feedback.show { opacity: 1; }
+.fc-feedback.good { background: #ebfbee; color: #2b8a3e; }
+.fc-feedback.retry { background: #fff9db; color: #e67700; }
+@keyframes feedbackSlide { from { transform: translateX(-50%) translateY(-10px); } to { transform: translateX(-50%) translateY(0); } }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showPanel('overview')"><span class="nav-icon">📋</span>Overzicht</button>
+  <button class="nav-btn" onclick="showPanel('flash')"><span class="nav-icon">🃏</span>Flashcards</button>
+  <button class="nav-btn" onclick="showPanel('quiz')"><span class="nav-icon">✍️</span>Toets</button>
+  <button class="nav-btn" onclick="showPanel('score')"><span class="nav-icon">📊</span>Score</button>
+  <button class="nav-btn" onclick="showPanel('chat')"><span class="nav-icon">💬</span>Chat</button>
+</nav>
+
+<!-- OVERVIEW PANEL -->
+<div id="panel-overview" class="panel active">
+  <div class="hero">
+    <h1>Wiskunde — Snijpunten</h1>
+    <p>Thema 4: Snijpunten. Alle begrippen over de abc-formule, parabolen en snijpunten op een rij. Flashcards doorlopen, toets doen, klaar. Jij bepaalt je eigen tempo.</p>
+    <div class="score-ring">
+      <div class="ring-container">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="6"/>
+          <circle id="hero-ring" cx="32" cy="32" r="28" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-dasharray="175.9" stroke-dashoffset="175.9"/>
+        </svg>
+        <div class="ring-text" id="hero-pct" style="color:#fff">0%</div>
+      </div>
+      <div class="score-label">
+        <strong id="hero-status">Start met leren!</strong>
+        <span id="hero-sub">Flashcards → Toets → Klaar</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tier-section tier-1">
+    <div class="tier-header"><span class="tier-badge">KERN</span><span class="tier-title">Dit brengt je naar een voldoende (5,5+). Mik net iets hoger voor zekerheid</span></div>
+    <div id="tier1-cards"></div>
+  </div>
+  <div class="tier-section tier-2">
+    <div class="tier-header"><span class="tier-badge">BELANGRIJK</span><span class="tier-title">Grote kans dat dit gevraagd wordt</span></div>
+    <div id="tier2-cards"></div>
+  </div>
+  <div class="tier-section tier-3">
+    <div class="tier-header"><span class="tier-badge">BONUS</span><span class="tier-title">Ken je dit ook? Dan richting een 8+</span></div>
+    <div id="tier3-cards"></div>
+  </div>
+</div>
+
+<!-- FLASHCARD PANEL — REDESIGNED WITH TYPE-FIRST -->
+<div id="panel-flash" class="panel">
+  <div class="fc-progress"><strong id="fc-counter">1 / 12</strong> begrippen &nbsp;|&nbsp; ✅ <span id="fc-known">0</span> gekend</div>
+
+  <div class="fc-instruction" id="fc-instruction">
+    <p id="fc-step-text">Zeg hardop in je eigen woorden wat dit begrip betekent (stil in je hoofd mag natuurlijk ook). Tik daarna op de kaart om het juiste antwoord te zien.</p>
+  </div>
+
+  <div class="flashcard" id="flashcard" onclick="flipCard()">
+    <div class="fc-label" id="fc-label">BEGRIP</div>
+    <div class="fc-term" id="fc-front">—</div>
+    <div class="fc-answer" id="fc-back" style="display:none"></div>
+    <div class="fc-flip-hint" id="fc-flip-hint">Tik op de kaart om het antwoord te zien</div>
+  </div>
+
+  <div class="fc-buttons" id="fc-buttons" style="display:none">
+    <button class="fc-btn dunno" onclick="markCard(false)">🤔 Niet helemaal</button>
+    <button class="fc-btn know" onclick="markCard(true)">✅ Klopte!</button>
+  </div>
+
+  <div class="fc-btn-nav">
+    <button class="fc-nav" onclick="prevCard()">← Vorige</button>
+    <button class="fc-nav" onclick="nextCard()">Volgende →</button>
+  </div>
+  <div class="fc-feedback" id="fc-feedback"></div>
+</div>
+
+<!-- QUIZ PANEL -->
+<div id="panel-quiz" class="panel">
+  <div class="quiz-info" id="quiz-start">
+    <h2>Test jezelf</h2>
+    <p>De toets is een manier om aan jezelf te bewijzen dat je de stof echt kent. Je krijgt 15 willekeurige vragen, elke keer andere. Kijk achteraf of je er tevreden mee bent: wil je net een voldoende halen, of ga je voor een ruime voldoende? Jij bepaalt wat goed genoeg is.</p>
+    <button class="start-quiz" onclick="startQuiz()">Start de toets</button>
+  </div>
+  <div id="quiz-questions" style="display:none"></div>
+  <div id="quiz-results" style="display:none"></div>
+</div>
+
+<!-- SCORE PANEL -->
+<div id="panel-score" class="panel">
+  <div class="score-card">
+    <h3>Flashcards gekend</h3>
+    <div class="progress-bar"><div class="progress-fill good" id="sc-flash-bar" style="width:0%"></div></div>
+    <div class="threshold"><span>0%</span><span id="sc-flash-pct">0 / 12</span><span>100%</span></div>
+  </div>
+  <div class="score-card">
+    <h3>Laatste toetsscore</h3>
+    <div class="progress-bar"><div class="progress-fill mid" id="sc-quiz-bar" style="width:0%"></div></div>
+    <div class="threshold"><span>0%</span><span id="sc-quiz-pct">Nog niet gemaakt</span><span>100%</span></div>
+  </div>
+  <div class="score-card">
+    <h3>Totale paraatheid</h3>
+    <div class="progress-bar"><div class="progress-fill low" id="sc-total-bar" style="width:0%"></div></div>
+    <div class="threshold"><span>0%</span><span>Jij kiest je doel ↓</span><span>100%</span></div>
+  </div>
+
+  <div class="grade-indicator" id="grade-indicator">
+    <div class="grade-box" id="grade-fail">
+      <span class="grade-emoji">😬</span>
+      <span class="grade-label">Onder 5,5</span>
+      <span class="grade-desc">Onvoldoende</span>
+    </div>
+    <div class="grade-box" id="grade-pass">
+      <span class="grade-emoji">👍</span>
+      <span class="grade-label">5,5 — 7</span>
+      <span class="grade-desc">Voldoende</span>
+    </div>
+    <div class="grade-box" id="grade-great">
+      <span class="grade-emoji">🔥</span>
+      <span class="grade-label">7 of meer</span>
+      <span class="grade-desc">Goed!</span>
+    </div>
+  </div>
+
+  <div id="readiness-box" class="readiness ready-fail">
+    <div class="emoji">🎯</div>
+    <h2 id="ready-title">Nog even oefenen</h2>
+    <p id="ready-text">Doe de flashcards en de toets om je score op te bouwen.</p>
+  </div>
+
+  <!-- HISTORY SECTION -->
+  <div class="history-section" id="history-section">
+    <h3>📈 Voortgang over tijd</h3>
+    <div id="history-list"><div class="no-history">Nog geen eerdere pogingen opgeslagen</div></div>
+  </div>
+
+  <button class="reset-btn" onclick="resetAll()">🔄 Alles resetten</button>
+</div>
+
+<!-- CHAT PANEL -->
+<div id="panel-chat" class="panel">
+  <div class="chat-container">
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-msg chat-msg-ai">
+        <p>Yo! Ik ben je wiskunde buddy. Vraag me alles over de <strong>abc-formule</strong>, <strong>snijpunten</strong>, <strong>parabolen</strong> of de <strong>PSM</strong>. Ik kan je ook quizzen of stap voor stap door een som heen lopen.</p>
+      </div>
+    </div>
+    <div class="chat-typing" id="chat-typing">
+      <div class="chat-typing-dot"></div>
+      <div class="chat-typing-dot"></div>
+      <div class="chat-typing-dot"></div>
+    </div>
+    <div class="chat-quick" id="chat-quick">
+      <button class="chat-quick-btn" onclick="chatSend('Leg de abc-formule uit')">ABC-formule uitleg</button>
+      <button class="chat-quick-btn" onclick="chatSend('Geef me een oefensom snijpunten')">Oefensom snijpunten</button>
+      <button class="chat-quick-btn" onclick="chatSend('Hoe werkt de discriminant?')">Discriminant</button>
+      <button class="chat-quick-btn" onclick="chatSend('Quiz me over parabolen')">Quiz parabolen</button>
+      <button class="chat-quick-btn" onclick="chatSend('Hoe doe je de PSM?')">PSM uitleg</button>
+    </div>
+    <div class="chat-input-area">
+      <textarea class="chat-input" id="chat-input" placeholder="Stel een vraag over wiskunde..." rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSendInput()}"></textarea>
+      <button class="chat-send" id="chat-send-btn" onclick="chatSendInput()">↑</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+const topics = [
+  // TIER 1 — KERN (must know for a 7)
+  { id:'abc-formule', tier:1, term:'ABC-formule', short:'De formule om kwadratische vergelijkingen op te lossen', detail:'De <span class="key">abc-formule</span>: x = (-b ± √(b²-4ac)) / 2a<br><br>Gebruik: als je een kwadratische vergelijking ax²+bx+c=0 hebt en niet kunt ontbinden.<br><br><span class="key">Stap 1</span>: Zet de vergelijking in standaardvorm (=0)<br><span class="key">Stap 2</span>: Lees a, b en c af<br><span class="key">Stap 3</span>: Vul in de formule in<br><span class="key">Stap 4</span>: Bereken de discriminant D = b²-4ac<br><br>Als D>0: twee oplossingen. D=0: één oplossing. D<0: geen oplossing.<br><div class="warn">Altijd eerst in standaardvorm zetten voordat je a, b en c afleest!</div>', answer:'ABC-formule: x = (-b ± √(b²-4ac)) / 2a. Stappen: standaardvorm maken, a/b/c aflezen, invullen, discriminant berekenen. D>0 = twee oplossingen, D=0 = één, D<0 = geen.',
+    videos:[
+      {title:'Kwadratische vergelijkingen: de abc-formule', url:'https://www.youtube.com/watch?v=QcF25PYwIaM', src:'WiskundeAcademie'},
+      {title:'Wat is de abc-formule? (havo 3)', url:'https://www.youtube.com/watch?v=u0OrgguL-tA', src:'WiskundeAcademie'}
+    ] },
+  { id:'discriminant', tier:1, term:'Discriminant', short:'D = b²-4ac, bepaalt het aantal snijpunten', detail:'De <span class="key">discriminant</span> D = b²-4ac<br><br>De discriminant bepaalt hoeveel snijpunten een parabool met de x-as heeft:<br><br><span class="key">D > 0</span>: 2 snijpunten met de x-as<br><span class="key">D = 0</span>: 1 snijpunt (raakpunt) met de x-as<br><span class="key">D < 0</span>: 0 snijpunten met de x-as<br><br>Je berekent D altijd als onderdeel van de abc-formule, maar je kunt D ook los gebruiken om snel te bepalen of er snijpunten zijn.', answer:'Discriminant: D = b²-4ac. D>0 = 2 snijpunten, D=0 = 1 snijpunt (raakpunt), D<0 = 0 snijpunten met de x-as.',
+    videos:[] },
+  { id:'standaardvorm', tier:1, term:'Standaardvorm', short:'ax²+bx+c=0, altijd eerst zo opschrijven', detail:'De <span class="key">standaardvorm</span> van een kwadratische vergelijking is:<br><br><span class="key">ax² + bx + c = 0</span><br><br>Elke kwadratische vergelijking moet <span class="key">eerst</span> in deze vorm staan voordat je a, b en c kunt aflezen voor de abc-formule.<br><br>Voorbeeld: 3x² + 5 = 2x → verplaats alles naar links → 3x² - 2x + 5 = 0<br>Nu: a=3, b=-2, c=5<br><div class="warn">Let op het teken van b en c! Als er staat -2x, dan is b = -2 (negatief).</div>', answer:'Standaardvorm: ax²+bx+c=0. Altijd alles naar één kant brengen zodat er =0 staat. Dan pas a, b en c aflezen. Let op de tekens!',
+    videos:[] },
+  { id:'snijpunten-x-as', tier:1, term:'Snijpunten met de x-as', short:'f(x)=0 stellen en oplossen', detail:'De <span class="key">snijpunten met de x-as</span> zijn de x-waarden waar de grafiek de x-as snijdt.<br><br>Berekenen: stel <span class="key">f(x) = 0</span> en los op.<br><br>Twee methodes:<br>1. <span class="key">Ontbinden</span> (product-som-methode)<br>2. <span class="key">ABC-formule</span> als ontbinden niet lukt<br><br>De snijpunten schrijf je als coordinaten: (x₁, 0) en (x₂, 0).', answer:'Snijpunten x-as: stel f(x)=0 en los op met ontbinden of abc-formule. Schrijf als coordinaten: (x, 0).',
+    videos:[
+      {title:'Snijpunten met de coordinaatassen (havo/vwo 3)', url:'https://www.youtube.com/watch?v=T_022sGELfM', src:'WiskundeAcademie'}
+    ] },
+  { id:'snijpunt-y-as', tier:1, term:'Snijpunt met de y-as', short:'Altijd bij x=0, dus het punt (0, c)', detail:'Het <span class="key">snijpunt met de y-as</span> is het punt waar de grafiek de y-as snijdt.<br><br>Dit is <span class="key">altijd bij x = 0</span>.<br><br>Vul x=0 in de formule in:<br>f(0) = a·0² + b·0 + c = <span class="key">c</span><br><br>Het snijpunt met de y-as is dus altijd <span class="key">(0, c)</span>.<br><br>Voorbeeld: f(x) = 3x²-2x+7 → snijpunt y-as = (0, 7)', answer:'Snijpunt y-as: vul x=0 in. f(0)=c. Het snijpunt is altijd (0, c).',
+    videos:[] },
+
+  // TIER 2 — BELANGRIJK
+  { id:'kwadratische-grafiek', tier:2, term:'Kwadratische grafiek (parabool)', short:'a>0 = dalparabool, a<0 = bergparabool', detail:'De grafiek van <span class="key">f(x) = ax² + bx + c</span> is een <span class="key">parabool</span>.<br><br>Als <span class="key">a > 0</span>: dalparabool (smiley, opening naar boven)<br>Als <span class="key">a < 0</span>: bergparabool (frowny, opening naar beneden)<br><br>Hoe groter |a|, hoe <span class="key">smaller</span> de parabool.<br>Hoe kleiner |a|, hoe <span class="key">breder</span> de parabool.', answer:'Parabool: a>0 = dalparabool (smiley), a<0 = bergparabool (frowny). Groter |a| = smaller, kleiner |a| = breder.',
+    videos:[
+      {title:'Hoe teken je een parabool? (havo/vwo 3)', url:'https://www.youtube.com/watch?v=dlcYsluZ--w', src:'WiskundeAcademie'}
+    ] },
+  { id:'top-berekenen', tier:2, term:'Top berekenen', short:'x_top = -b/(2a), dan y_top = f(x_top)', detail:'De <span class="key">top</span> van een parabool bereken je in twee stappen:<br><br><span class="key">Stap 1</span>: x_top = -b / (2a)<br><span class="key">Stap 2</span>: y_top = f(x_top) → vul x_top in de formule in<br><br>De top is het <span class="key">laagste punt</span> bij een dalparabool (a>0).<br>De top is het <span class="key">hoogste punt</span> bij een bergparabool (a<0).<br><br>Voorbeeld: f(x) = 2x²-8x+3<br>x_top = -(-8)/(2·2) = 8/4 = 2<br>y_top = 2·4-16+3 = -5<br>Top = (2, -5)', answer:'Top: x_top = -b/(2a), dan y_top = f(x_top). Laagste punt bij dalparabool, hoogste bij bergparabool.',
+    videos:[
+      {title:'De grafiek van f(x) = ax²+bx+c', url:'https://www.youtube.com/watch?v=CRZToaen-O8', src:'WiskundeAcademie'}
+    ] },
+  { id:'product-som-methode', tier:2, term:'Product-som-methode (PSM)', short:'Zoek p en q waarvoor p·q=c en p+q=b', detail:'De <span class="key">product-som-methode</span> (PSM) werkt bij x²+bx+c=0 (met a=1):<br><br>Zoek twee getallen <span class="key">p</span> en <span class="key">q</span> waarvoor geldt:<br>• p · q = c (product)<br>• p + q = b (som)<br><br>Dan: (x+p)(x+q) = 0<br>Dus: x = -p of x = -q<br><br>Voorbeeld: x²+5x+6=0<br>p·q=6 en p+q=5 → p=2, q=3<br>(x+2)(x+3)=0 → x=-2 of x=-3<br><div class="warn">PSM werkt alleen als a=1! Anders eerst door a delen, of gebruik de abc-formule.</div>', answer:'PSM: bij x²+bx+c=0 zoek p en q met p·q=c en p+q=b. Dan (x+p)(x+q)=0, dus x=-p of x=-q. Werkt alleen bij a=1.',
+    videos:[
+      {title:'Hoe werkt de product-som-methode?', url:'https://www.youtube.com/watch?v=TWMnY1HCnGk', src:'WiskundeAcademie'}
+    ] },
+  { id:'snijpunten-twee-grafieken', tier:2, term:'Snijpunten van twee grafieken', short:'Stel f(x) = g(x) en los op', detail:'Om <span class="key">snijpunten van twee grafieken</span> te vinden:<br><br><span class="key">Stap 1</span>: Stel f(x) = g(x)<br><span class="key">Stap 2</span>: Los de vergelijking op (alles naar één kant, dan ontbinden of abc-formule)<br><span class="key">Stap 3</span>: Vul de gevonden x-waarden terug in f(x) of g(x) voor de y-waarden<br><br>Voorbeeld: f(x) = x²-3x+2 en g(x) = x-1<br>x²-3x+2 = x-1 → x²-4x+3 = 0 → (x-1)(x-3) = 0<br>x=1: y=0, x=3: y=2<br>Snijpunten: (1, 0) en (3, 2)', answer:'Snijpunten twee grafieken: stel f(x)=g(x), los op, vul x terug in voor y-waarden. Schrijf als coordinaten.',
+    videos:[
+      {title:'Snijpunten met een lineaire functie', url:'https://www.youtube.com/watch?v=tL-emKSCznE', src:'WiskundeAcademie'}
+    ] },
+
+  // TIER 3 — BONUS
+  { id:'symmetrieas', tier:3, term:'Symmetrieas', short:'De verticale lijn x = -b/(2a)', detail:'De <span class="key">symmetrieas</span> van een parabool is de verticale lijn:<br><br><span class="key">x = -b/(2a)</span><br><br>De parabool is <span class="key">symmetrisch</span> om deze lijn. Dat betekent: als je de parabool langs deze lijn zou vouwen, vallen beide helften precies op elkaar.<br><br>De <span class="key">top</span> van de parabool ligt altijd op de symmetrieas.', answer:'Symmetrieas: x = -b/(2a). De parabool is symmetrisch om deze lijn. De top ligt op de symmetrieas.',
+    videos:[] },
+  { id:'vergelijking-opstellen', tier:3, term:'Vergelijking opstellen', short:'Met top en punt de formule vinden', detail:'Als je de <span class="key">top</span> en een <span class="key">punt</span> op de parabool kent, kun je de vergelijking opstellen.<br><br>Gebruik de <span class="key">topvorm</span>: f(x) = a(x-p)² + q<br><br>Hierbij is (p, q) de top.<br><br><span class="key">Stap 1</span>: Vul de top in: f(x) = a(x-p)² + q<br><span class="key">Stap 2</span>: Vul het andere punt in om a te berekenen<br><span class="key">Stap 3</span>: Schrijf de volledige formule<br><br>Voorbeeld: top (2, -3), punt (4, 5)<br>f(x) = a(x-2)²-3<br>5 = a(4-2)²-3 → 5 = 4a-3 → a=2<br>f(x) = 2(x-2)²-3', answer:'Topvorm: f(x) = a(x-p)²+q met top (p,q). Vul een ander punt in om a te vinden.',
+    videos:[] },
+  { id:'ongelijkheden', tier:3, term:'Ongelijkheden', short:'f(x)>0 of f(x)<0: nulpunten berekenen, grafiek tekenen, aflezen', detail:'Bij <span class="key">f(x) > 0</span> of <span class="key">f(x) < 0</span>:<br><br><span class="key">Stap 1</span>: Bereken eerst de nulpunten (f(x) = 0)<br><span class="key">Stap 2</span>: Teken de grafiek (of maak een schets)<br><span class="key">Stap 3</span>: Lees af waar de grafiek <span class="key">boven</span> de x-as ligt (f(x)>0) of <span class="key">onder</span> de x-as (f(x)<0)<br><br>Voorbeeld: x²-4>0<br>Nulpunten: x²=4 → x=-2 of x=2<br>Dalparabool, boven x-as als x<-2 of x>2<br>Antwoord: x<-2 of x>2', answer:'Ongelijkheden: nulpunten berekenen, grafiek tekenen/schetsen, aflezen waar de grafiek boven (>0) of onder (<0) de x-as ligt.',
+    videos:[] },
+];
+
+// ===== QUIZ QUESTIONS — POOL (27 vragen, 15 per toets) =====
+const quizPool = [
+  // ABC-formule
+  { q:'Wat is de abc-formule?', options:['x = (-b ± √(b²-4ac)) / 2a','x = (-b ± √(b²+4ac)) / 2a','x = (b ± √(b²-4ac)) / 2a','x = (-b ± √(b²-4ac)) / a'], correct:0, explain:'De abc-formule is x = (-b ± √(b²-4ac)) / 2a. Let op: -b (niet +b), b²-4ac (niet +4ac), en gedeeld door 2a (niet a).' },
+  { q:'Wat is de eerste stap als je de abc-formule wilt gebruiken?', options:['Bereken de discriminant','Zet de vergelijking in standaardvorm (=0)','Vul a, b en c in','Teken de grafiek'], correct:1, explain:'Stap 1 is altijd: zet de vergelijking in standaardvorm ax²+bx+c=0. Pas dan kun je a, b en c aflezen.' },
+  { q:'Los op met de abc-formule: 2x²+3x-5=0. Wat is de discriminant?', options:['D = 9-40 = -31','D = 9+40 = 49','D = 6-20 = -14','D = 9-20 = -11'], correct:1, explain:'D = b²-4ac = 3²-4·2·(-5) = 9-(-40) = 9+40 = 49. Let op: 4·2·(-5) = -40, dus je trekt -40 af, wat +40 wordt.' },
+  { q:'De vergelijking 2x²+3x-5=0 heeft D=49. Hoeveel oplossingen zijn er?', options:['Geen','Eén','Twee','Oneindig veel'], correct:2, explain:'D=49, en 49>0, dus er zijn twee oplossingen.' },
+  { q:'Wat zijn a, b en c bij de vergelijking 3x²-7x+2=0?', options:['a=3, b=7, c=2','a=3, b=-7, c=2','a=-3, b=7, c=-2','a=3, b=-7, c=-2'], correct:1, explain:'In 3x²-7x+2=0 staat -7x, dus b=-7. a=3 (voor x²) en c=2 (de constante).' },
+
+  // Discriminant
+  { q:'Wat is de discriminant van x²-6x+9=0?', options:['D = 36-36 = 0','D = 36+36 = 72','D = -36-36 = -72','D = 36-18 = 18'], correct:0, explain:'D = (-6)²-4·1·9 = 36-36 = 0. Bij D=0 is er precies één snijpunt met de x-as (raakpunt).' },
+  { q:'Hoeveel snijpunten heeft de parabool met de x-as als D=0?', options:['Geen snijpunten','Precies 1 snijpunt (raakpunt)','Precies 2 snijpunten','Dat hangt af van a'], correct:1, explain:'Bij D=0 is er precies 1 snijpunt met de x-as. Dit heet ook wel een raakpunt.' },
+  { q:'Als D<0, wat betekent dat voor de parabool?', options:['De parabool snijdt de x-as op 2 punten','De parabool raakt de x-as op 1 punt','De parabool snijdt de x-as niet','De parabool is een rechte lijn'], correct:2, explain:'D<0 betekent dat de wortel van een negatief getal moet worden getrokken, dat kan niet. Dus: geen snijpunten met de x-as.' },
+  { q:'Wat is de discriminant van x²+2x+5=0?', options:['D = 4-20 = -16','D = 4+20 = 24','D = 2-5 = -3','D = 4-5 = -1'], correct:0, explain:'D = 2²-4·1·5 = 4-20 = -16. Omdat D<0, heeft deze vergelijking geen oplossingen.' },
+
+  // Standaardvorm
+  { q:'Schrijf 5x²=3x-2 in standaardvorm. Wat krijg je?', options:['5x²+3x+2=0','5x²-3x-2=0','5x²-3x+2=0','5x²+3x-2=0'], correct:2, explain:'5x²=3x-2, breng alles naar links: 5x²-3x+2=0. Let op: -3x (want 3x gaat naar de andere kant) en +2 (want -2 gaat naar de andere kant).' },
+  { q:'Bij 4x²-8x=0 zijn a, b en c:', options:['a=4, b=-8, c=0','a=4, b=8, c=0','a=4, b=-8, c=1','a=-4, b=8, c=0'], correct:0, explain:'4x²-8x+0=0. Er staat geen getal zonder x, dus c=0. a=4 en b=-8.' },
+
+  // Snijpunten x-as
+  { q:'Hoe bereken je de snijpunten van een parabool met de x-as?', options:['Vul x=0 in','Stel f(x)=0 en los op','Bereken de top','Teken de grafiek en lees af'], correct:1, explain:'Snijpunten met de x-as: stel f(x)=0 en los de vergelijking op (ontbinden of abc-formule).' },
+  { q:'f(x)=x²-5x+6. Wat zijn de snijpunten met de x-as?', options:['(2, 0) en (3, 0)','(-2, 0) en (-3, 0)','(1, 0) en (6, 0)','(0, 6) en (0, 2)'], correct:0, explain:'x²-5x+6=0. PSM: p·q=6 en p+q=5, dus p=2, q=3. (x-2)(x-3)=0. x=2 of x=3. Snijpunten: (2,0) en (3,0).' },
+
+  // Snijpunt y-as
+  { q:'Wat is het snijpunt met de y-as van f(x)=3x²-2x+7?', options:['(0, 3)','(7, 0)','(0, 7)','(0, -2)'], correct:2, explain:'Snijpunt y-as: vul x=0 in. f(0)=3·0-2·0+7=7. Het snijpunt is (0, 7).' },
+  { q:'Het snijpunt met de y-as vind je altijd door...', options:['f(x)=0 te stellen','x=0 in te vullen','de top te berekenen','de discriminant te berekenen'], correct:1, explain:'Het snijpunt met de y-as is altijd bij x=0. Vul x=0 in: f(0) = c. Het snijpunt is (0, c).' },
+
+  // Kwadratische grafiek
+  { q:'Bij welke waarde van a is de parabool een bergparabool?', options:['a > 0','a < 0','a = 0','a = 1'], correct:1, explain:'a<0 = bergparabool (opening naar beneden, frowny). a>0 = dalparabool (opening naar boven, smiley).' },
+  { q:'Wat gebeurt er met de parabool als |a| groter wordt?', options:['De parabool wordt breder','De parabool wordt smaller','De parabool schuift omhoog','De parabool draait om'], correct:1, explain:'Hoe groter |a|, hoe smaller de parabool. Hoe kleiner |a|, hoe breder.' },
+  { q:'f(x) = -2x²+4x+1. Is dit een berg- of dalparabool?', options:['Dalparabool, want a=2','Bergparabool, want a=-2','Dalparabool, want c=1','Bergparabool, want b=4'], correct:1, explain:'a=-2, en -2<0, dus het is een bergparabool (opening naar beneden).' },
+
+  // Top berekenen
+  { q:'Hoe bereken je de x-coordinaat van de top?', options:['x = -b/(2a)','x = b/(2a)','x = -c/b','x = -a/(2b)'], correct:0, explain:'De x-coordinaat van de top: x_top = -b/(2a). Daarna vul je x_top in de formule in voor y_top.' },
+  { q:'f(x) = x²-4x+1. Wat is de x-coordinaat van de top?', options:['x = 4','x = 2','x = -2','x = 1'], correct:1, explain:'x_top = -b/(2a) = -(-4)/(2·1) = 4/2 = 2.' },
+  { q:'f(x) = x²-4x+1 heeft x_top=2. Wat is y_top?', options:['y = 1','y = -3','y = 5','y = -1'], correct:1, explain:'y_top = f(2) = 2²-4·2+1 = 4-8+1 = -3. De top is (2, -3).' },
+
+  // Product-som-methode
+  { q:'Bij x²+7x+12=0 zoek je p en q met PSM. Welke waarden kloppen?', options:['p=3, q=4','p=2, q=6','p=-3, q=-4','p=6, q=1'], correct:0, explain:'p·q=12 en p+q=7. 3·4=12 en 3+4=7. Klopt! (x+3)(x+4)=0, dus x=-3 of x=-4.' },
+  { q:'Wanneer werkt de product-som-methode NIET?', options:['Als a≠1','Als b=0','Als c positief is','Als D>0'], correct:0, explain:'PSM werkt alleen als a=1 (het getal voor x² is 1). Bij a≠1 moet je eerst door a delen, of de abc-formule gebruiken.' },
+  { q:'x²-x-12=0. Welke ontbinding klopt?', options:['(x-4)(x+3)=0','(x+4)(x-3)=0','(x-6)(x+2)=0','(x-2)(x+6)=0'], correct:0, explain:'p·q=-12 en p+q=-1. p=-4, q=3: (-4)·3=-12 en -4+3=-1. Klopt! (x+(-4))(x+3)=(x-4)(x+3)=0. Dus x=4 of x=-3.' },
+
+  // Snijpunten twee grafieken
+  { q:'Hoe vind je de snijpunten van f(x)=x²-2x en g(x)=x+4?', options:['Stel f(x)=0','Stel g(x)=0','Stel f(x)=g(x)','Bereken f(0) en g(0)'], correct:2, explain:'Snijpunten van twee grafieken: stel f(x)=g(x). Dus x²-2x=x+4, en los deze vergelijking op.' },
+  { q:'f(x)=g(x) geeft x²-3x-4=0. Wat zijn de x-waarden van de snijpunten?', options:['x=1 en x=-4','x=4 en x=-1','x=2 en x=-2','x=-4 en x=1'], correct:1, explain:'x²-3x-4=0. PSM: p·q=-4 en p+q=-3. p=-4, q=1. (x-4)(x+1)=0. x=4 of x=-1.' },
+
+  // Symmetrieas
+  { q:'Wat is de symmetrieas van f(x)=2x²-12x+5?', options:['x = 3','x = -3','x = 6','x = 12'], correct:0, explain:'Symmetrieas: x = -b/(2a) = -(-12)/(2·2) = 12/4 = 3. De symmetrieas is x=3.' },
+];
+
+const QUIZ_SIZE = 15;
+
+// ===== STATE =====
+let flashKnown = JSON.parse(localStorage.getItem('wiskunde-snijpunten-flash') || '{}');
+let quizScore = JSON.parse(localStorage.getItem('wiskunde-snijpunten-quiz') || 'null');
+let history = JSON.parse(localStorage.getItem('wiskunde-snijpunten-history') || '[]');
+let fcIndex = 0;
+
+// ===== NAV =====
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if(id==='flash') showFlashcard();
+  if(id==='score') updateScorePanel();
+  updateHero();
+}
+
+// ===== OVERVIEW =====
+function renderOverview() {
+  [1,2,3].forEach(tier => {
+    const container = document.getElementById('tier'+tier+'-cards');
+    container.innerHTML = '';
+    topics.filter(t=>t.tier===tier).forEach(t => {
+      const known = flashKnown[t.id];
+      const cls = known ? 'mastered' : '';
+      const status = known ? '✅ ▾' : '▾';
+      let videoHtml = '';
+      if(t.videos && t.videos.length > 0) {
+        videoHtml = `<div class="tc-videos"><div class="vid-label">🎬 Filmpjes</div>` +
+          t.videos.map(v => `<a class="vid-link" href="${v.url}" target="_blank" onclick="event.stopPropagation()"><span class="vid-icon">▶️</span>${v.title}<span class="vid-src">${v.src}</span></a>`).join('') +
+          `</div>`;
+      }
+      container.innerHTML += `
+        <div class="topic-card ${cls}" onclick="this.classList.toggle('open')">
+          <div class="tc-top"><h3>${t.term}</h3><span class="tc-status">${status}</span></div>
+          <div class="tc-desc">${t.short}</div>
+          <div class="tc-detail">${t.detail}${videoHtml}</div>
+        </div>`;
+    });
+  });
+}
+
+// ===== HERO =====
+function updateHero() {
+  const knownCount = Object.values(flashKnown).filter(Boolean).length;
+  const total = topics.length;
+  const pct = Math.round((knownCount/total)*100);
+  const quizPct = quizScore !== null ? Math.round((quizScore/QUIZ_SIZE)*100) : 0;
+  const totalPct = Math.round((pct*0.4 + quizPct*0.6));
+
+  document.getElementById('hero-pct').textContent = totalPct+'%';
+  const ring = document.getElementById('hero-ring');
+  ring.style.strokeDashoffset = 175.9 - (175.9 * totalPct / 100);
+
+  const status = document.getElementById('hero-status');
+  const sub = document.getElementById('hero-sub');
+  if(totalPct >= 70) { status.textContent = '🔥 Richting een 7+!'; sub.textContent = 'Je kent de kernstof goed.'; }
+  else if(totalPct >= 37) { status.textContent = '👍 Boven een 5,5'; sub.textContent = 'Voldoende — wil je hoger? Oefen door!'; }
+  else if(totalPct > 0) { status.textContent = '😬 Nog onder een 5,5'; sub.textContent = 'Oefen de begrippen die je nog mist.'; }
+  else { status.textContent = 'Start met leren!'; sub.textContent = 'Flashcards → Toets → Klaar'; }
+}
+
+// ===== FLASHCARDS — TYPE-FIRST SYSTEM =====
+let fcFlipped = false;
+
+function showFlashcard() {
+  fcFlipped = false;
+  const t = topics[fcIndex];
+
+  // Update progress
+  document.getElementById('fc-counter').textContent = (fcIndex+1)+' / '+topics.length;
+  document.getElementById('fc-known').textContent = Object.values(flashKnown).filter(Boolean).length;
+
+  // Show term, hide answer
+  document.getElementById('fc-label').textContent = t.tier===1?'🔴 KERN':t.tier===2?'🟡 BELANGRIJK':'🟢 BONUS';
+  document.getElementById('fc-front').textContent = t.term;
+  document.getElementById('fc-back').style.display = 'none';
+  document.getElementById('fc-back').innerHTML = '';
+  document.getElementById('fc-flip-hint').style.display = 'block';
+
+  // Update instruction
+  if(flashKnown[t.id]) {
+    document.getElementById('fc-step-text').textContent = '✅ Dit begrip had je al goed. Zeg het nog een keer hardop voor jezelf en tik op de kaart om te checken.';
+  } else {
+    document.getElementById('fc-step-text').textContent = 'Zeg hardop in je eigen woorden wat dit begrip betekent (stil in je hoofd mag natuurlijk ook). Tik daarna op de kaart om het juiste antwoord te zien.';
+  }
+
+  // Hide buttons
+  document.getElementById('fc-buttons').style.display = 'none';
+}
+
+function flipCard() {
+  if(!fcFlipped) {
+    // Show answer
+    fcFlipped = true;
+    const t = topics[fcIndex];
+    document.getElementById('fc-back').innerHTML = t.answer;
+    document.getElementById('fc-back').style.display = 'block';
+    document.getElementById('fc-flip-hint').style.display = 'none';
+    document.getElementById('fc-step-text').textContent = 'Klopte het met wat je had bedacht? Wees eerlijk naar jezelf — alleen zo weet je wat je nog moet oefenen.';
+    document.getElementById('fc-buttons').style.display = 'flex';
+  } else {
+    // Already flipped, ignore
+  }
+}
+
+const encourageMessages = [
+  'Komt goed! Herhaling is de sleutel 💪',
+  'Geen stress, volgende ronde beter! 🔄',
+  'Bijna! Lees het antwoord nog even goed door 👀',
+  'Niet erg, oefening baart kunst! ✨',
+  'Volgende keer pak je hem! 🎯'
+];
+
+function showFeedback(msg, type) {
+  const el = document.getElementById('fc-feedback');
+  el.textContent = msg;
+  el.className = 'fc-feedback ' + type + ' show';
+  setTimeout(() => { el.classList.remove('show'); }, 1800);
+}
+
+function markCard(known) {
+  flashKnown[topics[fcIndex].id] = known;
+  localStorage.setItem('wiskunde-snijpunten-flash', JSON.stringify(flashKnown));
+  if (known) {
+    if (typeof confetti === 'function') {
+      confetti({ particleCount: 60, spread: 55, origin: { y: 0.7 }, colors: ['#228be6', '#40c057', '#fcc419'] });
+    }
+  } else {
+    const msg = encourageMessages[Math.floor(Math.random() * encourageMessages.length)];
+    showFeedback(msg, 'retry');
+  }
+  nextCard();
+}
+
+function nextCard() {
+  fcIndex = (fcIndex + 1) % topics.length;
+  showFlashcard();
+}
+function prevCard() {
+  fcIndex = (fcIndex - 1 + topics.length) % topics.length;
+  showFlashcard();
+}
+
+// ===== QUIZ — RANDOM 15 FROM POOL, SHUFFLED OPTIONS =====
+function shuffleArray(arr) {
+  const a = [...arr];
+  for(let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startQuiz() {
+  document.getElementById('quiz-start').style.display = 'none';
+  document.getElementById('quiz-results').style.display = 'none';
+  const container = document.getElementById('quiz-questions');
+  container.style.display = 'block';
+  container.innerHTML = '';
+
+  // Pick random 15 from pool
+  const shuffledPool = shuffleArray(quizPool);
+  const selected = shuffledPool.slice(0, QUIZ_SIZE);
+
+  // For each question, also shuffle the answer options
+  const prepared = selected.map(q => {
+    const indices = q.options.map((_, i) => i);
+    const shuffledIndices = shuffleArray(indices);
+    const newOptions = shuffledIndices.map(i => q.options[i]);
+    const newCorrect = shuffledIndices.indexOf(q.correct);
+    return { ...q, options: newOptions, correct: newCorrect };
+  });
+
+  prepared.forEach((q, i) => {
+    const optionsHtml = q.options.map((opt, j) =>
+      `<button class="option" data-q="${i}" data-o="${j}" onclick="answerQuiz(${i},${j})">${opt}</button>`
+    ).join('');
+    container.innerHTML += `
+      <div class="quiz-q" id="qq-${i}" data-correct="${q.correct}">
+        <div class="q-num">Vraag ${i+1} van ${QUIZ_SIZE}</div>
+        <div class="q-text">${q.q}</div>
+        ${optionsHtml}
+        <div class="q-feedback" id="qf-${i}">${q.explain}</div>
+      </div>`;
+  });
+
+  container.innerHTML += `<button class="start-quiz" onclick="finishQuiz()" style="width:100%;margin-top:12px">Bekijk resultaat</button>`;
+
+  window._quizPrepared = prepared;
+  window._quizAnswers = {};
+}
+
+function answerQuiz(qIdx, optIdx) {
+  const qq = document.getElementById('qq-'+qIdx);
+  const correct = parseInt(qq.dataset.correct);
+  const buttons = qq.querySelectorAll('.option');
+
+  buttons.forEach(b => b.classList.add('disabled'));
+  buttons[correct].classList.add('correct');
+  if(optIdx !== correct) buttons[optIdx].classList.add('wrong');
+
+  const fb = document.getElementById('qf-'+qIdx);
+  fb.classList.add('show', optIdx === correct ? 'good' : 'bad');
+
+  window._quizAnswers[qIdx] = optIdx === correct;
+}
+
+function finishQuiz() {
+  const answers = window._quizAnswers;
+  const total = QUIZ_SIZE;
+  const correct = Object.values(answers).filter(Boolean).length;
+  const pct = Math.round((correct/total)*100);
+
+  quizScore = correct;
+  localStorage.setItem('wiskunde-snijpunten-quiz', JSON.stringify(quizScore));
+
+  // Save to history
+  const knownCount = Object.values(flashKnown).filter(Boolean).length;
+  history.push({
+    date: new Date().toISOString(),
+    flashKnown: knownCount,
+    flashTotal: topics.length,
+    quizScore: correct,
+    quizTotal: total
+  });
+  localStorage.setItem('wiskunde-snijpunten-history', JSON.stringify(history));
+
+  document.getElementById('quiz-questions').style.display = 'none';
+  const results = document.getElementById('quiz-results');
+  results.style.display = 'block';
+
+  let gradeClass, gradeMsg;
+  if(pct >= 70) { gradeClass = 'great'; gradeMsg = 'Richting een 7 of meer!'; }
+  else if(pct >= 37) { gradeClass = 'pass'; gradeMsg = 'Boven een 5,5 — voldoende!'; }
+  else { gradeClass = 'fail'; gradeMsg = 'Nog onder een 5,5'; }
+
+  let weakTopics = [];
+  window._quizPrepared.forEach((q, i) => {
+    if(!answers[i]) weakTopics.push(q.q);
+  });
+
+  results.innerHTML = `
+    <div class="results">
+      <div class="big-score ${gradeClass}">${pct}%</div>
+      <h2>${gradeMsg}</h2>
+      <p>${correct} van ${total} goed</p>
+      ${weakTopics.length > 0 ? `
+        <div class="weak-list">
+          <h4>Hier nog even naar kijken:</h4>
+          ${weakTopics.map(w=>'<li>'+w+'</li>').join('')}
+        </div>
+      ` : ''}
+      <button class="retry" onclick="retryQuiz()">Opnieuw proberen (andere vragen!)</button>
+    </div>`;
+
+  updateHero();
+  updateScorePanel();
+}
+
+function retryQuiz() {
+  document.getElementById('quiz-results').style.display = 'none';
+  document.getElementById('quiz-start').style.display = 'block';
+}
+
+// ===== SCORE PANEL =====
+function updateScorePanel() {
+  const knownCount = Object.values(flashKnown).filter(Boolean).length;
+  const flashPct = Math.round((knownCount/topics.length)*100);
+  document.getElementById('sc-flash-bar').style.width = flashPct+'%';
+  document.getElementById('sc-flash-pct').textContent = knownCount+' / '+topics.length;
+
+  if(quizScore !== null) {
+    const quizPct = Math.round((quizScore/QUIZ_SIZE)*100);
+    document.getElementById('sc-quiz-bar').style.width = quizPct+'%';
+    document.getElementById('sc-quiz-pct').textContent = quizScore+' / '+QUIZ_SIZE+' ('+quizPct+'%)';
+    document.getElementById('sc-quiz-bar').className = 'progress-fill '+(quizPct>=70?'good':quizPct>=37?'mid':'low');
+  }
+
+  const quizPct = quizScore !== null ? Math.round((quizScore/QUIZ_SIZE)*100) : 0;
+  const totalPct = Math.round((flashPct*0.4 + quizPct*0.6));
+  document.getElementById('sc-total-bar').style.width = totalPct+'%';
+  document.getElementById('sc-total-bar').className = 'progress-fill '+(totalPct>=70?'good':totalPct>=37?'mid':'low');
+  document.getElementById('sc-flash-bar').className = 'progress-fill '+(flashPct>=70?'good':flashPct>=37?'mid':'low');
+
+  // Grade indicator boxes
+  const gf = document.getElementById('grade-fail');
+  const gp = document.getElementById('grade-pass');
+  const gg = document.getElementById('grade-great');
+  gf.className = 'grade-box'; gp.className = 'grade-box'; gg.className = 'grade-box';
+  if(totalPct >= 70) { gg.className = 'grade-box active-great'; }
+  else if(totalPct >= 37) { gp.className = 'grade-box active-pass'; }
+  else { gf.className = 'grade-box active-fail'; }
+
+  // Readiness message
+  const box = document.getElementById('readiness-box');
+  const title = document.getElementById('ready-title');
+  const text = document.getElementById('ready-text');
+  if(totalPct >= 70) {
+    box.className = 'readiness ready-great';
+    title.textContent = '🔥 Richting een 7 of meer!';
+    text.textContent = 'Je kent de kernstof goed. Wil je stoppen? Prima. Wil je hoger? Doe de bonus-begrippen.';
+  } else if(totalPct >= 37) {
+    box.className = 'readiness ready-pass';
+    title.textContent = '👍 Boven een 5,5 — voldoende';
+    text.textContent = 'Je haalt het zo. Wil je richting een 7? Oefen de begrippen die je nog mist en doe de toets nog een keer.';
+  } else if(totalPct > 0) {
+    box.className = 'readiness ready-fail';
+    title.textContent = '😬 Nog onder een 5,5';
+    text.textContent = 'Je staat nu onvoldoende. Doe de flashcards en maak de toets om boven de 5,5 te komen.';
+  } else {
+    box.className = 'readiness ready-fail';
+    title.textContent = '🎯 Begin met leren';
+    text.textContent = 'Doe de flashcards en de toets om je score op te bouwen. Jij kiest je doel!';
+  }
+
+  // Render history
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  if(history.length === 0) {
+    list.innerHTML = '<div class="no-history">Nog geen eerdere pogingen opgeslagen. Maak een toets om je voortgang bij te houden!</div>';
+    return;
+  }
+
+  list.innerHTML = history.slice().reverse().map((h, i) => {
+    const d = new Date(h.date);
+    const dateStr = d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    const quizPct = Math.round((h.quizScore / h.quizTotal) * 100);
+    const flashPct = Math.round((h.flashKnown / h.flashTotal) * 100);
+    const quizClass = quizPct >= 37 ? 'quiz' : 'quiz-fail';
+    return `
+      <div class="history-entry">
+        <span class="he-date">${dateStr}</span>
+        <div class="he-scores">
+          <span class="he-badge flash">🃏 ${flashPct}%</span>
+          <span class="he-badge ${quizClass}">✍️ ${quizPct}%</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function resetAll() {
+  if(!confirm('Weet je zeker dat je alles wilt resetten? Je score-geschiedenis blijft bewaard.')) return;
+  flashKnown = {};
+  quizScore = null;
+  localStorage.removeItem('wiskunde-snijpunten-flash');
+  localStorage.removeItem('wiskunde-snijpunten-quiz');
+  renderOverview();
+  updateHero();
+  updateScorePanel();
+}
+
+// ── CHAT ──────────────────────────────────────────────────────────────
+const CHAT_CONTEXT = `[CONTEXT: De leerling is bezig met Wiskunde, Thema 4: Snijpunten. De stof gaat over: abc-formule (x = (-b ± √(b²-4ac)) / 2a), discriminant (D = b²-4ac), standaardvorm (ax²+bx+c=0), snijpunten met x-as en y-as, kwadratische grafieken (parabolen), top berekenen (x_top = -b/2a), product-som-methode (PSM), en snijpunten van twee grafieken. Niveau: 3 havo/vwo. Geef concrete oefensommen en uitleg. Doe alles in de chat, Duolingo-stijl.]`;
+
+let chatHistory = [];
+
+function chatSend(text) {
+  if (!text.trim()) return;
+
+  const messagesEl = document.getElementById('chat-messages');
+  const typingEl = document.getElementById('chat-typing');
+  const quickEl = document.getElementById('chat-quick');
+
+  // Add user message to UI
+  const userDiv = document.createElement('div');
+  userDiv.className = 'chat-msg chat-msg-user';
+  userDiv.textContent = text;
+  messagesEl.appendChild(userDiv);
+
+  // Hide quick actions after first message
+  quickEl.style.display = 'none';
+
+  // Build message history
+  if (chatHistory.length === 0) {
+    chatHistory.push({ role: 'user', content: CHAT_CONTEXT + '\n\n' + text });
+  } else {
+    chatHistory.push({ role: 'user', content: text });
+  }
+
+  // Show typing indicator
+  typingEl.classList.add('active');
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  // Call API
+  fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages: chatHistory.slice(-20), mode: 'chill' })
+  }).then(response => {
+    if (!response.ok) throw new Error('API error');
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let aiText = '';
+    let aiDiv = null;
+
+    function processStream() {
+      reader.read().then(({ done, value }) => {
+        if (done) {
+          typingEl.classList.remove('active');
+          if (aiText) {
+            chatHistory.push({ role: 'assistant', content: aiText });
+          }
+          return;
+        }
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+                if (!aiDiv) {
+                  typingEl.classList.remove('active');
+                  aiDiv = document.createElement('div');
+                  aiDiv.className = 'chat-msg chat-msg-ai';
+                  messagesEl.appendChild(aiDiv);
+                }
+                aiText += parsed.delta.text;
+                aiDiv.innerHTML = formatChat(aiText);
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+              }
+            } catch (e) {}
+          }
+        }
+        processStream();
+      });
+    }
+    processStream();
+  }).catch(err => {
+    typingEl.classList.remove('active');
+    const errDiv = document.createElement('div');
+    errDiv.className = 'chat-msg chat-msg-ai';
+    errDiv.innerHTML = '<p>Oeps, geen verbinding. Probeer opnieuw.</p>';
+    messagesEl.appendChild(errDiv);
+  });
+}
+
+function chatSendInput() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+  chatSend(text);
+}
+
+function formatChat(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n- /g, '</p><ul><li>')
+    .replace(/\n(\d+)\. /g, '</p><ol><li>')
+    .replace(/^/, '<p>')
+    .replace(/$/, '</p>')
+    .replace(/<p><\/p>/g, '');
+}
+
+// ===== INIT =====
+renderOverview();
+updateHero();
+</script>
+</body>
+</html>
