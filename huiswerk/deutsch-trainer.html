@@ -242,6 +242,15 @@
     .chat-send { width: 40px; height: 40px; border-radius: 50%; background: #228be6; border: none; color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .chat-send:disabled { background: #adb5bd; cursor: not-allowed; }
     .chat-send:active { transform: scale(.92); }
+
+    /* CHAT IMAGE UPLOAD */
+    .chat-upload { width: 40px; height: 40px; border-radius: 50%; background: #f8f9fa; border: 1.5px solid #e9ecef; color: #868e96; font-size: 18px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .chat-upload:active { transform: scale(.92); }
+    .chat-preview { position: relative; padding: 8px 16px; background: #f8f9fa; display: none; }
+    .chat-preview img { max-height: 120px; border-radius: 8px; border: 1px solid #e9ecef; }
+    .chat-preview .preview-remove { position: absolute; top: 4px; right: 20px; width: 24px; height: 24px; border-radius: 50%; background: rgba(0,0,0,.5); color: #fff; border: none; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .chat-msg img { max-width: 100%; border-radius: 8px; margin-top: 8px; }
+
     #panel-chat { padding-bottom: 0; max-width: 480px; margin: 0 auto; width: 100%; }
     #panel-chat.active { display: block; }
   </style>
@@ -541,6 +550,7 @@
 </div>
 
 <!-- CHAT PANEL -->
+<input type="file" id="chat-file" accept="image/*" capture="environment" style="display:none" onchange="handleImageSelect(event)">
 <div id="panel-chat" class="panel">
   <div class="chat-container">
     <div class="chat-messages" id="chat-messages">
@@ -556,11 +566,17 @@
     <div class="chat-quick" id="chat-quick">
       <button class="chat-quick-btn" onclick="chatSend('Geef me 5 werkwoorden om te vervoegen in de Präsens')">Werkwoorden oefenen</button>
       <button class="chat-quick-btn" onclick="chatSend('Geef me 8 zinnen waar ik mein of meine moet invullen')">mein/meine invullen</button>
-      <button class="chat-quick-btn" onclick="chatSend('Geef me 6 zinnen met hoofdletterfouten die ik moet fixen')">Hauptletters fixen</button>
+      <button class="chat-quick-btn" onclick="chatSend('Geef me 6 zinnen met hoofdletterfouten die ik moet fixen')">Hoofdletters fixen</button>
       <button class="chat-quick-btn" onclick="chatSend('Schrijf een Instagram-post over Meine Familie en Lieblingsessen, ik reageer erop in het Duits')">Schrijfoefening</button>
       <button class="chat-quick-btn" onclick="chatSend('Geef me 5 zinnen waar ik het juiste Bindewort moet kiezen')">Bindewörter invullen</button>
+      <button class="chat-quick-btn" onclick="document.getElementById('chat-file').click()">📷 Foto beoordelen</button>
+    </div>
+    <div class="chat-preview" id="chat-preview" style="display:none">
+      <img id="preview-img" src="">
+      <button class="preview-remove" onclick="removeImage()">✕</button>
     </div>
     <div class="chat-input-area">
+      <button class="chat-upload" onclick="document.getElementById('chat-file').click()" title="Foto uploaden">📷</button>
       <textarea class="chat-input" id="chat-input" placeholder="Typ hier of kies hierboven..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSendInput()}"></textarea>
       <button class="chat-send" id="chat-send-btn" onclick="chatSendInput()">↑</button>
     </div>
@@ -1452,24 +1468,134 @@ initFlash();
 const CHAT_CONTEXT = `[CONTEXT: De leerling is bezig met Deutsch Klasse 3, Periode 3: Schreibfertigkeit. De schrijftoets is deze week (vrijdag). Toetsvorm: "Reagieren auf einen Post" — de leerling krijgt een social media post in het Duits en moet daar schriftelijk op reageren. De stof gaat over: regelmäßige Verben vervoegen (Präsens: stam+e/st/t/en/t/en en Vergangenheit: stam+te/test/te/ten/tet/ten), sein/haben (onregelmatig), bezittelijke voornaamwoorden (mein/meine — mannelijk/onzijdig vs vrouwelijk/meervoud), Großbuchstaben (zelfstandige naamwoorden altijd hoofdletter), Bindewörter und Satzaufbau (weil/dass/wenn → werkwoord naar einde bijzin), Datumnotatie (den 29. März 2026), Grüße (Lieber/Liebe + Viele Grüße), ß vs ss, en de Wortliste (60 items). Schreibthemen van klas 3D: Meine Familie, Lieblingsessen, Lieblingstier, Lieblingsspiel, Lieblingsfach in der Schule. Beoordeling op: boodschap, woordenschat, samenhang, grammatica, spelling. Niveau: A2 (havo). Geef oefeningen in de chat, Duolingo-stijl. Leg alles uit in het NEDERLANDS maar gebruik Duitse voorbeelden. Laat de leerling zinnen schrijven en geef direct feedback. Focus op de meest voorkomende fouten: hoofdletters vergeten bij Substantive, werkwoorduitgangen fout, mein vs meine verkeerd, weil/dass zonder werkwoord achteraan.]`;
 
 let chatHistory = [];
+let pendingImage = null;
+
+function handleImageSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      // Resize image to max 1024px
+      const canvas = document.createElement('canvas');
+      let { width, height } = img;
+      const maxSize = 1024;
+      if (width > maxSize || height > maxSize) {
+        const ratio = Math.min(maxSize / width, maxSize / height);
+        width = Math.floor(width * ratio);
+        height = Math.floor(height * ratio);
+      }
+      canvas.width = width;
+      canvas.height = height;
+      
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Convert to base64 JPEG at 0.85 quality
+      pendingImage = canvas.toDataURL('image/jpeg', 0.85);
+      
+      // Display preview
+      const previewEl = document.getElementById('chat-preview');
+      const previewImg = document.getElementById('preview-img');
+      previewImg.src = pendingImage;
+      previewEl.style.display = 'flex';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  
+  // Clear input so same file can be selected again
+  event.target.value = '';
+}
+
+function removeImage() {
+  pendingImage = null;
+  document.getElementById('chat-preview').style.display = 'none';
+}
 
 function chatSend(text) {
-  if (!text.trim()) return;
+  // Allow image-only sends (text can be empty if image exists)
+  if (!text.trim() && !pendingImage) return;
+  
   const messagesEl = document.getElementById('chat-messages');
   const typingEl = document.getElementById('chat-typing');
   const quickEl = document.getElementById('chat-quick');
 
+  // Display user message with image thumbnail if present
   const userDiv = document.createElement('div');
   userDiv.className = 'chat-msg chat-msg-user';
-  userDiv.textContent = text;
+  
+  if (pendingImage) {
+    const container = document.createElement('div');
+    const img = document.createElement('img');
+    img.src = pendingImage;
+    img.style.maxWidth = '200px';
+    img.style.borderRadius = '4px';
+    img.style.marginBottom = text.trim() ? '8px' : '0';
+    container.appendChild(img);
+    
+    if (text.trim()) {
+      const textSpan = document.createElement('div');
+      textSpan.textContent = text;
+      textSpan.style.marginTop = '8px';
+      container.appendChild(textSpan);
+    }
+    userDiv.appendChild(container);
+  } else {
+    userDiv.textContent = text;
+  }
+  
   messagesEl.appendChild(userDiv);
   quickEl.style.display = 'none';
 
-  if (chatHistory.length === 0) {
-    chatHistory.push({ role: 'user', content: CHAT_CONTEXT + '\n\n' + text });
-  } else {
-    chatHistory.push({ role: 'user', content: text });
+  // Build message content array
+  let messageContent = [];
+  
+  if (pendingImage) {
+    messageContent.push({
+      type: 'image',
+      source: {
+        type: 'base64',
+        media_type: 'image/jpeg',
+        data: pendingImage.split(',')[1]
+      }
+    });
   }
+  
+  // If image sent without text, use default German grading prompt
+  const finalText = text.trim() || 'Beoordeel deze afbeelding met handgeschreven Duits tekst op: boodschap, woordenschat, samenhang, grammatica, spelling. Geef scores 1-10 en feedback.';
+  
+  messageContent.push({
+    type: 'text',
+    text: finalText
+  });
+
+  // Build message for API
+  let messageToSend;
+  if (messageContent.length === 1 && messageContent[0].type === 'text') {
+    // Text only
+    messageToSend = finalText;
+  } else {
+    // Has image - use full content array format
+    messageToSend = messageContent;
+  }
+
+  if (chatHistory.length === 0) {
+    if (Array.isArray(messageToSend)) {
+      // Add context to first text content in array
+      messageToSend[messageToSend.length - 1].text = CHAT_CONTEXT + '\n\n' + messageToSend[messageToSend.length - 1].text;
+    } else {
+      messageToSend = CHAT_CONTEXT + '\n\n' + messageToSend;
+    }
+    chatHistory.push({ role: 'user', content: messageToSend });
+  } else {
+    chatHistory.push({ role: 'user', content: messageToSend });
+  }
+
+  // Clear pending image after sending
+  removeImage();
 
   typingEl.classList.add('active');
   messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -1530,7 +1656,8 @@ function chatSend(text) {
 function chatSendInput() {
   const input = document.getElementById('chat-input');
   const text = input.value.trim();
-  if (!text) return;
+  // Allow send if there's text OR if there's a pending image
+  if (!text && !pendingImage) return;
   input.value = '';
   input.style.height = 'auto';
   chatSend(text);
