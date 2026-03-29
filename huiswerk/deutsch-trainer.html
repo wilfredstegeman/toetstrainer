@@ -205,9 +205,7 @@
     .story-section .section-header { padding: 18px 20px 8px; }
     .story-scroll { display: flex; gap: 12px; overflow-x: auto; padding: 0 16px 16px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
     .story-scroll::-webkit-scrollbar { display: none; }
-    .story-card { flex: 0 0 280px; background: #fff; border-radius: 14px; border: 2px solid #e9ecef; box-shadow: 0 1px 4px rgba(0,0,0,.06); scroll-snap-align: start; overflow: hidden; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
-    .story-card:active { transform: scale(.98); }
-    .story-card-active { border-color: #228be6; box-shadow: 0 2px 8px rgba(34,139,230,.2); }
+    .story-card { flex: 0 0 calc(100vw - 32px); max-width: 448px; background: #fff; border-radius: 14px; border: 1px solid #e9ecef; box-shadow: 0 1px 4px rgba(0,0,0,.06); scroll-snap-align: start; overflow: hidden; }
     .story-tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 8px; margin: 14px 16px 0; background: #e7f5ff; color: #1971c2; }
 
 
@@ -315,64 +313,9 @@
     <p><strong>Vrijdag krijg je een Duits bericht</strong> (bijvoorbeeld van iemand op social media). Jij schrijft een Nederlands antwoord terug in het Duits. De docent beoordeelt je antwoord op 5 criteria: Boodschap, Woordenschat, Grammatica, Spelling en Handschrift.</p>
   </div>
 
-  <!-- STORY SELECTOR + NIVEAUS -->
-  <div class="section-header">Zo klinkt jouw Duits</div>
+  <!-- VOORBEELDANTWOORDEN -->
+  <div class="section-header">Zo scoor je op de toets</div>
   <div class="story-scroll" id="story-scroll"></div>
-
-  <div class="niveaus-block" id="niveaus-block">
-    <div class="niveaus-intro">
-      <strong>Bekijk dit verhaal op drie niveaus.</strong> Tik op een ander kaartje hierboven om van thema te wisselen. Tik op de gekleurde chips om te zien waar de docent op let.
-    </div>
-
-    <!-- DE PROMPT / POST -->
-    <div class="niveaus-post" id="niveaus-post">
-      <div class="post-header"><div class="post-avatar" id="post-avatar">T</div> <span id="post-author">tom_utrecht</span></div>
-      <span id="post-text"></span>
-    </div>
-
-    <!-- NIVEAU TABS — A2 first -->
-    <div class="niveau-tabs">
-      <button class="niveau-tab nt-pass active" onclick="showNiveau('pass')">👍 Havo (A2)</button>
-      <button class="niveau-tab nt-fail" onclick="showNiveau('fail')">😬 Onder havo</button>
-      <button class="niveau-tab nt-great" onclick="showNiveau('great')">🔥 Vwo (A2+)</button>
-    </div>
-
-    <!-- A2 HAVO (default visible) -->
-    <div class="niveau-content active" id="niveau-pass">
-      <span class="niveau-label nl-pass">A2 — Havo-niveau (voldoende)</span>
-      <div class="exemple-text" id="text-pass"></div>
-      <div class="beo-legend" id="legend-pass">
-        <span class="beo-chip bc-boodschap active" onclick="toggleBeo('pass','boodschap')">Boodschap</span>
-        <span class="beo-chip bc-woord" onclick="toggleBeo('pass','woord')">Woordenschat</span>
-        <span class="beo-chip bc-samenhang" onclick="toggleBeo('pass','samenhang')">Samenhang</span>
-        <span class="beo-chip bc-grammatik" onclick="toggleBeo('pass','grammatik')">Grammatica</span>
-        <span class="beo-chip bc-spelling" onclick="toggleBeo('pass','spelling')">Spelling</span>
-      </div>
-      <div id="rubrics-pass"></div>
-    </div>
-
-    <!-- A1+ ONDER HAVO -->
-    <div class="niveau-content" id="niveau-fail">
-      <span class="niveau-label nl-fail">A1+ — Onder havo-niveau</span>
-      <div class="exemple-text" id="text-fail"></div>
-      <div class="error-list" id="errors-fail"></div>
-      <div class="rubric-section" id="rubric-fail-summary"></div>
-    </div>
-
-    <!-- A2+ VWO -->
-    <div class="niveau-content" id="niveau-great">
-      <span class="niveau-label nl-great">A2+ — Vwo-niveau (goed)</span>
-      <div class="exemple-text" id="text-great"></div>
-      <div class="beo-legend" id="legend-great">
-        <span class="beo-chip bc-boodschap active" onclick="toggleBeo('great','boodschap')">Boodschap</span>
-        <span class="beo-chip bc-woord" onclick="toggleBeo('great','woord')">Woordenschat</span>
-        <span class="beo-chip bc-samenhang" onclick="toggleBeo('great','samenhang')">Samenhang</span>
-        <span class="beo-chip bc-grammatik" onclick="toggleBeo('great','grammatik')">Grammatica</span>
-        <span class="beo-chip bc-spelling" onclick="toggleBeo('great','spelling')">Spelling</span>
-      </div>
-      <div id="rubrics-great"></div>
-    </div>
-  </div>
 
   <div class="section-header">📚 A2 — Dit moet je weten voor een voldoende</div>
   <div id="stof-cards-a2"></div>
@@ -1238,62 +1181,96 @@ let currentStoryIdx = 0;
 function renderStoryCards() {
   const container = document.getElementById('story-scroll');
   if (!container) return;
-  container.innerHTML = STORIES.map((s, i) =>
-    '<div class="story-card' + (i === 0 ? ' story-card-active' : '') + '" onclick="selectStory(' + i + ')" id="sc-' + i + '">' +
-      '<span class="story-tag">' + s.t.toUpperCase() + '</span>' +
-      '<div style="padding:8px 16px 14px;font-size:12px;color:#495057;line-height:1.5">' + s.prompt + '</div>' +
-    '</div>'
-  ).join('');
-  loadStory(0);
-}
+  const cats = ['boodschap','woord','samenhang','grammatik','spelling'];
+  const catNames = {boodschap:'Boodschap',woord:'Woordenschat',samenhang:'Samenhang',grammatik:'Grammatica',spelling:'Spelling'};
 
-function selectStory(idx) {
-  document.querySelectorAll('.story-card').forEach(c => c.classList.remove('story-card-active'));
-  document.getElementById('sc-' + idx).classList.add('story-card-active');
-  currentStoryIdx = idx;
-  loadStory(idx);
-  // scroll niveaus block into view
-  document.getElementById('niveaus-block').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+  container.innerHTML = STORIES.map((s, i) => {
+    const errHtml = s.failErrors.map(e =>
+      '<div class="error-item"><span class="error-wrong">' + e.w + '</span> → <span class="error-correct">' + e.c + '</span><div class="error-explain">' + e.e + '</div></div>'
+    ).join('');
 
-function loadStory(idx) {
-  const s = STORIES[idx];
-  // Update post
-  document.getElementById('post-text').innerHTML = s.prompt;
-  // A1+ (fail)
-  document.getElementById('text-fail').innerHTML = s.fail;
-  const errHtml = s.failErrors.map(e =>
-    '<div class="error-item"><span class="error-wrong">' + e.w + '</span> → <span class="error-correct">' + e.c + '</span><div class="error-explain">' + e.e + '</div></div>'
-  ).join('');
-  document.getElementById('errors-fail').innerHTML = errHtml;
-  document.getElementById('rubric-fail-summary').innerHTML = '<strong>Samenvatting:</strong> ' + s.failSummary;
-  // A2 (pass)
-  document.getElementById('text-pass').innerHTML = s.pass;
-  const passRubrics = ['boodschap','woord','samenhang','grammatik','spelling'].map((cat,i) =>
-    '<div class="rubric-section rubric-' + cat + '" id="rubric-pass-' + cat + '"' + (i > 0 ? ' style="display:none"' : '') + '><strong>' + ({boodschap:'Boodschap',woord:'Woordenschat',samenhang:'Samenhang',grammatik:'Grammatica',spelling:'Spelling'})[cat] + ':</strong> ' + s.passR[cat] + '</div>'
-  ).join('');
-  document.getElementById('rubrics-pass').innerHTML = passRubrics;
-  // A2+ (great)
-  document.getElementById('text-great').innerHTML = s.great;
-  const greatRubrics = ['boodschap','woord','samenhang','grammatik','spelling'].map((cat,i) =>
-    '<div class="rubric-section rubric-' + cat + '" id="rubric-great-' + cat + '"' + (i > 0 ? ' style="display:none"' : '') + '><strong>' + ({boodschap:'Boodschap',woord:'Woordenschat',samenhang:'Samenhang',grammatik:'Grammatica',spelling:'Spelling'})[cat] + ':</strong> ' + s.greatR[cat] + '</div>'
-  ).join('');
-  document.getElementById('rubrics-great').innerHTML = greatRubrics;
-  // Reset to A2 tab and boodschap chip
-  showNiveau('pass');
-  // Reset chip state
-  ['pass','great'].forEach(level => {
-    const textEl = document.getElementById('text-' + level);
-    if (!textEl) return;
-    ['woord','samenhang','grammatik','spelling'].forEach(cat => {
-      textEl.querySelectorAll('.hl-' + cat).forEach(sp => { sp.style.background = 'transparent'; });
+    const passRubrics = cats.map((cat, ci) =>
+      '<div class="rubric-section rubric-' + cat + '" id="rubric-pass-' + i + '-' + cat + '"' + (ci > 0 ? ' style="display:none"' : '') + '><strong>' + catNames[cat] + ':</strong> ' + s.passR[cat] + '</div>'
+    ).join('');
+
+    const greatRubrics = cats.map((cat, ci) =>
+      '<div class="rubric-section rubric-' + cat + '" id="rubric-great-' + i + '-' + cat + '"' + (ci > 0 ? ' style="display:none"' : '') + '><strong>' + catNames[cat] + ':</strong> ' + s.greatR[cat] + '</div>'
+    ).join('');
+
+    return '<div class="story-card" id="sc-' + i + '">' +
+      '<div style="padding:14px 16px 0"><span class="story-tag">' + s.t.toUpperCase() + '</span></div>' +
+      '<div class="niveaus-post" style="margin:10px 12px">' +
+        '<div class="post-header"><div class="post-avatar">T</div> tom_utrecht</div>' +
+        s.prompt +
+      '</div>' +
+      '<div class="niveau-tabs" style="margin:0 12px" id="tabs-' + i + '">' +
+        '<button class="niveau-tab nt-pass active" onclick="showSN(' + i + ',\'pass\')">👍 A2</button>' +
+        '<button class="niveau-tab nt-fail" onclick="showSN(' + i + ',\'fail\')">😬 A1+</button>' +
+        '<button class="niveau-tab nt-great" onclick="showSN(' + i + ',\'great\')">🔥 A2+</button>' +
+      '</div>' +
+      // A2 (default)
+      '<div class="niveau-content active" id="nc-' + i + '-pass">' +
+        '<span class="niveau-label nl-pass">A2 — Havo (voldoende)</span>' +
+        '<div class="exemple-text" id="text-pass-' + i + '">' + s.pass + '</div>' +
+        '<div class="beo-legend" id="legend-pass-' + i + '">' +
+          cats.map(c => '<span class="beo-chip bc-' + c + (c==='boodschap'?' active':'') + '" onclick="toggleSB('+i+',\'pass\',\''+c+'\')">' + catNames[c] + '</span>').join('') +
+        '</div>' +
+        passRubrics +
+      '</div>' +
+      // A1+
+      '<div class="niveau-content" id="nc-' + i + '-fail">' +
+        '<span class="niveau-label nl-fail">A1+ — Onder havo</span>' +
+        '<div class="exemple-text" style="color:#868e96;font-style:italic">' + s.fail + '</div>' +
+        '<div class="error-list">' + errHtml + '</div>' +
+        '<div class="rubric-section"><strong>Samenvatting:</strong> ' + s.failSummary + '</div>' +
+      '</div>' +
+      // A2+
+      '<div class="niveau-content" id="nc-' + i + '-great">' +
+        '<span class="niveau-label nl-great">A2+ — Vwo (goed)</span>' +
+        '<div class="exemple-text" id="text-great-' + i + '">' + s.great + '</div>' +
+        '<div class="beo-legend" id="legend-great-' + i + '">' +
+          cats.map(c => '<span class="beo-chip bc-' + c + (c==='boodschap'?' active':'') + '" onclick="toggleSB('+i+',\'great\',\''+c+'\')">' + catNames[c] + '</span>').join('') +
+        '</div>' +
+        greatRubrics +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  // Set initial highlight state: hide non-boodschap highlights
+  STORIES.forEach((s, i) => {
+    ['pass','great'].forEach(level => {
+      const textEl = document.getElementById('text-' + level + '-' + i);
+      if (!textEl) return;
+      ['woord','samenhang','grammatik','spelling'].forEach(cat => {
+        textEl.querySelectorAll('.hl-' + cat).forEach(sp => { sp.style.background = 'transparent'; });
+      });
     });
-    const legend = document.getElementById('legend-' + level);
-    if (legend) {
-      legend.querySelectorAll('.beo-chip').forEach(c => c.classList.remove('active'));
-      legend.querySelector('.bc-boodschap').classList.add('active');
-    }
   });
+}
+
+function showSN(idx, level) {
+  const card = document.getElementById('sc-' + idx);
+  card.querySelectorAll('.niveau-content').forEach(el => el.classList.remove('active'));
+  card.querySelectorAll('.niveau-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('nc-' + idx + '-' + level).classList.add('active');
+  const tabMap = { fail:'nt-fail', pass:'nt-pass', great:'nt-great' };
+  card.querySelector('.niveau-tab.' + tabMap[level]).classList.add('active');
+}
+
+function toggleSB(idx, level, cat) {
+  const legend = document.getElementById('legend-' + level + '-' + idx);
+  const textEl = document.getElementById('text-' + level + '-' + idx);
+  const allCats = ['boodschap','woord','samenhang','grammatik','spelling'];
+  allCats.forEach(c => {
+    legend.querySelector('.bc-' + c).classList.remove('active');
+    textEl.querySelectorAll('.hl-' + c).forEach(sp => { sp.style.background = 'transparent'; });
+    const r = document.getElementById('rubric-' + level + '-' + idx + '-' + c);
+    if (r) r.style.display = 'none';
+  });
+  legend.querySelector('.bc-' + cat).classList.add('active');
+  textEl.querySelectorAll('.hl-' + cat).forEach(sp => { sp.style.background = ''; });
+  const rubric = document.getElementById('rubric-' + level + '-' + idx + '-' + cat);
+  if (rubric) rubric.style.display = '';
 }
 
 // ── STATE & STORAGE ──────────────────────────────────────────────────────
@@ -1688,45 +1665,7 @@ function resetAll() {
   document.getElementById('quiz-area').innerHTML      = '';
 }
 
-// ── NIVEAUS VOORBEELDEN ───────────────────────────────────────────────────
-function showNiveau(level) {
-  document.querySelectorAll('.niveau-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.niveau-tab').forEach(el => el.classList.remove('active'));
-  document.getElementById('niveau-' + level).classList.add('active');
-  // find the matching tab
-  const tabMap = { fail: 'nt-fail', pass: 'nt-pass', great: 'nt-great' };
-  document.querySelector('.niveau-tab.' + tabMap[level]).classList.add('active');
-}
-
-function toggleBeo(level, cat) {
-  const legend = document.getElementById('legend-' + level);
-  const textEl = document.getElementById('text-' + level);
-  const allCats = ['boodschap','woord','samenhang','grammatik','spelling'];
-
-  // Radio: deactivate all chips, highlights, and rubric texts
-  allCats.forEach(c => {
-    legend.querySelector('.bc-' + c).classList.remove('active');
-    textEl.querySelectorAll('.hl-' + c).forEach(s => { s.style.background = 'transparent'; });
-    const r = document.getElementById('rubric-' + level + '-' + c);
-    if (r) r.style.display = 'none';
-  });
-
-  // Activate the clicked one
-  legend.querySelector('.bc-' + cat).classList.add('active');
-  textEl.querySelectorAll('.hl-' + cat).forEach(s => { s.style.background = ''; });
-  const rubric = document.getElementById('rubric-' + level + '-' + cat);
-  if (rubric) rubric.style.display = '';
-}
-
 // ── INIT ──────────────────────────────────────────────────────────────────
-// Set initial highlight state: only 'boodschap' visible
-['pass','great'].forEach(level => {
-  const textEl = document.getElementById('text-' + level);
-  if (!textEl) return;
-  ['woord','samenhang','grammatik','spelling'].forEach(cat => {
-    textEl.querySelectorAll('.hl-' + cat).forEach(s => { s.style.background = 'transparent'; });
-  });
-});
 renderOverview();
 renderStoryCards();
 initFlash();
