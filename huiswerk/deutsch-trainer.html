@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deutsch Trainer — Schreibfertigkeit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #212529; max-width: 480px; margin: 0 auto; min-height: 100vh; }
+
+    /* NAV */
+    nav { position: sticky; top: 0; z-index: 100; background: #fff; border-bottom: 2px solid #e9ecef; display: flex; }
+    nav button { flex: 1; padding: 14px 4px; background: none; border: none; font-family: inherit; font-size: 11px; font-weight: 600; color: #868e96; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color .2s, border-color .2s; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    nav button .nav-icon { font-size: 18px; }
+    nav button.active { color: #228be6; border-bottom-color: #228be6; }
+
+    /* PANELS */
+    .panel { display: none; padding: 0 0 80px; }
+    .panel.active { display: block; }
+
+    /* HERO */
+    .hero { background: linear-gradient(135deg, #e03131 0%, #f59f00 100%); color: #fff; padding: 20px 20px 16px; text-align: center; }
+    .hero h1 { font-size: 20px; font-weight: 700; margin-bottom: 2px; }
+    .hero .subtitle { font-size: 12px; opacity: .85; margin-bottom: 12px; }
+    .score-ring { position: relative; display: inline-block; }
+    .score-ring svg { transform: rotate(-90deg); }
+    .score-ring .ring-bg { fill: none; stroke: rgba(255,255,255,.25); stroke-width: 8; }
+    .score-ring .ring-fill { fill: none; stroke: #fff; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset .6s ease; }
+    .score-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+    .score-label .pct { font-size: 22px; font-weight: 700; line-height: 1; }
+    .score-label .lbl { font-size: 10px; opacity: .8; }
+    .hero-stats { display: flex; justify-content: center; gap: 24px; margin-top: 10px; }
+    .hero-stat { text-align: center; }
+    .hero-stat .val { font-size: 20px; font-weight: 700; }
+    .hero-stat .key { font-size: 10px; opacity: .8; }
+    .grade-badge { display: inline-block; margin-top: 12px; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; background: rgba(255,255,255,.2); }
+
+    /* SECTION HEADERS */
+    .section-header { padding: 18px 20px 8px; font-size: 13px; font-weight: 700; color: #868e96; text-transform: uppercase; letter-spacing: .05em; }
+
+    /* TOPIC CARDS */
+    .topic-card { margin: 0 12px 10px; background: #fff; border-radius: 12px; border: 1px solid #e9ecef; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .topic-header { padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+    .tier-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 10px; white-space: nowrap; flex-shrink: 0; }
+    .tier-a2 { background: #e7f5ff; color: #1971c2; border: 1px solid #a5d8ff; }
+    .tier-a2plus { background: #f3f0ff; color: #7048e8; border: 1px solid #d0bfff; }
+    .topic-title { font-size: 15px; font-weight: 600; flex: 1; }
+    .topic-short { font-size: 12px; color: #868e96; margin-top: 1px; }
+    .topic-status { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .topic-status.known { background: #ebfbee; }
+    .topic-status.unknown { background: #f8f9fa; }
+    .topic-detail { padding: 0 16px 14px; font-size: 13px; line-height: 1.65; color: #495057; border-top: 1px solid #f1f3f5; display: none; }
+    .topic-detail.open { display: block; padding-top: 12px; }
+    .topic-detail span.key { background: #e7f5ff; color: #1971c2; padding: 1px 6px; border-radius: 4px; font-weight: 600; font-size: 12px; }
+    .topic-detail .warn { background: #fff9db; border-left: 3px solid #f59f00; padding: 8px 10px; border-radius: 0 6px 6px 0; margin-top: 8px; font-size: 12px; color: #664d03; }
+    .topic-chevron { font-size: 12px; color: #adb5bd; transition: transform .2s; }
+    .topic-chevron.open { transform: rotate(90deg); }
+
+    /* PROGRESS BAR */
+    .progress-row { padding: 6px 20px; display: flex; align-items: center; gap: 10px; }
+    .progress-bar { flex: 1; height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; transition: width .4s; }
+    .progress-label { font-size: 12px; color: #868e96; white-space: nowrap; }
+
+    /* FLASHCARD */
+    .flash-container { padding: 20px; }
+    .flash-progress { text-align: center; font-size: 12px; color: #868e96; margin-bottom: 16px; }
+    .flashcard { background: #fff; border-radius: 16px; border: 1px solid #e9ecef; min-height: 220px; display: flex; align-items: center; justify-content: center; padding: 28px 24px; text-align: center; cursor: pointer; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,.08); user-select: none; transition: transform .15s; }
+    .flashcard:active { transform: scale(.98); }
+    .flashcard .card-side { width: 100%; }
+    .flashcard .card-term { font-size: 22px; font-weight: 700; color: #212529; margin-bottom: 8px; }
+    .flashcard .card-short { font-size: 13px; color: #868e96; }
+    .flashcard .card-answer { font-size: 15px; line-height: 1.6; color: #495057; }
+    .flashcard .flip-hint { position: absolute; bottom: 12px; right: 16px; font-size: 11px; color: #adb5bd; }
+    .flash-actions { display: flex; gap: 10px; margin-top: 14px; }
+    .flash-actions button { flex: 1; padding: 14px; border: none; border-radius: 12px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+    .btn-known { background: #ebfbee; color: #2f9e44; }
+    .btn-unknown { background: #fff5f5; color: #c92a2a; }
+    .flash-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+    .flash-nav button { background: none; border: none; font-size: 22px; cursor: pointer; color: #adb5bd; padding: 6px 10px; }
+    .flash-nav button:disabled { opacity: .3; cursor: default; }
+    .flash-done { text-align: center; padding: 40px 20px; }
+    .flash-done .big-emoji { font-size: 48px; margin-bottom: 16px; }
+    .flash-done h3 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .flash-done p { font-size: 14px; color: #868e96; margin-bottom: 20px; }
+    .flash-done button { padding: 12px 28px; background: #228be6; color: #fff; border: none; border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+
+    /* QUIZ */
+    .quiz-start { padding: 28px 20px; text-align: center; }
+    .quiz-start h2 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    .quiz-start p { font-size: 14px; color: #868e96; margin-bottom: 28px; line-height: 1.6; }
+    .quiz-start button { padding: 14px 32px; background: #228be6; color: #fff; border: none; border-radius: 12px; font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+    .quiz-q-block { padding: 20px; }
+    .quiz-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .quiz-meta .qnum { font-size: 13px; color: #868e96; font-weight: 600; }
+    .quiz-question { font-size: 17px; font-weight: 600; line-height: 1.5; margin-bottom: 18px; }
+    .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+    .quiz-option { background: #fff; border: 2px solid #e9ecef; border-radius: 12px; padding: 14px 16px; font-family: inherit; font-size: 14px; font-weight: 500; color: #212529; cursor: pointer; text-align: left; transition: border-color .15s, background .15s; }
+    .quiz-option:hover:not(:disabled) { border-color: #74c0fc; background: #e7f5ff; }
+    .quiz-option.correct { border-color: #40c057; background: #ebfbee; color: #2f9e44; }
+    .quiz-option.wrong { border-color: #fa5252; background: #fff5f5; color: #c92a2a; }
+    .quiz-explain { background: #f1f3f5; border-radius: 10px; padding: 12px 14px; margin-top: 14px; font-size: 13px; color: #495057; line-height: 1.6; display: none; }
+    .quiz-explain.show { display: block; }
+    .quiz-next-btn { width: 100%; margin-top: 14px; padding: 14px; background: #228be6; color: #fff; border: none; border-radius: 12px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; display: none; }
+    .quiz-next-btn.show { display: block; }
+    .quiz-result { padding: 28px 20px; text-align: center; }
+    .quiz-result .big-score { font-size: 56px; font-weight: 700; color: #228be6; line-height: 1; }
+    .quiz-result .score-sub { font-size: 15px; color: #868e96; margin: 6px 0 20px; }
+    .quiz-result .grade-big { font-size: 36px; font-weight: 700; margin-bottom: 8px; }
+    .quiz-result p { font-size: 14px; color: #495057; margin-bottom: 24px; line-height: 1.6; }
+    .quiz-result button { padding: 13px 28px; background: #228be6; color: #fff; border: none; border-radius: 12px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+
+    /* SCORE PANEL */
+    .score-section { padding: 16px 20px 0; }
+    .score-section h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: #495057; }
+    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f3f5; }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-row .slabel { font-size: 13px; color: #495057; }
+    .stat-row .sval { font-size: 14px; font-weight: 700; }
+    .progress-block { margin: 12px 0; }
+    .progress-block .pb-label { display: flex; justify-content: space-between; font-size: 12px; color: #868e96; margin-bottom: 4px; }
+    .progress-block .pb-bar { height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden; }
+    .progress-block .pb-fill { height: 100%; border-radius: 4px; transition: width .5s; }
+    .history-list { padding: 0 20px 20px; }
+    .history-entry { background: #fff; border-radius: 10px; border: 1px solid #e9ecef; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .history-entry .hdate { font-size: 12px; color: #868e96; }
+    .history-entry .hscore { font-size: 15px; font-weight: 700; }
+    .reset-area { padding: 12px 20px 24px; text-align: center; }
+    .reset-btn { background: none; border: 1px solid #fa5252; color: #fa5252; border-radius: 8px; padding: 8px 18px; font-family: inherit; font-size: 12px; cursor: pointer; }
+    .grade-indicator { display: flex; gap: 8px; margin: 16px 20px 4px; }
+    .grade-box { flex: 1; padding: 10px 8px; border-radius: 10px; text-align: center; border: 2px solid #e9ecef; transition: all .3s; }
+    .grade-box .grade-emoji { font-size: 24px; display: block; margin-bottom: 4px; }
+    .grade-box .grade-label { font-size: 12px; font-weight: 700; display: block; }
+    .grade-box .grade-desc { font-size: 10px; color: #868e96; }
+    .grade-box.active-fail { border-color: #e03131; background: #fff5f5; }
+    .grade-box.active-fail .grade-label { color: #e03131; }
+    .grade-box.active-pass { border-color: #f59f00; background: #fffbeb; }
+    .grade-box.active-pass .grade-label { color: #e67700; }
+    .grade-box.active-great { border-color: #40c057; background: #ebfbee; }
+    .grade-box.active-great .grade-label { color: #2b8a3e; }
+    .readiness { margin: 20px 20px 0; padding: 20px; border-radius: 16px; text-align: center; }
+    .readiness.ready-great { background: #ebfbee; }
+    .readiness.ready-pass { background: #fffbeb; }
+    .readiness.ready-fail { background: #fff5f5; }
+    .readiness .emoji { font-size: 40px; }
+    .readiness h2 { font-size: 18px; margin: 8px 0 4px; }
+    .readiness p { font-size: 13px; color: #495057; }
+    /* NIVEAUS VOORBEELDEN */
+    .niveaus-block { margin: 16px 12px; background: #fff; border-radius: 14px; border: 1px solid #e9ecef; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    .niveaus-intro { padding: 16px 16px 12px; font-size: 13px; color: #495057; line-height: 1.6; border-bottom: 1px solid #f1f3f5; }
+    .niveaus-intro strong { color: #212529; }
+    .niveaus-post { margin: 12px 16px; padding: 14px; background: #f8f9fa; border-radius: 12px; border: 1px solid #e9ecef; font-size: 13px; line-height: 1.6; }
+    .niveaus-post .post-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #495057; }
+    .niveaus-post .post-avatar { width: 28px; height: 28px; border-radius: 50%; background: #e7f5ff; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .niveau-tabs { display: flex; gap: 0; margin: 0 16px; border-bottom: 2px solid #e9ecef; }
+    .niveau-tab { flex: 1; padding: 10px 4px; background: none; border: none; border-bottom: 3px solid transparent; margin-bottom: -2px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; transition: all .2s; }
+    .niveau-tab.nt-fail { color: #adb5bd; }
+    .niveau-tab.nt-fail.active { color: #e03131; border-bottom-color: #e03131; }
+    .niveau-tab.nt-pass { color: #adb5bd; }
+    .niveau-tab.nt-pass.active { color: #e67700; border-bottom-color: #e67700; }
+    .niveau-tab.nt-great { color: #adb5bd; }
+    .niveau-tab.nt-great.active { color: #2b8a3e; border-bottom-color: #2b8a3e; }
+    .niveau-content { display: none; padding: 14px 16px; }
+    .niveau-content.active { display: block; }
+    .niveau-label { display: inline-block; padding: 3px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; margin-bottom: 10px; }
+    .nl-fail { background: #fff5f5; color: #e03131; }
+    .nl-pass { background: #fff9db; color: #e67700; }
+    .nl-great { background: #ebfbee; color: #2b8a3e; }
+    .exemple-text { font-size: 14px; line-height: 1.8; color: #212529; margin-bottom: 12px; padding: 12px; background: #fafafa; border-radius: 10px; border: 1px solid #e9ecef; }
+    .exemple-text .hl-boodschap { background: #dbe4ff; border-radius: 3px; padding: 0 2px; }
+    .exemple-text .hl-woord { background: #d3f9d8; border-radius: 3px; padding: 0 2px; }
+    .exemple-text .hl-samenhang { background: #fff3bf; border-radius: 3px; padding: 0 2px; }
+    .exemple-text .hl-grammatik { background: #ffd8d8; border-radius: 3px; padding: 0 2px; }
+    .exemple-text .hl-spelling { background: #e5dbff; border-radius: 3px; padding: 0 2px; }
+    .exemple-text .hl-fout { text-decoration: underline wavy #e03131; text-underline-offset: 3px; }
+    .beo-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .beo-chip { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all .15s; opacity: .5; border: 2px solid transparent; }
+    .beo-chip.active { opacity: 1; border-color: currentColor; }
+    .beo-chip.bc-boodschap { background: #dbe4ff; color: #364fc7; }
+    .beo-chip.bc-woord { background: #d3f9d8; color: #2b8a3e; }
+    .beo-chip.bc-samenhang { background: #fff3bf; color: #e67700; }
+    .beo-chip.bc-grammatik { background: #ffd8d8; color: #c92a2a; }
+    .beo-chip.bc-spelling { background: #e5dbff; color: #6741d9; }
+    .beo-verdict { font-size: 12px; color: #495057; line-height: 1.6; padding: 10px 12px; background: #f8f9fa; border-radius: 8px; margin-top: 8px; }
+    .beo-verdict strong { font-weight: 700; }
+
+    /* DE TOETS BLOCK */
+    .toets-block { margin: 16px 12px; padding: 20px; background: #fff; border-radius: 14px; border: 1px solid #e9ecef; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    .toets-block h2 { font-size: 17px; font-weight: 700; margin-bottom: 12px; color: #212529; }
+    .toets-block p { font-size: 14px; line-height: 1.7; color: #495057; }
+
+    /* ERROR LIST */
+    .error-list { list-style: none; margin: 12px 0; padding: 0; }
+    .error-item { background: #f8f9fa; border-left: 3px solid #e67700; padding: 12px 14px; margin-bottom: 8px; border-radius: 4px; font-size: 13px; line-height: 1.6; }
+    .error-item .error-wrong { font-weight: 600; color: #c92a2a; }
+    .error-item .error-correct { font-weight: 600; color: #2b8a3e; }
+    .error-item .error-explain { font-size: 12px; color: #868e96; margin-top: 4px; }
+
+    /* ZINNEN BLOCK */
+
+    /* RUBRIC SECTION */
+    .rubric-section { margin-top: 8px; padding: 10px 14px; background: #f1f3f5; border-radius: 8px; font-size: 13px; line-height: 1.6; color: #495057; }
+    .rubric-section strong { font-weight: 700; color: #212529; }
+    .rubric-section:first-of-type { margin-top: 14px; }
+
+    .fc-feedback { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); padding: 10px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; z-index: 200; animation: feedbackSlide .3s ease; opacity: 0; transition: opacity .3s; pointer-events: none; }
+    .fc-feedback.show { opacity: 1; }
+    .fc-feedback.good { background: #ebfbee; color: #2b8a3e; }
+    .fc-feedback.retry { background: #fff9db; color: #e67700; }
+    @keyframes feedbackSlide { from { transform: translateX(-50%) translateY(-10px); } to { transform: translateX(-50%) translateY(0); } }
+
+    /* CHAT PANEL */
+    .chat-container { display: flex; flex-direction: column; height: calc(100vh - 60px); }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .chat-msg { max-width: min(85%, 380px); padding: 12px 16px; border-radius: 18px; font-size: 15px; line-height: 1.5; animation: chatFade .2s ease; word-wrap: break-word; overflow-wrap: break-word; }
+    .chat-msg-user { align-self: flex-end; background: #228be6; color: #fff; border-bottom-right-radius: 6px; }
+    .chat-msg-ai { align-self: flex-start; background: #fff; color: #212529; border-bottom-left-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .chat-msg-ai p { margin-bottom: 8px; }
+    .chat-msg-ai p:last-child { margin-bottom: 0; }
+    .chat-msg-ai strong { color: #228be6; }
+    .chat-msg-ai a { color: #228be6; text-decoration: underline; }
+    .chat-msg-ai code { background: #e7f5ff; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+    .chat-msg-ai ul, .chat-msg-ai ol { margin: 4px 0 8px 16px; }
+    .chat-msg-ai li { margin-bottom: 2px; }
+    .chat-typing { align-self: flex-start; background: #fff; padding: 12px 20px; border-radius: 18px; border-bottom-left-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.06); display: none; }
+    .chat-typing.active { display: flex; gap: 4px; align-items: center; }
+    .chat-typing-dot { width: 7px; height: 7px; border-radius: 50%; background: #adb5bd; animation: chatBounce 1.4s infinite; }
+    .chat-typing-dot:nth-child(2) { animation-delay: .2s; }
+    .chat-typing-dot:nth-child(3) { animation-delay: .4s; }
+    @keyframes chatBounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+    @keyframes chatFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .chat-quick { padding: 8px 16px; display: flex; gap: 8px; overflow-x: auto; flex-shrink: 0; }
+    .chat-quick::-webkit-scrollbar { display: none; }
+    .chat-quick-btn { flex-shrink: 0; padding: 8px 16px; border-radius: 20px; border: 1.5px solid #e9ecef; background: #fff; color: #495057; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; font-family: inherit; transition: all 0.15s; }
+    .chat-quick-btn:active { transform: scale(.96); background: #e7f5ff; border-color: #228be6; color: #228be6; }
+    .chat-input-area { padding: 8px 16px 16px; background: #fff; border-top: 1px solid #e9ecef; display: flex; gap: 8px; align-items: flex-end; }
+    .chat-input { flex: 1; padding: 10px 16px; border-radius: 22px; border: 1.5px solid #e9ecef; font-size: 14px; font-family: inherit; outline: none; resize: none; max-height: 100px; line-height: 1.4; background: #f8f9fa; }
+    .chat-input:focus { border-color: #228be6; }
+    .chat-send { width: 40px; height: 40px; border-radius: 50%; background: #228be6; border: none; color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .chat-send:disabled { background: #adb5bd; cursor: not-allowed; }
+    .chat-send:active { transform: scale(.92); }
+    #panel-chat { padding-bottom: 0; max-width: 480px; margin: 0 auto; width: 100%; }
+    #panel-chat.active { display: block; }
+  </style>
+</head>
+<body>
+
+<div class="fc-feedback" id="fc-feedback"></div>
+
+<nav>
+  <button class="active" onclick="showPanel('overzicht')" id="nav-overzicht">
+    <span class="nav-icon">📋</span>Overzicht
+  </button>
+  <button onclick="showPanel('flashcards')" id="nav-flashcards">
+    <span class="nav-icon">🃏</span>Flashcards
+  </button>
+  <button onclick="showPanel('toets')" id="nav-toets">
+    <span class="nav-icon">✍️</span>Toets
+  </button>
+  <button onclick="showPanel('score')" id="nav-score">
+    <span class="nav-icon">📊</span>Score
+  </button>
+  <button class="nav-btn" onclick="showPanel('chat')" id="nav-chat">
+    <span class="nav-icon">💬</span>Chat
+  </button>
+</nav>
+
+<!-- OVERZICHT PANEL -->
+<div class="panel active" id="panel-overzicht">
+  <div class="hero">
+    <h1>Schreibfertigkeit 🇩🇪</h1>
+    <div class="subtitle">Flashcards doorlopen, toets doen, klaar.</div>
+    <div class="score-ring">
+      <svg width="80" height="80" viewBox="0 0 100 100">
+        <circle class="ring-bg" cx="50" cy="50" r="40"/>
+        <circle class="ring-fill" id="hero-ring" cx="50" cy="50" r="40" stroke-dasharray="251.3" stroke-dashoffset="251.3"/>
+      </svg>
+      <div class="score-label">
+        <div class="pct" id="hero-pct">—</div>
+        <div class="lbl">totaal</div>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="val" id="hero-flash">—</div><div class="key">kaarten</div></div>
+      <div class="hero-stat"><div class="val" id="hero-quiz">—</div><div class="key">toets</div></div>
+    </div>
+    <div class="grade-badge" id="hero-grade">Begin met oefenen</div>
+  </div>
+
+  <!-- DE TOETS -->
+  <div class="toets-block">
+    <h2>De toets</h2>
+    <p><strong>Vrijdag krijg je een Duits bericht</strong> (bijvoorbeeld van iemand op social media). Jij schrijft een Nederlands antwoord terug in het Duits. De docent beoordeelt je antwoord op 5 criteria: Boodschap, Woordenschat, Grammatica, Spelling en Handschrift.</p>
+  </div>
+
+  <!-- NIVEAUS VOORBEELDEN -->
+  <div class="niveaus-block">
+    <div class="niveaus-intro">
+      <strong>Hoe ziet een voldoende eruit?</strong> Hieronder zie je hetzelfde bericht op drie niveaus. Tik op de gekleurde chips om te zien waar de docent op let.
+    </div>
+
+    <!-- DE POST WAAR JE OP REAGEERT -->
+    <div class="niveaus-post">
+      <div class="post-header"><div class="post-avatar">📸</div> anna_berlin_2011</div>
+      Hallo! Ich bin Anna und ich bin 14 Jahre alt. Ich wohne in Berlin und meine Hobbys sind Schwimmen und Lesen. Mein Lieblingsessen ist Pasta! 🍝 Was sind deine Hobbys? Und was ist dein Lieblingsessen? Schreib mir! 💬
+    </div>
+
+    <!-- NIVEAU TABS -->
+    <div class="niveau-tabs">
+      <button class="niveau-tab nt-fail active" onclick="showNiveau('fail')">😬 Onder havo</button>
+      <button class="niveau-tab nt-pass" onclick="showNiveau('pass')">👍 Havo (A2)</button>
+      <button class="niveau-tab nt-great" onclick="showNiveau('great')">🔥 Vwo (A2+)</button>
+    </div>
+
+    <!-- A1+ ONDER HAVO -->
+    <div class="niveau-content active" id="niveau-fail">
+      <span class="niveau-label nl-fail">A1+ — Onder havo-niveau</span>
+      <div class="exemple-text" id="text-fail">
+        hallo anna. ich heiße tom. ich habe 15 jahre. ich wohne utrecht. ich spielen fussball. ich mag piza. tshüss tom
+      </div>
+      <div class="error-list">
+        <div class="error-item">
+          <span class="error-wrong">hallo anna</span> → <span class="error-correct">Liebe Anna,</span>
+          <div class="error-explain">Je begint zonder aanhef. Bij Duits schrijven begint je altijd met "Liebe/Lieber" + voornaam + komma.</div>
+        </div>
+        <div class="error-item">
+          <span class="error-wrong">ich habe 15 jahre</span> → <span class="error-correct">ich bin 15 Jahre alt</span>
+          <div class="error-explain">"haben" is fout. Voor leeftijd gebruik je "sein" (zijn): "ich bin ... Jahre alt". Let ook op hoofdletters bij "Jahre".</div>
+        </div>
+        <div class="error-item">
+          <span class="error-wrong">ich wohne utrecht</span> → <span class="error-correct">ich wohne in Utrecht</span>
+          <div class="error-explain">Bij een plaatsnaam hoort "in" (in). Ook: "Utrecht" heeft een hoofdletter (plaatsnamen).</div>
+        </div>
+        <div class="error-item">
+          <span class="error-wrong">ich spielen fussball</span> → <span class="error-correct">ich spiele Fußball</span>
+          <div class="error-explain">"spielen" is niet vervoegd. Bij "ich" gebruik je de vorm "spiele". Ook: "Fußball" is een zelfstandig naamwoord (hoofdletter) en ß (niet ss).</div>
+        </div>
+        <div class="error-item">
+          <span class="error-wrong">piza</span> → <span class="error-correct">Pizza</span>
+          <div class="error-explain">Spelfout en zelfstandig naamwoord: "Pizza" met twee z en hoofdletter.</div>
+        </div>
+        <div class="error-item">
+          <span class="error-wrong">tshüss</span> → <span class="error-correct">Tschüss</span>
+          <div class="error-explain">Spelfout en afsluitingsgroet. Correct: "Tschüss" (met Tsch aan het begin en hoofdletter).</div>
+        </div>
+        <div class="error-item">
+          <span class="error-wrong">Geen afsluiting</span> → <span class="error-correct">Viele Grüße, Tom</span>
+          <div class="error-explain">Je antwoord hoort een afsluiting te hebben. Dit helpt met "Boodschap" (je reageert op iemand).</div>
+        </div>
+      </div>
+      <div class="rubric-section">
+        <strong>Boodschap:</strong> Je hebt geen aanhef en geen afsluiting. Je reageert niet echt op Anna's vragen—je zegt alleen wat over jezelf. Je gebruikt geen voegwoorden (en/aber/weil/wenn/dass) om zinnen te verbinden. Dit zijn essentiële onderdelen van een Nederlands schrijven in het Duits.
+      </div>
+    </div>
+
+    <!-- A2 HAVO -->
+    <div class="niveau-content" id="niveau-pass">
+      <span class="niveau-label nl-pass">A2 — Havo-niveau (voldoende)</span>
+      <div class="exemple-text" id="text-pass">
+        <span class="hl-boodschap">Liebe Anna,</span><br><br>
+        <span class="hl-boodschap">Danke für deinen Post!</span> <span class="hl-grammatik">Ich heiße Tom</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">ich bin 15 Jahre alt</span>. <span class="hl-grammatik">Ich wohne in Utrecht</span>, das ist in den <span class="hl-woord">Niederlanden</span>.<br><br>
+        <span class="hl-grammatik">Meine Hobbys sind</span> <span class="hl-woord">Fußball</span> <span class="hl-samenhang">und</span> <span class="hl-woord">Gaming</span>. <span class="hl-boodschap">Du schwimmst gern, das finde ich cool!</span> <span class="hl-woord">Mein Lieblingsessen</span> ist Pizza. <span class="hl-woord">Ich mag</span> <span class="hl-samenhang">aber</span> <span class="hl-woord">keinen Fisch</span>.<br><br>
+        <span class="hl-boodschap">Viele Grüße,</span><br>Tom
+      </div>
+      <div class="beo-legend" id="legend-pass">
+        <span class="beo-chip bc-boodschap active" onclick="toggleBeo('pass','boodschap')">Boodschap</span>
+        <span class="beo-chip bc-woord" onclick="toggleBeo('pass','woord')">Woordenschat</span>
+        <span class="beo-chip bc-samenhang" onclick="toggleBeo('pass','samenhang')">Samenhang</span>
+        <span class="beo-chip bc-grammatik" onclick="toggleBeo('pass','grammatik')">Grammatica</span>
+        <span class="beo-chip bc-spelling" onclick="toggleBeo('pass','spelling')">Spelling</span>
+      </div>
+      <div class="rubric-section rubric-boodschap" id="rubric-pass-boodschap">
+        <strong>Boodschap:</strong> Je hebt een aanhef ("Liebe Anna,") en afsluiting ("Viele Grüße"). Je reageert op Anna — je zegt dat je het cool vindt dat ze zwemt. Je vertelt over jezelf en je maakt een opening voor een antwoord. De boodschap is compleet: alles wat gevraagd wordt, zit erin.
+      </div>
+      <div class="rubric-section rubric-woord" id="rubric-pass-woord" style="display:none">
+        <strong>Woordenschat:</strong> Je gebruikt woorden uit de Wortliste correct: Fußball, Gaming, Niederlanden, Lieblingsessen, keinen Fisch. De woordkeuze is passend maar nog eenvoudig — je herhaalt "ich" veel. Voldoende voor A2.
+      </div>
+      <div class="rubric-section rubric-samenhang" id="rubric-pass-samenhang" style="display:none">
+        <strong>Samenhang:</strong> Je verbindt zinnen met "und" en "aber". De tekst leest als een geheel met een logische volgorde: voorstellen → hobby's → eten → afsluiting. Meer variatie in voegwoorden (weil, dass) zou het sterker maken.
+      </div>
+      <div class="rubric-section rubric-grammatik" id="rubric-pass-grammatik" style="display:none">
+        <strong>Grammatica:</strong> Werkwoorden zijn correct vervoegd (heiße, bin, wohne, sind, mag). "Meine Hobbys" klopt (meervoud → meine). Zinsbouw is correct maar eenvoudig — alleen hoofdzinnen, geen bijzinnen met weil/dass.
+      </div>
+      <div class="rubric-section rubric-spelling" id="rubric-pass-spelling" style="display:none">
+        <strong>Spelling:</strong> Hoofdletters kloppen (Fußball, Pizza, Niederlanden). ß correct bij Grüße en Fußball. Geen spelfouten. Dit is solide A2.
+      </div>
+    </div>
+
+    <!-- A2+ VWO -->
+    <div class="niveau-content" id="niveau-great">
+      <span class="niveau-label nl-great">A2+ — Vwo-niveau (goed)</span>
+      <div class="exemple-text" id="text-great">
+        <span class="hl-boodschap">Liebe Anna,</span><br><br>
+        <span class="hl-boodschap">Vielen Dank für deinen tollen Post!</span> <span class="hl-boodschap">Es ist schön, mehr über dich zu erfahren.</span><br><br>
+        <span class="hl-grammatik">Ich heiße Tom</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">ich bin 15 Jahre alt</span>. <span class="hl-grammatik">Ich wohne in Utrecht</span> — das ist <span class="hl-woord">eine schöne Stadt</span> in den <span class="hl-woord">Niederlanden</span>. <span class="hl-grammatik">Meine Familie ist vier Personen groß</span>: <span class="hl-grammatik">ich habe einen Bruder</span>, <span class="hl-grammatik">er heißt Raf</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">er ist 13 Jahre alt</span>.<br><br>
+        <span class="hl-woord">In meiner Freizeit</span> <span class="hl-grammatik">spiele ich</span> <span class="hl-samenhang">am liebsten</span> <span class="hl-woord">Fußball</span>, <span class="hl-samenhang">weil</span> <span class="hl-grammatik">es Spaß <strong>macht</strong></span>. <span class="hl-boodschap">Du liest gern — das finde ich auch toll!</span> <span class="hl-woord">Mein Lieblingsfach</span> in der <span class="hl-woord">Schule</span> ist Sport, <span class="hl-samenhang">obwohl</span> <span class="hl-grammatik">ich Mathe auch <strong>interessant</strong> finde</span>.<br><br>
+        <span class="hl-woord">Mein Lieblingsessen</span> ist Pizza, <span class="hl-samenhang">aber</span> <span class="hl-grammatik">ich esse</span> <span class="hl-samenhang">auch</span> gern <span class="hl-woord">Pfannkuchen</span>. <span class="hl-boodschap">Was isst du am liebsten außer Pasta?</span><br><br>
+        <span class="hl-boodschap">Liebe Grüße,</span><br>Tom
+      </div>
+      <div class="beo-legend" id="legend-great">
+        <span class="beo-chip bc-boodschap active" onclick="toggleBeo('great','boodschap')">Boodschap</span>
+        <span class="beo-chip bc-woord" onclick="toggleBeo('great','woord')">Woordenschat</span>
+        <span class="beo-chip bc-samenhang" onclick="toggleBeo('great','samenhang')">Samenhang</span>
+        <span class="beo-chip bc-grammatik" onclick="toggleBeo('great','grammatik')">Grammatica</span>
+        <span class="beo-chip bc-spelling" onclick="toggleBeo('great','spelling')">Spelling</span>
+      </div>
+      <div class="rubric-section rubric-boodschap" id="rubric-great-boodschap">
+        <strong>Boodschap:</strong> Je reageert uitgebreid op Anna en stelt een specifieke vervolgvraag ("Was isst du am liebsten außer Pasta?"). Je maakt persoonlijke verbindingen ("Du liest gern — das finde ich auch toll!"). Je deelt details over jezelf die een echt gesprek uitlokken — dit is geen lijstje van feiten maar communicatie.
+      </div>
+      <div class="rubric-section rubric-woord" id="rubric-great-woord" style="display:none">
+        <strong>Woordenschat:</strong> Brede woordenschat: Freizeit, Lieblingsfach, Schule, Pfannkuchen, eine schöne Stadt. Je gebruikt samengestelde woorden (Lieblingsessen, Lieblingsfach) en passende uitdrukkingen ("In meiner Freizeit", "am liebsten"). Dit gaat verder dan basiswoordenschat.
+      </div>
+      <div class="rubric-section rubric-samenhang" id="rubric-great-samenhang" style="display:none">
+        <strong>Samenhang:</strong> Gevarieerde voegwoorden: und, aber, weil, obwohl, auch. Bij "weil" staat het werkwoord correct achteraan ("weil es Spaß macht"). De tekst is logisch opgebouwd in alinea's: intro → persoonlijk → hobby's → eten → afsluiting.
+      </div>
+      <div class="rubric-section rubric-grammatik" id="rubric-great-grammatik" style="display:none">
+        <strong>Grammatica:</strong> Alle werkwoorden correct vervoegd inclusief onregelmatige (heiße, bin, habe, heißt, spiele, esse, finde, liest, isst, macht). Mein/meine correct toegepast (Meine Familie, Mein Lieblingsfach). Bijzinnen met weil en obwohl correct opgebouwd met werkwoord achteraan.
+      </div>
+      <div class="rubric-section rubric-spelling" id="rubric-great-spelling" style="display:none">
+        <strong>Spelling:</strong> Alle Substantive met hoofdletter, ß correct gebruikt (Fußball, Grüße, Spaß, außer), Umlaut correct (Grüße, für). Geen enkele spelfout. Interpunctie klopt (komma na aanhef, punt na zinnen).
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header">📚 A2 — Dit moet je weten voor een voldoende</div>
+  <div id="stof-cards-a2"></div>
+  <div class="section-header">🔥 A2+ — Dit maakt je tekst nog beter</div>
+  <div id="stof-cards-a2plus"></div>
+
+
+
+  <div class="progress-row">
+    <span style="font-size:12px;color:#868e96">Flashcards geleerd</span>
+    <div class="progress-bar" style="flex:1;margin:0 10px"><div class="progress-fill" id="ov-flash-bar" style="background:#40c057;width:0%"></div></div>
+    <span class="progress-label" id="ov-flash-pct">0%</span>
+  </div>
+</div>
+
+<!-- FLASHCARDS PANEL -->
+<div class="panel" id="panel-flashcards">
+  <div class="flash-container">
+    <p style="font-size:13px;color:#868e96;text-align:center;margin-bottom:12px;line-height:1.5">Zeg hardop in je eigen woorden wat dit begrip/woord betekent of hoe je het toepast. Tik daarna op de kaart om het juiste antwoord te zien.</p>
+    <div class="flash-progress" id="flash-progress">Kaart 1 van —</div>
+    <div class="flashcard" id="flashcard" onclick="flipCard()">
+      <div class="card-side" id="card-front">
+        <div class="card-term" id="card-term">—</div>
+        <div class="card-short" id="card-short">—</div>
+        <div class="flip-hint">Tik om te draaien ↩</div>
+      </div>
+      <div class="card-side" id="card-back" style="display:none">
+        <div class="card-answer" id="card-answer">—</div>
+        <div class="flip-hint">Tik om terug ↩</div>
+      </div>
+    </div>
+    <div class="flash-actions" id="flash-actions" style="display:none">
+      <button class="btn-unknown" onclick="markCard(false)">❌ Nog niet</button>
+      <button class="btn-known" onclick="markCard(true)">✅ Ken ik!</button>
+    </div>
+    <div class="flash-nav">
+      <button onclick="prevCard()" id="flash-prev">◀</button>
+      <span id="flash-tier-badge"></span>
+      <button onclick="nextCard()" id="flash-next">▶</button>
+    </div>
+    <div class="flash-done" id="flash-done" style="display:none">
+      <div class="big-emoji">🎉</div>
+      <h3>Alle kaarten gedaan!</h3>
+      <p id="flash-done-msg">Goed gedaan.</p>
+      <button onclick="restartFlash()">Opnieuw oefenen</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOETS PANEL -->
+<div class="panel" id="panel-toets">
+  <div class="quiz-start" id="quiz-start">
+    <h2>✍️ Toets jezelf</h2>
+    <p>Je krijgt 15 willekeurige vragen over de stof van de schrijftoets: werkwoordvervoeging, mein/meine, hoofdletters, Bindewörter, woordenschat en meer. Elke keer andere vragen, dus je kunt vaker oefenen.</p>
+    <button onclick="startQuiz()">Start toets →</button>
+  </div>
+  <div id="quiz-area" style="display:none"></div>
+</div>
+
+<!-- SCORE PANEL -->
+<div class="panel" id="panel-score">
+  <div class="score-section">
+    <h3>Flashcards gekend</h3>
+    <div class="progress-block">
+      <div class="pb-label"><span>0%</span><span id="sc-flash-pct">0 / —</span><span>100%</span></div>
+      <div class="pb-bar"><div class="pb-fill" id="sc-flash-bar" style="background:#40c057;width:0%"></div></div>
+    </div>
+  </div>
+  <div class="score-section">
+    <h3>Laatste toetsscore</h3>
+    <div class="progress-block">
+      <div class="pb-label"><span>0%</span><span id="sc-quiz-pct">Nog niet gemaakt</span><span>100%</span></div>
+      <div class="pb-bar"><div class="pb-fill" id="sc-quiz-bar" style="background:#228be6;width:0%"></div></div>
+    </div>
+  </div>
+  <div class="score-section">
+    <h3>Totale paraatheid</h3>
+    <div class="progress-block">
+      <div class="pb-label"><span>0%</span><span>Jij kiest je doel ↓</span><span>100%</span></div>
+      <div class="pb-bar"><div class="pb-fill" id="sc-total-bar" style="background:#7950f2;width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="grade-indicator" id="grade-indicator">
+    <div class="grade-box" id="grade-fail">
+      <span class="grade-emoji">😬</span>
+      <span class="grade-label">Onder 5,5</span>
+      <span class="grade-desc">Onvoldoende</span>
+    </div>
+    <div class="grade-box" id="grade-pass">
+      <span class="grade-emoji">👍</span>
+      <span class="grade-label">5,5 - 7</span>
+      <span class="grade-desc">Voldoende</span>
+    </div>
+    <div class="grade-box" id="grade-great">
+      <span class="grade-emoji">🔥</span>
+      <span class="grade-label">7 of meer</span>
+      <span class="grade-desc">Goed!</span>
+    </div>
+  </div>
+
+  <div id="readiness-box" class="readiness ready-fail">
+    <div class="emoji">🎯</div>
+    <h2 id="ready-title">Nog even oefenen</h2>
+    <p id="ready-text">Doe de flashcards en de toets om je score op te bouwen.</p>
+  </div>
+
+  <div class="score-section">
+    <h3>📈 Voortgang over tijd</h3>
+  </div>
+  <div class="history-list" id="history-list"><p style="font-size:13px;color:#868e96">Nog geen toetsen gemaakt.</p></div>
+  <div class="reset-area">
+    <button class="reset-btn" onclick="resetAll()">🔄 Alles resetten</button>
+  </div>
+</div>
+
+<!-- CHAT PANEL -->
+<div id="panel-chat" class="panel">
+  <div class="chat-container">
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-msg chat-msg-ai">
+        <p>Yo! Vrijdag schrijftoets Duits. We gaan er samen doorheen — kies hieronder waarmee je begint, of tik gewoon iets in. Ik geef je meteen een oefening.</p>
+      </div>
+    </div>
+    <div class="chat-typing" id="chat-typing">
+      <div class="chat-typing-dot"></div>
+      <div class="chat-typing-dot"></div>
+      <div class="chat-typing-dot"></div>
+    </div>
+    <div class="chat-quick" id="chat-quick">
+      <button class="chat-quick-btn" onclick="chatSend('Geef me 5 werkwoorden om te vervoegen in de Präsens')">Werkwoorden oefenen</button>
+      <button class="chat-quick-btn" onclick="chatSend('Geef me 8 zinnen waar ik mein of meine moet invullen')">mein/meine invullen</button>
+      <button class="chat-quick-btn" onclick="chatSend('Geef me 6 zinnen met hoofdletterfouten die ik moet fixen')">Hauptletters fixen</button>
+      <button class="chat-quick-btn" onclick="chatSend('Schrijf een Instagram-post over Meine Familie en Lieblingsessen, ik reageer erop in het Duits')">Schrijfoefening</button>
+      <button class="chat-quick-btn" onclick="chatSend('Geef me 5 zinnen waar ik het juiste Bindewort moet kiezen')">Bindewörter invullen</button>
+    </div>
+    <div class="chat-input-area">
+      <textarea class="chat-input" id="chat-input" placeholder="Typ hier of kies hierboven..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSendInput()}"></textarea>
+      <button class="chat-send" id="chat-send-btn" onclick="chatSendInput()">↑</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ────────────────────────────────────────────────────────────────
+const TOPICS = [
+  // ── A2: Nodig voor een voldoende ──
+  {
+    id:'verben-praesens', tier:1,
+    term:'Regelmäßige Verben — Präsens',
+    short:'Werkwoorden vervoegen in de tegenwoordige tijd',
+    detail:`In het Duits vervoeg je regelmatige werkwoorden door de <span class="key">stam</span> te nemen (= infinitief minus -en) en er een uitgang achter te zetten.<br><br>
+<span class="key">Präsens-uitgangen:</span><br>
+ich → stam + <strong>e</strong><br>
+du → stam + <strong>st</strong><br>
+er/sie/es → stam + <strong>t</strong><br>
+wir → stam + <strong>en</strong><br>
+ihr → stam + <strong>t</strong><br>
+sie/Sie → stam + <strong>en</strong><br><br>
+Voorbeeld: <strong>spielen</strong> (spelen) → stam = spiel<br>
+ich spiel<strong>e</strong>, du spiel<strong>st</strong>, er spiel<strong>t</strong>, wir spiel<strong>en</strong>, ihr spiel<strong>t</strong>, sie spiel<strong>en</strong><br><br>
+<div class="warn">Let op: bij werkwoorden als "heißen" is de du-vorm "heißt" (niet "heißst"). Bij "arbeiten" wordt het "arbeitest" (extra -e- voor uitspraak).</div>`,
+    answer:'Präsens: stam + e/st/t/en/t/en. Voorbeeld: spielen → ich spiele, du spielst, er spielt, wir spielen, ihr spielt, sie spielen.'
+  },
+  {
+    id:'verben-vergangenheit', tier:1,
+    term:'Regelmäßige Verben — Vergangenheit',
+    short:'Werkwoorden vervoegen in de verleden tijd',
+    detail:`De verleden tijd (Präteritum) maak je door de <span class="key">stam</span> te nemen en er <strong>-te</strong> + persoonlijke uitgang achter te zetten.<br><br>
+<span class="key">Vergangenheit-uitgangen:</span><br>
+ich → stam + <strong>te</strong><br>
+du → stam + <strong>test</strong><br>
+er/sie/es → stam + <strong>te</strong><br>
+wir → stam + <strong>ten</strong><br>
+ihr → stam + <strong>tet</strong><br>
+sie/Sie → stam + <strong>ten</strong><br><br>
+Voorbeeld: <strong>spielen</strong> → stam = spiel<br>
+ich spiel<strong>te</strong>, du spiel<strong>test</strong>, er spiel<strong>te</strong>, wir spiel<strong>ten</strong>, ihr spiel<strong>tet</strong>, sie spiel<strong>ten</strong><br><br>
+<div class="warn">Let op: ich en er/sie/es krijgen allebei -te (geen verschil!). Bij "arbeiten" wordt het "arbeitete" (extra -e-).</div>`,
+    answer:'Vergangenheit: stam + te/test/te/ten/tet/ten. Voorbeeld: spielen → ich spielte, du spieltest, er spielte, wir spielten.'
+  },
+  {
+    id:'mein-meine', tier:1,
+    term:'Mein / Meine',
+    short:'Bezittelijke voornaamwoorden: wanneer welke vorm?',
+    detail:`In het Duits hangt de vorm van het bezittelijk voornaamwoord af van het <span class="key">geslacht</span> van het zelfstandig naamwoord.<br><br>
+<span class="key">Mannelijk / Onzijdig:</span> mein, dein, sein, ihr, unser, euer<br>
+→ mein Bruder (m), mein Hobby (o)<br><br>
+<span class="key">Vrouwelijk / Meervoud:</span> mein<strong>e</strong>, dein<strong>e</strong>, sein<strong>e</strong>, ihr<strong>e</strong>, unser<strong>e</strong>, eur<strong>e</strong><br>
+→ mein<strong>e</strong> Schwester (v), mein<strong>e</strong> Hobbys (mv)<br><br>
+<div class="warn">Ezelsbruggetje: als er "die" of "die (mv)" voor kan staan → meinE. Als er "der" of "das" voor kan staan → mein (zonder -e).</div>`,
+    answer:'Mannelijk/onzijdig = mein (der/das). Vrouwelijk/meervoud = meine (die). Geldt ook voor dein, sein, ihr, unser, euer.'
+  },
+  {
+    id:'grossbuchstaben', tier:1,
+    term:'Großbuchstaben',
+    short:'Duitse hoofdletterregels',
+    detail:`In het Duits schrijf je meer woorden met een hoofdletter dan in het Nederlands!<br><br>
+<span class="key">ALTIJD hoofdletter:</span><br>
+• Alle <strong>Substantive</strong> (zelfstandige naamwoorden): der Name, die Schule, das Hobby<br>
+• <strong>Namen</strong> van personen: Tom, Mandy, Frau Schmidt<br>
+• <strong>Plaatsnamen</strong>: Berlin, Deutschland, Utrecht<br>
+• <strong>Feestdagen</strong>: Weihnachten, Ostern<br>
+• <strong>Begin van een zin</strong><br><br>
+<span class="key">GEEN hoofdletter:</span><br>
+• Werkwoorden: spielen, essen, gehen<br>
+• Bijvoeglijke naamwoorden: groß, klein, schön<br><br>
+<div class="warn">Grootste fout van Nederlandse leerlingen: zelfstandige naamwoorden NIET met hoofdletter schrijven. In het Duits ALTIJD! "die schule" is FOUT → "die Schule".</div>`,
+    answer:'Zelfstandige naamwoorden, namen, plaatsen, feestdagen en zinnen beginnen met hoofdletter. Werkwoorden en bijvoeglijke naamwoorden NIET.'
+  },
+  {
+    id:'bindwoerter', tier:1,
+    term:'Bindewörter + Satzaufbau',
+    short:'Voegwoorden en woordvolgorde in de bijzin',
+    detail:`<span class="key">Bindewörter</span> (voegwoorden) verbinden zinnen. Er zijn twee soorten:<br><br>
+<span class="key">Nevengeschikt</span> (woordvolgorde verandert NIET):<br>
+<strong>und</strong> (en), <strong>aber</strong> (maar), <strong>oder</strong> (of), <strong>denn</strong> (want)<br>
+→ Ich spiele Fußball <strong>und</strong> er spielt Tennis.<br><br>
+<span class="key">Onderschikkend</span> (werkwoord gaat naar het EINDE):<br>
+<strong>weil</strong> (omdat), <strong>dass</strong> (dat), <strong>wenn</strong> (als/wanneer), <strong>obwohl</strong> (hoewel)<br>
+→ Ich bleibe zu Hause, <strong>weil</strong> ich krank <strong>bin</strong>.<br><br>
+<div class="warn">BELANGRIJK: Na weil, dass, wenn → persoonsvorm (werkwoord) helemaal ACHTERAAN! Dit is de #1 fout bij de toets.</div>`,
+    answer:'und/aber/oder/denn = woordvolgorde blijft gelijk. weil/dass/wenn = werkwoord naar het EINDE van de bijzin.'
+  },
+  {
+    id:'datum-format', tier:1,
+    term:'Datum schrijven',
+    short:'Hoe schrijf je een datum in het Duits?',
+    detail:`In het Duits schrijf je de datum anders dan in het Nederlands:<br><br>
+<span class="key">Formaat:</span> den + dag<strong>.</strong> + maand + jaar<br>
+→ <strong>den 29. März 2026</strong><br><br>
+<span class="key">Maanden:</span> Januar, Februar, März, April, Mai, Juni, Juli, August, September, Oktober, November, Dezember<br><br>
+<div class="warn">Let op: maanden schrijf je met HOOFDLETTER (het zijn Substantive!). En er staat een punt achter het getal: "29." niet "29".</div>`,
+    answer:'Duits datumformaat: den 29. März 2026. Punt achter het getal, maand met hoofdletter.'
+  },
+
+  // ── A2 (vervolg) ──
+  {
+    id:'gruesse', tier:2,
+    term:'Grüße — Aanhef en afsluiting',
+    short:'Hoe begin en eindig je een brief/bericht?',
+    detail:`Bij een brief, kaart of bericht in het Duits gebruik je vaste formules:<br><br>
+<span class="key">Aanhef:</span><br>
+• <strong>Lieber</strong> Tom (voor een jongen/man)<br>
+• <strong>Liebe</strong> Anna (voor een meisje/vrouw)<br>
+• <strong>Liebe</strong> Freunde (voor meervoud)<br><br>
+<span class="key">Afsluiting:</span><br>
+• <strong>Viele Grüße</strong> (veel groeten — standaard)<br>
+• <strong>Liebe Grüße</strong> (lieve groeten — informeel)<br>
+• <strong>Mit freundlichen Grüßen</strong> (met vriendelijke groeten — formeel)<br><br>
+<div class="warn">Na de aanhef komt een komma en dan schrijf je KLEIN verder: "Lieber Tom, ich bin..." (niet "Ich").</div>`,
+    answer:'Aanhef: Lieber (m) / Liebe (v/mv) + naam. Afsluiting: Viele Grüße / Liebe Grüße + je naam.'
+  },
+  {
+    id:'sich-vorstellen', tier:2,
+    term:'Sich vorstellen — Jezelf voorstellen',
+    short:'De basiszinnen die je altijd nodig hebt',
+    detail:`Bij de toets moet je bijna altijd iets over jezelf schrijven. Deze zinnen moet je uit je hoofd kennen:<br><br>
+<span class="key">Naam:</span> Ich heiße Tom. / Mein Name ist Tom.<br>
+<span class="key">Leeftijd:</span> Ich bin 15 Jahre alt.<br>
+<span class="key">Woonplaats:</span> Ich wohne in Utrecht.<br>
+<span class="key">School:</span> Ich gehe auf das UniC in Utrecht.<br>
+<span class="key">Hobby's:</span> Meine Hobbys sind Fußball und Gaming. / In meiner Freizeit spiele ich Fußball.<br>
+<span class="key">Familie:</span> Meine Familie ist … Personen groß. Ich habe einen Bruder.<br><br>
+<div class="warn">Let op: "Ich bin 15 Jahre alt" — niet "Ich habe 15 Jahre" (dat is Spaans/Frans, niet Duits!).</div>`,
+    answer:'Ich heiße..., Ich bin ... Jahre alt, Ich wohne in..., Meine Hobbys sind..., Ich habe einen Bruder/eine Schwester.'
+  },
+  {
+    id:'wortliste-verben', tier:2,
+    term:'Wichtige Verben — Werkwoorden',
+    short:'De 16 werkwoorden die je moet kennen',
+    detail:`Deze werkwoorden komen vrijwel zeker terug bij de toets:<br><br>
+<span class="key">Basiswerkwoorden:</span><br>
+<strong>sein</strong> (zijn) · <strong>haben</strong> (hebben) · <strong>werden</strong> (worden)<br>
+<strong>heißen</strong> (heten) · <strong>wohnen</strong> (wonen) · <strong>kommen</strong> (komen)<br>
+<strong>gehen</strong> (gaan) · <strong>machen</strong> (doen/maken) · <strong>spielen</strong> (spelen)<br>
+<strong>essen</strong> (eten) · <strong>trinken</strong> (drinken) · <strong>mögen</strong> (houden van)<br>
+<strong>finden</strong> (vinden) · <strong>lernen</strong> (leren) · <strong>arbeiten</strong> (werken)<br>
+<strong>sprechen</strong> (spreken)<br><br>
+<div class="warn">sein, haben en werden zijn onregelmatig — die moet je apart leren. De rest is regelmatig (stam + uitgang).</div>`,
+    answer:'16 werkwoorden: sein, haben, werden, heißen, wohnen, kommen, gehen, machen, spielen, essen, trinken, mögen, finden, lernen, arbeiten, sprechen.'
+  },
+  {
+    id:'wortliste-nomen', tier:2,
+    term:'Wichtige Nomen — Zelfstandige naamwoorden',
+    short:'De 20 Nomen die je moet kennen',
+    detail:`Deze zelfstandige naamwoorden komen terug bij de Schreibthemen:<br><br>
+<span class="key">Persoonlijk:</span><br>
+der <strong>Name</strong> (naam) · das <strong>Alter</strong> (leeftijd) · der <strong>Geburtstag</strong> (verjaardag) · die <strong>Familie</strong> (familie) · der <strong>Freund</strong> / die <strong>Freundin</strong> (vriend/in)<br><br>
+<span class="key">School & Hobby:</span><br>
+die <strong>Schule</strong> (school) · das <strong>Fach</strong> / die <strong>Fächer</strong> (vak/vakken) · das <strong>Hobby</strong> / die <strong>Hobbys</strong> · die <strong>Freizeit</strong> (vrije tijd) · der <strong>Sport</strong><br><br>
+<span class="key">Overig:</span><br>
+das <strong>Essen</strong> (eten) · das <strong>Lieblingsessen</strong> (lievelingseten) · das <strong>Haustier</strong> (huisdier) · das <strong>Land</strong> (land) · die <strong>Stadt</strong> (stad) · das <strong>Spiel</strong> (spel) · die <strong>Musik</strong> · der <strong>Film</strong> · das <strong>Buch</strong> (boek) · die <strong>Ferien</strong> (vakantie)<br><br>
+<div class="warn">Alle zelfstandige naamwoorden met HOOFDLETTER! Leer ook het lidwoord (der/die/das) erbij — dat heb je nodig voor mein/meine.</div>`,
+    answer:'20 nomen met lidwoord: der Name, das Alter, die Familie, die Schule, das Hobby, das Essen, das Haustier, etc. Altijd met hoofdletter!'
+  },
+  {
+    id:'schreibthemen', tier:2,
+    term:'20 Schreibthemen',
+    short:'Mogelijke onderwerpen bij de toets — je weet niet welke',
+    detail:`Er zijn 20 Schreibthemen. Je weet niet welke er vrijdag gevraagd worden, dus je moet ze allemaal een beetje kunnen. De belangrijkste:<br><br>
+<span class="key">Persoonlijk:</span> Meine Familie · Mein Geburtstag · Mein bester Freund/Freundin<br>
+<span class="key">Eten & dieren:</span> Lieblingsessen · Lieblingstier<br>
+<span class="key">Vrije tijd:</span> Lieblingsspiel · Lieblingsmusik · Lieblingssport · Lieblingsfilm · Lieblingsbuch<br>
+<span class="key">School:</span> Lieblingsfach in der Schule · Meine Schule<br>
+<span class="key">Overig:</span> Mein Wochenende · Meine Ferien · Mein Traumhaus · Mein Lieblingsland<br><br>
+<div class="warn">Tip: je hoeft niet over elk thema een heel verhaal te kunnen, maar je moet er minstens 2-3 zinnen over kunnen schrijven. Oefen de basisstructuur: Mein Lieblings... ist ..., weil ...</div>`,
+    answer:'20 thema\'s mogelijk bij de toets. Je weet niet welke. Oefen per thema minstens 2-3 zinnen: Mein Lieblings... ist..., weil...'
+  },
+  {
+    id:'sein-haben', tier:2,
+    term:'Sein & Haben — Onregelmatig',
+    short:'Deze twee werkwoorden zijn anders dan de rest',
+    detail:`<span class="key">sein</span> (zijn) — Präsens:<br>
+ich <strong>bin</strong>, du <strong>bist</strong>, er/sie/es <strong>ist</strong>, wir <strong>sind</strong>, ihr <strong>seid</strong>, sie/Sie <strong>sind</strong><br><br>
+<span class="key">haben</span> (hebben) — Präsens:<br>
+ich <strong>habe</strong>, du <strong>hast</strong>, er/sie/es <strong>hat</strong>, wir <strong>haben</strong>, ihr <strong>habt</strong>, sie/Sie <strong>haben</strong><br><br>
+<div class="warn">sein en haben moet je UIT JE HOOFD kennen. Ze komen in bijna elke zin voor!</div>`,
+    answer:'sein: bin/bist/ist/sind/seid/sind. haben: habe/hast/hat/haben/habt/haben. Uit je hoofd leren!'
+  },
+
+  // ── A2+: Maakt je tekst nog beter ──
+  {
+    id:'eszett', tier:3,
+    term:'ß — Eszett / scharfes S',
+    short:'Wanneer gebruik je ß?',
+    detail:`De <span class="key">ß</span> (Eszett of scharfes S) gebruik je in het Duits na een <strong>lange klinker</strong> of <strong>tweeklank</strong>.<br><br>
+<span class="key">Voorbeelden:</span><br>
+• hei<strong>ß</strong>en (heten) — na ei (tweeklank)<br>
+• Gro<strong>ß</strong>buchstaben (hoofdletters) — na o (lang)<br>
+• Gru<strong>ß</strong> / Grü<strong>ß</strong>e (groet/groeten) — na u/ü (lang)<br>
+• Stra<strong>ß</strong>e (straat) — na a (lang)<br>
+• Fu<strong>ß</strong>ball — na u (lang)<br><br>
+<div class="warn">Na een KORTE klinker schrijf je ss: Wasser, essen, wissen. Als je twijfelt: ß is de "dure s" en ss is de "goedkope s".</div>`,
+    answer:'ß na lange klinker of tweeklank (heißen, Grüße, Straße). ss na korte klinker (essen, Wasser).'
+  },
+  {
+    id:'nuetzliche-saetze', tier:3,
+    term:'Nützliche Sätze — Handige zinnen',
+    short:'Complete zinnen die je direct kunt gebruiken',
+    detail:`Deze zinnen kun je bijna letterlijk overnemen bij de toets:<br><br>
+<span class="key">Over jezelf:</span><br>
+• Ich heiße Tom und ich bin 15 Jahre alt.<br>
+• Ich wohne in Utrecht, in den Niederlanden.<br>
+• Ich gehe auf das UniC.<br><br>
+<span class="key">Over hobby's:</span><br>
+• Meine Hobbys sind Fußball und Gaming.<br>
+• In meiner Freizeit spiele ich gern Fußball.<br><br>
+<span class="key">Over eten:</span><br>
+• Mein Lieblingsessen ist Pizza.<br>
+• Ich esse gern Pizza, aber ich mag keinen Fisch.<br><br>
+<span class="key">Over familie:</span><br>
+• Meine Familie ist vier Personen groß.<br>
+• Ich habe einen Bruder. Er heißt Raf und er ist 13 Jahre alt.<br><br>
+<span class="key">Over school:</span><br>
+• Mein Lieblingsfach ist Sport, weil es Spaß macht.<br>
+• Ich finde Mathe schwierig, aber interessant.<br><br>
+<div class="warn">Tip: gebruik Bindewörter (und, aber, weil, dass) om je zinnen langer en beter te maken. Dat levert punten op bij "Samenhang"!</div>`,
+    answer:'Handige complete zinnen: Ich heiße..., Mein Lieblingsessen ist..., In meiner Freizeit..., Mein Lieblingsfach ist..., weil...'
+  },
+
+];
+
+// ── QUIZ QUESTIONS ───────────────────────────────────────────────────────
+const QUIZ_POOL = [
+  // Werkwoordvervoeging Präsens
+  {
+    q: 'Hoe vervoeg je "spielen" voor "du" in de Präsens?',
+    options: ['du spiele', 'du spielst', 'du spielen', 'du spielt'],
+    correct: 1,
+    explain: 'du + stam + st = du spielst. De stam van spielen is "spiel", plus de uitgang -st voor du.'
+  },
+  {
+    q: 'Hoe vervoeg je "wohnen" voor "er" in de Präsens?',
+    options: ['er wohne', 'er wohnen', 'er wohnst', 'er wohnt'],
+    correct: 3,
+    explain: 'er/sie/es + stam + t = er wohnt. De stam van wohnen is "wohn", plus -t.'
+  },
+  {
+    q: 'Wat is de juiste vervoeging? "Wir _____ in Utrecht." (wohnen)',
+    options: ['wohne', 'wohnst', 'wohnt', 'wohnen'],
+    correct: 3,
+    explain: 'wir + stam + en = wir wohnen. Bij wir en sie/Sie gebruik je altijd de volledige infinitief.'
+  },
+  {
+    q: 'Wat is de juiste vervoeging? "Ich _____ Tom." (heißen)',
+    options: ['heiße', 'heißt', 'heißen', 'heißst'],
+    correct: 0,
+    explain: 'ich + stam + e = ich heiße. De stam van heißen is "heiß".'
+  },
+
+  // Werkwoordvervoeging Vergangenheit
+  {
+    q: 'Hoe vervoeg je "spielen" voor "ich" in de Vergangenheit?',
+    options: ['ich spielte', 'ich spielen', 'ich spielt', 'ich spieltest'],
+    correct: 0,
+    explain: 'ich + stam + te = ich spielte. In de verleden tijd krijgt ich altijd -te.'
+  },
+  {
+    q: 'Wat is de juiste vervoeging? "Du _____ gestern viel." (lernen, Vergangenheit)',
+    options: ['lernst', 'lerntet', 'lerntest', 'lernten'],
+    correct: 2,
+    explain: 'du + stam + test = du lerntest. De stam van lernen is "lern", plus -test voor du in de verleden tijd.'
+  },
+  {
+    q: 'Wat is de juiste vorm? "Sie (zij, meervoud) _____ gestern Fußball." (spielen, Vergangenheit)',
+    options: ['spielte', 'spielten', 'spieltet', 'spieltest'],
+    correct: 1,
+    explain: 'sie (meervoud) + stam + ten = sie spielten. Bij wir en sie (mv) is de uitgang altijd -ten.'
+  },
+
+  // Sein & Haben
+  {
+    q: 'Wat is de juiste vorm? "Ich _____ 15 Jahre alt." (sein)',
+    options: ['bist', 'bin', 'ist', 'sind'],
+    correct: 1,
+    explain: 'ich bin. "Sein" is onregelmatig: ich bin, du bist, er ist, wir sind, ihr seid, sie sind.'
+  },
+  {
+    q: 'Wat is de juiste vorm? "Er _____ einen Bruder." (haben)',
+    options: ['habe', 'habst', 'hat', 'haben'],
+    correct: 2,
+    explain: 'er hat. "Haben" is onregelmatig: ich habe, du hast, er hat, wir haben, ihr habt, sie haben.'
+  },
+  {
+    q: 'Wat is de juiste vorm? "Wir _____ aus den Niederlanden." (sein)',
+    options: ['bin', 'bist', 'ist', 'sind'],
+    correct: 3,
+    explain: 'wir sind. Bij wir en sie/Sie is de vorm van sein altijd "sind".'
+  },
+
+  // Mein / Meine
+  {
+    q: 'Wat is juist? "_____ Bruder heißt Raf." (mein/meine)',
+    options: ['Meine Bruder', 'Mein Bruder', 'Meinen Bruder', 'Meiner Bruder'],
+    correct: 1,
+    explain: 'Bruder is mannelijk (der Bruder) → mein Bruder. Zonder -e bij mannelijke en onzijdige woorden.'
+  },
+  {
+    q: 'Wat is juist? "_____ Schwester ist 12 Jahre alt." (mein/meine)',
+    options: ['Mein Schwester', 'Meine Schwester', 'Meiner Schwester', 'Meinen Schwester'],
+    correct: 1,
+    explain: 'Schwester is vrouwelijk (die Schwester) → meine Schwester. Met -e bij vrouwelijke woorden.'
+  },
+  {
+    q: 'Wat is juist? "_____ Hobbys sind Fußball und Gaming." (mein/meine)',
+    options: ['Mein Hobbys', 'Meine Hobbys', 'Meinen Hobbys', 'Meiner Hobbys'],
+    correct: 1,
+    explain: 'Hobbys is meervoud (die Hobbys) → meine Hobbys. Meervoud krijgt altijd -e (net als vrouwelijk).'
+  },
+  {
+    q: 'Wat is juist? "_____ Lieblingsessen ist Pizza." (mein/meine)',
+    options: ['Meine Lieblingsessen', 'Mein Lieblingsessen', 'Meinem Lieblingsessen', 'Meinen Lieblingsessen'],
+    correct: 1,
+    explain: 'Lieblingsessen is onzijdig (das Lieblingsessen) → mein Lieblingsessen. Onzijdig = geen -e.'
+  },
+
+  // Großbuchstaben
+  {
+    q: 'Welke zin is GOED geschreven qua hoofdletters?',
+    options: [
+      'ich wohne in utrecht und gehe auf das unic.',
+      'Ich Wohne in Utrecht und Gehe auf das UniC.',
+      'Ich wohne in Utrecht und gehe auf das UniC.',
+      'ich Wohne in utrecht und gehe auf das Unic.'
+    ],
+    correct: 2,
+    explain: 'Regel: zin begint met hoofdletter, plaatsnamen (Utrecht, UniC) met hoofdletter, werkwoorden (wohne, gehe) NIET.'
+  },
+  {
+    q: 'Welk woord moet een hoofdletter krijgen? "mein bruder spielt fußball."',
+    options: ['mein', 'bruder', 'spielt', 'fußball'],
+    correct: 1,
+    explain: 'Bruder is een Substantiv (zelfstandig naamwoord) → altijd met hoofdletter: "Mein Bruder spielt Fußball." (Fußball ook!)'
+  },
+  {
+    q: 'Welke zin is FOUT qua hoofdletters?',
+    options: [
+      'Meine Schule ist groß.',
+      'Ich Spiele gern Fußball.',
+      'Mein Lieblingsfach ist Sport.',
+      'Ich wohne in Berlin.'
+    ],
+    correct: 1,
+    explain: '"Ich Spiele" is fout — "spiele" is een werkwoord en krijgt GEEN hoofdletter. Juist: "Ich spiele gern Fußball."'
+  },
+
+  // Bindewörter + Satzaufbau
+  {
+    q: 'Welke zin heeft de juiste woordvolgorde na "weil"?',
+    options: [
+      'Ich mag Sport, weil ist es lustig.',
+      'Ich mag Sport, weil es lustig ist.',
+      'Ich mag Sport, weil es ist lustig.',
+      'Ich mag Sport, ist weil es lustig.'
+    ],
+    correct: 1,
+    explain: 'Na "weil" gaat het werkwoord naar het EINDE: "...weil es lustig ist." Het werkwoord (ist) staat achteraan.'
+  },
+  {
+    q: 'Welk Bindewort past? "Ich spiele Fußball _____ ich mag Tennis." (en)',
+    options: ['weil', 'dass', 'und', 'wenn'],
+    correct: 2,
+    explain: '"und" = en. Het verbindt twee gelijke zinsdelen. De woordvolgorde verandert niet na "und".'
+  },
+  {
+    q: 'Welke zin is juist?',
+    options: [
+      'Ich denke, dass er kommt morgen.',
+      'Ich denke, dass er morgen kommt.',
+      'Ich denke, dass kommt er morgen.',
+      'Ich denke, er dass morgen kommt.'
+    ],
+    correct: 1,
+    explain: 'Na "dass" gaat het werkwoord naar het einde: "...dass er morgen kommt." Het werkwoord (kommt) staat achteraan.'
+  },
+
+  // Datum
+  {
+    q: 'Hoe schrijf je "29 maart 2026" in het Duits?',
+    options: [
+      '29 maart 2026',
+      'den 29. März 2026',
+      'den 29 Marz 2026',
+      '29. march 2026'
+    ],
+    correct: 1,
+    explain: 'Duits datumformaat: den + getal + punt + maand (met hoofdletter en Umlaut: März) + jaar.'
+  },
+
+  // Grüße
+  {
+    q: 'Hoe sluit je een informeel bericht af in het Duits?',
+    options: [
+      'Met vriendelijke groet, Tom',
+      'Viele Grüße, Tom',
+      'Yours sincerely, Tom',
+      'Groetjes, Tom'
+    ],
+    correct: 1,
+    explain: '"Viele Grüße" of "Liebe Grüße" is de standaard informele afsluiting in het Duits.'
+  },
+  {
+    q: 'Wat is de juiste aanhef voor een bericht aan een jongen die Max heet?',
+    options: ['Liebe Max,', 'Lieber Max,', 'Lieben Max,', 'Liebes Max,'],
+    correct: 1,
+    explain: '"Lieber" gebruik je voor een mannelijk persoon, "Liebe" voor vrouwelijk. Max is een jongensnaam → Lieber Max.'
+  },
+
+  // Woordenschat / Zinnen
+  {
+    q: 'Hoe zeg je "Ik ben 15 jaar oud" in het Duits?',
+    options: [
+      'Ich habe 15 Jahre alt.',
+      'Ich bin 15 Jahre alt.',
+      'Ich bin 15 Jahren alt.',
+      'Ich habe 15 Jahr.'
+    ],
+    correct: 1,
+    explain: 'In het Duits gebruik je "sein" (bin) voor leeftijd, NIET "haben". "Ich bin 15 Jahre alt."'
+  },
+  {
+    q: 'Wat betekent "In meiner Freizeit spiele ich gern Fußball"?',
+    options: [
+      'Op mijn school speel ik graag voetbal.',
+      'In mijn vrije tijd speel ik graag voetbal.',
+      'Met mijn vrienden speel ik graag voetbal.',
+      'In de vakantie speel ik graag voetbal.'
+    ],
+    correct: 1,
+    explain: '"In meiner Freizeit" = in mijn vrije tijd. "gern" = graag. "Fußball spielen" = voetballen.'
+  },
+
+  // ß
+  {
+    q: 'Wanneer gebruik je ß in het Duits?',
+    options: [
+      'Na een korte klinker',
+      'Altijd in plaats van ss',
+      'Na een lange klinker of tweeklank',
+      'Alleen aan het begin van een woord'
+    ],
+    correct: 2,
+    explain: 'ß komt na een lange klinker (Straße, Grüße) of tweeklank (heißen). Na een korte klinker schrijf je ss (essen, Wasser).'
+  }
+];
+
+const QUIZ_SIZE = 15;
+
+
+// ── STATE & STORAGE ──────────────────────────────────────────────────────
+const LS_FLASH   = 'de-schreib-flash';
+const LS_QUIZ    = 'de-schreib-quiz';
+const LS_HISTORY = 'de-schreib-history';
+
+let flashKnown = JSON.parse(localStorage.getItem(LS_FLASH) || '{}');
+let quizScore  = JSON.parse(localStorage.getItem(LS_QUIZ)  || 'null');
+let history    = JSON.parse(localStorage.getItem(LS_HISTORY) || '[]');
+
+function saveFlash()   { localStorage.setItem(LS_FLASH,   JSON.stringify(flashKnown)); }
+function saveQuiz()    { localStorage.setItem(LS_QUIZ,    JSON.stringify(quizScore));  }
+function saveHistory() { localStorage.setItem(LS_HISTORY, JSON.stringify(history));    }
+
+// ── HELPERS ──────────────────────────────────────────────────────────────
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getFlashPct() {
+  const known = TOPICS.filter(t => flashKnown[t.id]).length;
+  return Math.round((known / TOPICS.length) * 100);
+}
+
+function getQuizPct() {
+  if (quizScore === null) return null;
+  return Math.round((quizScore / QUIZ_SIZE) * 100);
+}
+
+function getTotalPct() {
+  const fp = getFlashPct();
+  const qp = getQuizPct();
+  if (qp === null) return fp * 0.4;
+  return Math.round(fp * 0.4 + qp * 0.6);
+}
+
+function getGrade(pct) {
+  if (pct >= 70) return { text: '7+ 🎉 Goed gedaan!', color: '#40c057' };
+  if (pct >= 37) return { text: '5.5+ ✅ Voldoende', color: '#f59f00' };
+  return { text: '< 5.5 — Mehr üben!', color: '#fa5252' };
+}
+
+// ── PANEL NAVIGATION ─────────────────────────────────────────────────────
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'overzicht')   renderOverview();
+  if (name === 'flashcards')  initFlash();
+  if (name === 'score')       updateScorePanel();
+}
+
+// ── OVERVIEW ──────────────────────────────────────────────────────────────
+function renderOverview() {
+  const elA2 = document.getElementById('stof-cards-a2');
+  const elA2plus = document.getElementById('stof-cards-a2plus');
+  elA2.innerHTML = '';
+  elA2plus.innerHTML = '';
+  TOPICS.forEach(t => {
+    const known = flashKnown[t.id];
+    const isA2plus = t.tier === 3;
+    const badge = isA2plus
+      ? '<span class="tier-badge tier-a2plus">A2+</span>'
+      : '<span class="tier-badge tier-a2">A2</span>';
+    const card = `
+      <div class="topic-card" id="card-${t.id}">
+        <div class="topic-header" onclick="toggleDetail('${t.id}')">
+          ${badge}
+          <div>
+            <div class="topic-title">${t.term}</div>
+            <div class="topic-short">${t.short}</div>
+          </div>
+          <div class="topic-status ${known ? 'known' : 'unknown'}">${known ? '✅' : '○'}</div>
+          <span class="topic-chevron" id="chev-${t.id}">▶</span>
+        </div>
+        <div class="topic-detail" id="detail-${t.id}">${t.detail}</div>
+      </div>`;
+    if (isA2plus) { elA2plus.innerHTML += card; }
+    else { elA2.innerHTML += card; }
+  });
+
+  // hero ring
+  const total = getTotalPct();
+  const qp = getQuizPct();
+  const fp = getFlashPct();
+  document.getElementById('hero-pct').textContent   = total > 0 ? total + '%' : '—';
+  document.getElementById('hero-flash').textContent = fp + '%';
+  document.getElementById('hero-quiz').textContent  = qp !== null ? qp + '%' : '—';
+  const circumference = 251.3;
+  const offset = circumference - (circumference * total / 100);
+  document.getElementById('hero-ring').style.strokeDashoffset = offset;
+  const g = getGrade(total);
+  const badge = document.getElementById('hero-grade');
+  badge.textContent = total > 0 ? g.text : 'Begin met oefenen';
+  badge.style.background = total > 0 ? g.color + '33' : '';
+
+  // flash progress bar
+  document.getElementById('ov-flash-bar').style.width = fp + '%';
+  document.getElementById('ov-flash-pct').textContent = fp + '%';
+}
+
+function toggleDetail(id) {
+  const det  = document.getElementById('detail-' + id);
+  const chev = document.getElementById('chev-' + id);
+  const open = det.classList.toggle('open');
+  chev.classList.toggle('open', open);
+}
+
+// ── FLASHCARDS ────────────────────────────────────────────────────────────
+let flashOrder = [];
+let flashIdx   = 0;
+let flashFlipped = false;
+
+function initFlash() {
+  flashOrder = shuffleArray(TOPICS.map((_, i) => i));
+  flashIdx   = 0;
+  flashFlipped = false;
+  document.getElementById('flash-done').style.display = 'none';
+  document.getElementById('flashcard').style.display  = 'flex';
+  document.getElementById('flash-actions').style.display = 'none';
+  showFlashcard();
+}
+
+function showFlashcard() {
+  if (flashIdx >= flashOrder.length) {
+    showFlashDone();
+    return;
+  }
+  const t = TOPICS[flashOrder[flashIdx]];
+  flashFlipped = false;
+  document.getElementById('card-front').style.display = 'block';
+  document.getElementById('card-back').style.display  = 'none';
+  document.getElementById('flash-actions').style.display = 'none';
+  document.getElementById('card-term').textContent   = t.term;
+  document.getElementById('card-short').textContent  = t.short;
+  document.getElementById('card-answer').textContent = t.answer;
+  document.getElementById('flash-progress').textContent = `Kaart ${flashIdx + 1} van ${TOPICS.length}`;
+
+  const tierLabel = ['', '🔴 KERN', '🟡 BELANGRIJK', '🟢 BONUS'][t.tier];
+  document.getElementById('flash-tier-badge').innerHTML =
+    `<span class="tier-badge tier-${t.tier}">${tierLabel}</span>`;
+
+  document.getElementById('flash-prev').disabled = flashIdx === 0;
+  document.getElementById('flash-next').disabled = flashIdx >= flashOrder.length - 1;
+}
+
+function flipCard() {
+  if (flashIdx >= flashOrder.length) return;
+  flashFlipped = !flashFlipped;
+  document.getElementById('card-front').style.display = flashFlipped ? 'none'  : 'block';
+  document.getElementById('card-back').style.display  = flashFlipped ? 'block' : 'none';
+  document.getElementById('flash-actions').style.display = flashFlipped ? 'flex' : 'none';
+}
+
+const encourageMessages = [
+  'Komt goed! Herhaling is de sleutel 💪',
+  'Geen stress, volgende ronde beter! 🔄',
+  'Bijna! Lees het antwoord nog even goed door 👀',
+  'Nicht schlimm, Übung macht den Meister! ✨',
+  'Volgende keer pak je hem! 🎯'
+];
+const correctMessages = ['Nice! 🎉', 'Sehr gut! 💪', 'Goed zo! ✅', 'Richtig! 🔥', 'Helemaal goed! 🎯'];
+
+function showFeedback(isCorrect) {
+  const el = document.getElementById('fc-feedback');
+  const msgs = isCorrect ? correctMessages : encourageMessages;
+  el.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+  el.className = 'fc-feedback ' + (isCorrect ? 'good' : 'retry') + ' show';
+  setTimeout(() => { el.classList.remove('show'); }, 2000);
+}
+
+function markCard(known) {
+  const t = TOPICS[flashOrder[flashIdx]];
+  flashKnown[t.id] = known;
+  saveFlash();
+
+  if (known) {
+    if (typeof confetti === 'function') {
+      confetti({ particleCount: 60, spread: 55, origin: { y: 0.7 }, colors: ['#e03131', '#f59f00', '#fcc419'] });
+    }
+    showFeedback(true);
+  } else {
+    showFeedback(false);
+  }
+
+  flashIdx++;
+  flashFlipped = false;
+  document.getElementById('flash-actions').style.display = 'none';
+  showFlashcard();
+}
+
+function nextCard() { if (flashIdx < flashOrder.length - 1) { flashIdx++; showFlashcard(); } }
+function prevCard() { if (flashIdx > 0) { flashIdx--; showFlashcard(); } }
+
+function showFlashDone() {
+  const known = TOPICS.filter(t => flashKnown[t.id]).length;
+  document.getElementById('flashcard').style.display  = 'none';
+  document.getElementById('flash-actions').style.display = 'none';
+  document.getElementById('flash-done').style.display = 'block';
+  document.getElementById('flash-done-msg').textContent =
+    `Je kent ${known} van de ${TOPICS.length} begrippen. ${known >= TOPICS.length * 0.8 ? 'Sehr gut!' : 'Ga door, je komt er!'} `;
+}
+
+function restartFlash() {
+  initFlash();
+}
+
+
+// ── QUIZ ──────────────────────────────────────────────────────────────────
+let _quizPool    = [];
+let _quizIdx     = 0;
+let _quizAnswers = [];
+let _quizOptions = [];
+
+function startQuiz() {
+  _quizPool    = shuffleArray(QUIZ_POOL).slice(0, QUIZ_SIZE);
+  _quizIdx     = 0;
+  _quizAnswers = new Array(QUIZ_SIZE).fill(null);
+  _quizOptions = _quizPool.map(q => {
+    const mapped = q.options.map((opt, i) => ({ opt, origIdx: i }));
+    return shuffleArray(mapped);
+  });
+
+  document.getElementById('quiz-start').style.display = 'none';
+  document.getElementById('quiz-area').style.display  = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  if (_quizIdx >= QUIZ_SIZE) { finishQuiz(); return; }
+  const q   = _quizPool[_quizIdx];
+  const opts = _quizOptions[_quizIdx];
+  const area = document.getElementById('quiz-area');
+
+  let optHtml = opts.map((o, i) =>
+    `<button class="quiz-option" onclick="answerQuiz(${i})" id="qopt-${i}">${o.opt}</button>`
+  ).join('');
+
+  area.innerHTML = `
+    <div class="quiz-q-block">
+      <div class="quiz-meta">
+        <span class="qnum">Vraag ${_quizIdx + 1} van ${QUIZ_SIZE}</span>
+      </div>
+      <div class="quiz-question">${q.q}</div>
+      <div class="quiz-options">${optHtml}</div>
+      <div class="quiz-explain" id="quiz-explain">${q.explain}</div>
+      <button class="quiz-next-btn" id="quiz-next-btn" onclick="nextQuestion()">
+        ${_quizIdx < QUIZ_SIZE - 1 ? 'Volgende vraag →' : 'Bekijk resultaat →'}
+      </button>
+    </div>`;
+}
+
+function answerQuiz(optIdx) {
+  if (_quizAnswers[_quizIdx] !== null) return;
+
+  const q         = _quizPool[_quizIdx];
+  const opts      = _quizOptions[_quizIdx];
+  const chosen    = opts[optIdx];
+  const isCorrect = chosen.origIdx === q.correct;
+
+  _quizAnswers[_quizIdx] = isCorrect ? 1 : 0;
+
+  document.querySelectorAll('.quiz-option').forEach((btn, i) => {
+    btn.disabled = true;
+    if (opts[i].origIdx === q.correct) btn.classList.add('correct');
+    else if (i === optIdx && !isCorrect) btn.classList.add('wrong');
+  });
+
+  document.getElementById('quiz-explain').classList.add('show');
+  document.getElementById('quiz-next-btn').classList.add('show');
+}
+
+function nextQuestion() {
+  _quizIdx++;
+  renderQuestion();
+}
+
+function finishQuiz() {
+  const correct = _quizAnswers.filter(a => a === 1).length;
+  quizScore = correct;
+  saveQuiz();
+
+  history.unshift({ date: new Date().toLocaleDateString('nl-NL'), score: correct, total: QUIZ_SIZE });
+  if (history.length > 10) history.pop();
+  saveHistory();
+
+  const pct = Math.round((correct / QUIZ_SIZE) * 100);
+  const g   = getGrade(pct);
+
+  document.getElementById('quiz-area').innerHTML = `
+    <div class="quiz-result">
+      <div class="big-score">${correct}/${QUIZ_SIZE}</div>
+      <div class="score-sub">${pct}% goed</div>
+      <div class="grade-big" style="color:${g.color}">${g.text}</div>
+      <p>Flashcards: ${getFlashPct()}% · Toets: ${pct}%<br>
+         Totaalscore: <strong>${getTotalPct()}%</strong></p>
+      <button onclick="retryQuiz()">Opnieuw →</button>
+    </div>`;
+}
+
+function retryQuiz() {
+  document.getElementById('quiz-start').style.display = 'block';
+  document.getElementById('quiz-area').style.display  = 'none';
+  document.getElementById('quiz-area').innerHTML      = '';
+}
+
+// ── SCORE PANEL ───────────────────────────────────────────────────────────
+function updateScorePanel() {
+  const fp    = getFlashPct();
+  const qp    = getQuizPct();
+  const total = getTotalPct();
+  const known = TOPICS.filter(t => flashKnown[t.id]).length;
+
+  document.getElementById('sc-flash-bar').style.width  = fp + '%';
+  document.getElementById('sc-flash-pct').textContent  = `${known} / ${TOPICS.length}`;
+
+  if (qp !== null) {
+    document.getElementById('sc-quiz-bar').style.width  = qp + '%';
+    document.getElementById('sc-quiz-pct').textContent  = qp + '%';
+  }
+  document.getElementById('sc-total-bar').style.width = total + '%';
+
+  const gf = document.getElementById('grade-fail');
+  const gp = document.getElementById('grade-pass');
+  const gg = document.getElementById('grade-great');
+  gf.className = 'grade-box'; gp.className = 'grade-box'; gg.className = 'grade-box';
+  if (total >= 70) { gg.className = 'grade-box active-great'; }
+  else if (total >= 37) { gp.className = 'grade-box active-pass'; }
+  else { gf.className = 'grade-box active-fail'; }
+
+  const box = document.getElementById('readiness-box');
+  const readyTitle = document.getElementById('ready-title');
+  const readyText = document.getElementById('ready-text');
+  if (total >= 70) {
+    box.className = 'readiness ready-great';
+    readyTitle.textContent = 'Du bist bereit!';
+    readyText.textContent = 'Je beheerst de stof goed. Vertrouw op jezelf bij de Schreibtest.';
+  } else if (total >= 37) {
+    box.className = 'readiness ready-pass';
+    readyTitle.textContent = 'Je bent op de goede weg';
+    readyText.textContent = 'Je hebt al een basis. Oefen de kaarten die je nog niet kent voor een betere score.';
+  } else if (total > 0) {
+    box.className = 'readiness ready-fail';
+    readyTitle.textContent = 'Noch ein bisschen üben';
+    readyText.textContent = 'Loop de flashcards door en doe daarna de toets. Je komt er!';
+  } else {
+    box.className = 'readiness ready-fail';
+    readyTitle.textContent = 'Nog even oefenen';
+    readyText.textContent = 'Doe de flashcards en de toets om je score op te bouwen.';
+  }
+
+  renderHistory();
+}
+
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (history.length === 0) {
+    el.innerHTML = '<p style="font-size:13px;color:#868e96">Nog geen toetsen gemaakt.</p>';
+    return;
+  }
+  el.innerHTML = history.map(h => {
+    const pct = Math.round(h.score / h.total * 100);
+    const color = pct >= 70 ? '#40c057' : pct >= 37 ? '#f59f00' : '#fa5252';
+    return `<div class="history-entry">
+      <span class="hdate">${h.date}</span>
+      <span class="hscore" style="color:${color}">${h.score}/${h.total} (${pct}%)</span>
+    </div>`;
+  }).join('');
+}
+
+// ── RESET ─────────────────────────────────────────────────────────────────
+function resetAll() {
+  if (!confirm('Weet je het zeker? Al je voortgang wordt verwijderd.')) return;
+  flashKnown = {};
+  quizScore  = null;
+  history    = [];
+  localStorage.removeItem(LS_FLASH);
+  localStorage.removeItem(LS_QUIZ);
+  localStorage.removeItem(LS_HISTORY);
+  renderOverview();
+  updateScorePanel();
+  initFlash();
+  document.getElementById('quiz-start').style.display = 'block';
+  document.getElementById('quiz-area').style.display  = 'none';
+  document.getElementById('quiz-area').innerHTML      = '';
+}
+
+// ── NIVEAUS VOORBEELDEN ───────────────────────────────────────────────────
+function showNiveau(level) {
+  document.querySelectorAll('.niveau-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.niveau-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('niveau-' + level).classList.add('active');
+  // find the matching tab
+  const tabMap = { fail: 'nt-fail', pass: 'nt-pass', great: 'nt-great' };
+  document.querySelector('.niveau-tab.' + tabMap[level]).classList.add('active');
+}
+
+function toggleBeo(level, cat) {
+  const legend = document.getElementById('legend-' + level);
+  const textEl = document.getElementById('text-' + level);
+  const allCats = ['boodschap','woord','samenhang','grammatik','spelling'];
+
+  // Radio: deactivate all chips, highlights, and rubric texts
+  allCats.forEach(c => {
+    legend.querySelector('.bc-' + c).classList.remove('active');
+    textEl.querySelectorAll('.hl-' + c).forEach(s => { s.style.background = 'transparent'; });
+    const r = document.getElementById('rubric-' + level + '-' + c);
+    if (r) r.style.display = 'none';
+  });
+
+  // Activate the clicked one
+  legend.querySelector('.bc-' + cat).classList.add('active');
+  textEl.querySelectorAll('.hl-' + cat).forEach(s => { s.style.background = ''; });
+  const rubric = document.getElementById('rubric-' + level + '-' + cat);
+  if (rubric) rubric.style.display = '';
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+// Set initial highlight state: only 'boodschap' visible
+['pass','great'].forEach(level => {
+  const textEl = document.getElementById('text-' + level);
+  if (!textEl) return;
+  ['woord','samenhang','grammatik','spelling'].forEach(cat => {
+    textEl.querySelectorAll('.hl-' + cat).forEach(s => { s.style.background = 'transparent'; });
+  });
+});
+renderOverview();
+initFlash();
+
+// ── CHAT ──────────────────────────────────────────────────────────────
+const CHAT_CONTEXT = `[CONTEXT: De leerling is bezig met Deutsch Klasse 3, Periode 3: Schreibfertigkeit. De schrijftoets is deze week (vrijdag). Toetsvorm: "Reagieren auf einen Post" — de leerling krijgt een social media post in het Duits en moet daar schriftelijk op reageren. De stof gaat over: regelmäßige Verben vervoegen (Präsens: stam+e/st/t/en/t/en en Vergangenheit: stam+te/test/te/ten/tet/ten), sein/haben (onregelmatig), bezittelijke voornaamwoorden (mein/meine — mannelijk/onzijdig vs vrouwelijk/meervoud), Großbuchstaben (zelfstandige naamwoorden altijd hoofdletter), Bindewörter und Satzaufbau (weil/dass/wenn → werkwoord naar einde bijzin), Datumnotatie (den 29. März 2026), Grüße (Lieber/Liebe + Viele Grüße), ß vs ss, en de Wortliste (60 items). Schreibthemen van klas 3D: Meine Familie, Lieblingsessen, Lieblingstier, Lieblingsspiel, Lieblingsfach in der Schule. Beoordeling op: boodschap, woordenschat, samenhang, grammatica, spelling. Niveau: A2 (havo). Geef oefeningen in de chat, Duolingo-stijl. Leg alles uit in het NEDERLANDS maar gebruik Duitse voorbeelden. Laat de leerling zinnen schrijven en geef direct feedback. Focus op de meest voorkomende fouten: hoofdletters vergeten bij Substantive, werkwoorduitgangen fout, mein vs meine verkeerd, weil/dass zonder werkwoord achteraan.]`;
+
+let chatHistory = [];
+
+function chatSend(text) {
+  if (!text.trim()) return;
+  const messagesEl = document.getElementById('chat-messages');
+  const typingEl = document.getElementById('chat-typing');
+  const quickEl = document.getElementById('chat-quick');
+
+  const userDiv = document.createElement('div');
+  userDiv.className = 'chat-msg chat-msg-user';
+  userDiv.textContent = text;
+  messagesEl.appendChild(userDiv);
+  quickEl.style.display = 'none';
+
+  if (chatHistory.length === 0) {
+    chatHistory.push({ role: 'user', content: CHAT_CONTEXT + '\n\n' + text });
+  } else {
+    chatHistory.push({ role: 'user', content: text });
+  }
+
+  typingEl.classList.add('active');
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages: chatHistory.slice(-20), mode: 'chill' })
+  }).then(response => {
+    if (!response.ok) throw new Error('API error');
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let aiText = '';
+    let aiDiv = null;
+
+    function processStream() {
+      reader.read().then(({ done, value }) => {
+        if (done) {
+          typingEl.classList.remove('active');
+          if (aiText) chatHistory.push({ role: 'assistant', content: aiText });
+          return;
+        }
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+                if (!aiDiv) {
+                  typingEl.classList.remove('active');
+                  aiDiv = document.createElement('div');
+                  aiDiv.className = 'chat-msg chat-msg-ai';
+                  messagesEl.appendChild(aiDiv);
+                }
+                aiText += parsed.delta.text;
+                aiDiv.innerHTML = formatChat(aiText);
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+              }
+            } catch (e) {}
+          }
+        }
+        processStream();
+      });
+    }
+    processStream();
+  }).catch(err => {
+    typingEl.classList.remove('active');
+    const errDiv = document.createElement('div');
+    errDiv.className = 'chat-msg chat-msg-ai';
+    errDiv.innerHTML = '<p>Oeps, geen verbinding. Probeer opnieuw.</p>';
+    messagesEl.appendChild(errDiv);
+  });
+}
+
+function chatSendInput() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+  chatSend(text);
+}
+
+function formatChat(text) {
+  let html = text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+  html = html.replace(/\s+([A-D][).:])\s/g, '\n$1 ');
+
+  html = html.replace(/^[-*] (.+)$/gm, '• $1');
+
+  html = html.split('\n\n').map(para =>
+    '<p>' + para.replace(/\n/g, '<br>') + '</p>'
+  ).join('');
+
+  html = html.replace(/<p><\/p>/g, '');
+
+  return html;
+}
+
+</script>
+</body>
+</html>
