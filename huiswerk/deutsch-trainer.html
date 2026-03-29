@@ -205,22 +205,11 @@
     .story-section .section-header { padding: 18px 20px 8px; }
     .story-scroll { display: flex; gap: 12px; overflow-x: auto; padding: 0 16px 16px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
     .story-scroll::-webkit-scrollbar { display: none; }
-    .story-card { flex: 0 0 300px; background: #fff; border-radius: 14px; border: 1px solid #e9ecef; box-shadow: 0 1px 4px rgba(0,0,0,.06); scroll-snap-align: start; overflow: hidden; }
+    .story-card { flex: 0 0 280px; background: #fff; border-radius: 14px; border: 2px solid #e9ecef; box-shadow: 0 1px 4px rgba(0,0,0,.06); scroll-snap-align: start; overflow: hidden; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+    .story-card:active { transform: scale(.98); }
+    .story-card-active { border-color: #228be6; box-shadow: 0 2px 8px rgba(34,139,230,.2); }
     .story-tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 8px; margin: 14px 16px 0; background: #e7f5ff; color: #1971c2; }
-    .story-tabs { display: flex; margin: 10px 14px 0; gap: 4px; }
-    .story-tab { flex: 1; padding: 7px 4px; font-size: 11px; font-weight: 700; text-align: center; cursor: pointer; border: none; background: #f1f3f5; color: #868e96; border-radius: 8px; transition: all .15s; font-family: inherit; }
-    .story-tab:active { transform: scale(.96); }
-    .story-tab.act-a2 { background: #e7f5ff; color: #1971c2; }
-    .story-tab.act-a1 { background: #fff5f5; color: #e03131; }
-    .story-tab.act-a2p { background: #f3f0ff; color: #7048e8; }
-    .story-level { padding: 12px 16px 14px; display: none; }
-    .story-level.active { display: block; }
-    .story-text { font-size: 13px; line-height: 1.7; color: #212529; }
-    .story-text-bad { color: #868e96; font-style: italic; }
-    .story-cmt { margin-top: 10px; font-size: 11px; line-height: 1.5; padding: 8px 10px; border-radius: 6px; }
-    .story-cmt-a2 { background: #e7f5ff; color: #1864ab; }
-    .story-cmt-a1 { background: #fff5f5; color: #c92a2a; }
-    .story-cmt-a2p { background: #f3f0ff; color: #5f3dc4; }
+
 
     /* RUBRIC SECTION */
     .rubric-section { margin-top: 8px; padding: 10px 14px; background: #f1f3f5; border-radius: 8px; font-size: 13px; line-height: 1.6; color: #495057; }
@@ -326,10 +315,63 @@
     <p><strong>Vrijdag krijg je een Duits bericht</strong> (bijvoorbeeld van iemand op social media). Jij schrijft een Nederlands antwoord terug in het Duits. De docent beoordeelt je antwoord op 5 criteria: Boodschap, Woordenschat, Grammatica, Spelling en Handschrift.</p>
   </div>
 
-  <!-- STORY CARDS -->
-  <div class="story-section">
-    <div class="section-header">Zo klinkt jouw Duits</div>
-    <div class="story-scroll" id="story-scroll"></div>
+  <!-- STORY SELECTOR + NIVEAUS -->
+  <div class="section-header">Zo klinkt jouw Duits</div>
+  <div class="story-scroll" id="story-scroll"></div>
+
+  <div class="niveaus-block" id="niveaus-block">
+    <div class="niveaus-intro">
+      <strong>Bekijk dit verhaal op drie niveaus.</strong> Tik op een ander kaartje hierboven om van thema te wisselen. Tik op de gekleurde chips om te zien waar de docent op let.
+    </div>
+
+    <!-- DE PROMPT / POST -->
+    <div class="niveaus-post" id="niveaus-post">
+      <div class="post-header"><div class="post-avatar" id="post-avatar">T</div> <span id="post-author">tom_utrecht</span></div>
+      <span id="post-text"></span>
+    </div>
+
+    <!-- NIVEAU TABS — A2 first -->
+    <div class="niveau-tabs">
+      <button class="niveau-tab nt-pass active" onclick="showNiveau('pass')">👍 Havo (A2)</button>
+      <button class="niveau-tab nt-fail" onclick="showNiveau('fail')">😬 Onder havo</button>
+      <button class="niveau-tab nt-great" onclick="showNiveau('great')">🔥 Vwo (A2+)</button>
+    </div>
+
+    <!-- A2 HAVO (default visible) -->
+    <div class="niveau-content active" id="niveau-pass">
+      <span class="niveau-label nl-pass">A2 — Havo-niveau (voldoende)</span>
+      <div class="exemple-text" id="text-pass"></div>
+      <div class="beo-legend" id="legend-pass">
+        <span class="beo-chip bc-boodschap active" onclick="toggleBeo('pass','boodschap')">Boodschap</span>
+        <span class="beo-chip bc-woord" onclick="toggleBeo('pass','woord')">Woordenschat</span>
+        <span class="beo-chip bc-samenhang" onclick="toggleBeo('pass','samenhang')">Samenhang</span>
+        <span class="beo-chip bc-grammatik" onclick="toggleBeo('pass','grammatik')">Grammatica</span>
+        <span class="beo-chip bc-spelling" onclick="toggleBeo('pass','spelling')">Spelling</span>
+      </div>
+      <div id="rubrics-pass"></div>
+    </div>
+
+    <!-- A1+ ONDER HAVO -->
+    <div class="niveau-content" id="niveau-fail">
+      <span class="niveau-label nl-fail">A1+ — Onder havo-niveau</span>
+      <div class="exemple-text" id="text-fail"></div>
+      <div class="error-list" id="errors-fail"></div>
+      <div class="rubric-section" id="rubric-fail-summary"></div>
+    </div>
+
+    <!-- A2+ VWO -->
+    <div class="niveau-content" id="niveau-great">
+      <span class="niveau-label nl-great">A2+ — Vwo-niveau (goed)</span>
+      <div class="exemple-text" id="text-great"></div>
+      <div class="beo-legend" id="legend-great">
+        <span class="beo-chip bc-boodschap active" onclick="toggleBeo('great','boodschap')">Boodschap</span>
+        <span class="beo-chip bc-woord" onclick="toggleBeo('great','woord')">Woordenschat</span>
+        <span class="beo-chip bc-samenhang" onclick="toggleBeo('great','samenhang')">Samenhang</span>
+        <span class="beo-chip bc-grammatik" onclick="toggleBeo('great','grammatik')">Grammatica</span>
+        <span class="beo-chip bc-spelling" onclick="toggleBeo('great','spelling')">Spelling</span>
+      </div>
+      <div id="rubrics-great"></div>
+    </div>
   </div>
 
   <div class="section-header">📚 A2 — Dit moet je weten voor een voldoende</div>
@@ -929,219 +971,329 @@ const QUIZ_SIZE = 15;
 
 // ── STORY CARDS (25 German writing themes) ────────────────────────────────
 const STORIES = [
-  {t:'Familie',
-   a1:'meine familie hat vier personen. mein vater heisst wilfred und mein mutter heisst maria. ich habe ein bruder raf. er hat 13 jahre.',
-   c1:'Geen hoofdletters, "hat 13 Jahre" fout, "mein Mutter" fout — onder A2.',
-   a2:'Meine Familie ist vier Personen groß. Mein Vater heißt Wilfred und meine Mutter heißt Maria. Ich habe einen Bruder, er heißt Raf und er ist 13 Jahre alt. Wir wohnen zusammen in Utrecht.',
-   c2:'Correcte vervoeging, juiste hoofdletters, mein/meine klopt — dit is A2.',
-   a2p:'Meine Familie besteht aus vier Personen und wir wohnen zusammen in Utrecht. Mein Vater heißt Wilfred und meine Mutter heißt Maria. Ich habe einen jüngeren Bruder, der Raf heißt und 13 Jahre alt ist. Ich finde es schön, dass wir alle zusammen wohnen, weil wir uns gut verstehen.',
-   c2p:'Bijzinnen met dass/weil, rijkere woordenschat (besteht aus, jüngeren) — A2+.'},
-  {t:'Vorstellung',
-   a1:'ich heisse tom und ich habe 15 jahre. ich wohne utrecht. ich gehe auf unic.',
-   c1:'"ich habe 15 Jahre" is fout, "wohne Utrecht" mist "in", geen hoofdletters — onder A2.',
-   a2:'Ich heiße Tom und ich bin 15 Jahre alt. Ich wohne in Utrecht, das ist eine Stadt in den Niederlanden. Ich gehe auf das UniC.',
-   c2:'Basiszinnen kloppen: bin...Jahre alt, wohne in, gehe auf das — dit is A2.',
-   a2p:'Ich heiße Tom und ich bin 15 Jahre alt. Ich wohne in Utrecht, das eine schöne Stadt in den Niederlanden ist. Ich gehe auf das UniC, obwohl die Schule manchmal anstrengend ist. In meiner Freizeit spiele ich am liebsten Fußball, weil es mir viel Spaß macht.',
-   c2p:'Bijzin met obwohl + werkwoord achteraan, persoonlijke mening — A2+.'},
-  {t:'Hobbys',
-   a1:'meine hobbys sind fussball und gaming. ich spiele gern fussball. am wochenende game ich.',
-   c1:'Geen hoofdletters, "fussball" zonder ß, te korte zinnen zonder verbinding — onder A2.',
-   a2:'Meine Hobbys sind Fußball und Gaming. In meiner Freizeit spiele ich am liebsten Fußball, weil es Spaß macht. Am Wochenende game ich auch gern mit meinen Freunden.',
-   c2:'Goede woordenschat (In meiner Freizeit), weil-zin correct — dit is A2.',
-   a2p:'Meine Hobbys sind Fußball und Gaming, wobei ich Fußball am meisten mag. In meiner Freizeit spiele ich am liebsten draußen, weil ich mich gern bewege. Am Wochenende game ich auch mit meinen Freunden online, obwohl mein Vater findet, dass ich zu viel spiele.',
-   c2p:'Drie voegwoorden (weil, obwohl, dass), persoonlijk detail — A2+.'},
-  {t:'Essen',
-   a1:'mein lieblingsessen ist pizza. ich esse auch pfannkuchen. ich mag nicht fisch.',
-   c1:'"mag nicht Fisch" is verkeerde volgorde (moet: mag keinen Fisch), geen hoofdletters — onder A2.',
-   a2:'Mein Lieblingsessen ist Pizza. Ich esse auch gern Pfannkuchen, aber ich mag keinen Fisch. Meine Mutter kocht oft Pasta und das finde ich auch lecker.',
-   c2:'"keinen Fisch" correct, aber als voegwoord, samengesteld woord — A2.',
-   a2p:'Mein Lieblingsessen ist Pizza, weil sie einfach immer lecker schmeckt. Ich esse auch gern Pfannkuchen, aber ich mag keinen Fisch, obwohl meine Mutter sagt, dass er gesund ist. Wenn meine Mutter Pasta kocht, finde ich das auch sehr lecker.',
-   c2p:'weil/obwohl/dass/wenn allemaal correct met werkwoord achteraan — A2+.'},
-  {t:'Schule',
-   a1:'ich gehe auf das unic in utrecht. mein schule ist anders. mein lieblingsfach ist sport.',
-   c1:'Geen hoofdletters, "mein Schule" fout (moet: meine), geen uitleg — onder A2.',
-   a2:'Ich gehe auf das UniC in Utrecht. Meine Schule ist anders als andere Schulen, weil wir viel selbstständig arbeiten. Mein Lieblingsfach ist Sport.',
-   c2:'weil-zin goed, meine Schule correct, goede inhoud — A2.',
-   a2p:'Ich gehe auf das UniC in Utrecht, das eine besondere Schule ist. Meine Schule ist anders als andere Schulen, weil wir viel selbstständig arbeiten und unsere eigenen Projekte machen. Ich finde das gut, obwohl es manchmal schwierig ist, weil man viel Disziplin braucht.',
-   c2p:'Dubbele bijzin (obwohl...weil), eigene mening, complexe structuur — A2+.'},
-  {t:'Lieblingsfach',
-   a1:'mein lieblingsfach ist sport. ich mag gern bewegen. mathe ist schwierig.',
-   c1:'"mag gern bewegen" is geen goed Duits, geen voegwoorden — onder A2.',
-   a2:'Mein Lieblingsfach ist Sport, weil ich mich gern bewege. Ich finde Mathe schwierig, obwohl es manchmal auch interessant ist. Deutsch lerne ich jetzt auch.',
-   c2:'weil en obwohl correct, reflexief werkwoord (mich bewege) goed — A2.',
-   a2p:'Mein Lieblingsfach ist Sport, weil ich mich dabei richtig auspowern kann. Ich finde Mathe schwierig, obwohl es manchmal auch interessant ist, wenn ich etwas verstehe. Deutsch lerne ich jetzt auch, weil wir bald eine Schreibtoets haben.',
-   c2p:'wenn-bijzin erbij, bredere woordenschat (auspowern), drie bijzinnen — A2+.'},
-  {t:'Wochenende',
-   a1:'am samstag ich spielte fussball mit mein team. wir spielten gut. am sonntag war ich zuhause.',
-   c1:'Verkeerde woordvolgorde ("ich spielte" moet inversie), geen ß, "mein Team" fout — onder A2.',
-   a2:'Am Samstag spielte ich Fußball mit meinem Team. Wir spielten gut und wir gewannen das Spiel. Am Sonntag war ich zu Hause und ich gamete mit Raf.',
-   c2:'Verleden tijd correct (spielte, gewannen), inversie na Am Samstag — A2.',
-   a2p:'Letztes Wochenende war toll, weil wir am Samstag ein wichtiges Fußballspiel hatten. Wir spielten gut und gewannen, obwohl der Gegner stark war. Am Sonntag blieb ich zu Hause und gamete mit meinem Bruder Raf, was auch Spaß gemacht hat.',
-   c2p:'weil/obwohl met verleden tijd, relatieve bijzin (was...hat) — A2+.'},
-  {t:'Bester Freund',
-   a1:'mein bester freund heisst lars. er hat auch 15 jahre. wir spielen fussball zusammen.',
-   c1:'"hat 15 Jahre" fout, geen hoofdletters, "heisst" zonder ß — onder A2.',
-   a2:'Mein bester Freund heißt Lars. Er ist auch 15 Jahre alt und er geht auf das UniC. Wir spielen zusammen Fußball. Er ist lustig und wir lachen viel.',
-   c2:'Correcte zinnen, und als voegwoord, bester Freund goed — A2.',
-   a2p:'Mein bester Freund heißt Lars und er geht auch auf das UniC. Wir kennen uns schon lange und spielen zusammen Fußball, weil wir beide den Sport lieben. Ich finde es toll, dass er so lustig ist, weil wir zusammen immer viel lachen.',
-   c2p:'dass/weil correct, persoonlijke mening (ich finde es toll) — A2+.'},
-  {t:'Tier',
-   a1:'ich finde hunde toll. ich will ein hund haben. raf mag katzen aber ich mag hunde.',
-   c1:'"ein Hund" moet "einen Hund" (accusatief), geen hoofdletters — onder A2.',
-   a2:'Ich finde Hunde toll. Wenn ich ein Haustier haben könnte, dann wäre es ein Hund. Mein Bruder Raf mag Katzen, aber ich finde Hunde besser.',
-   c2:'Konjunktiv (könnte, wäre) laat ambitie zien, aber correct — A2.',
-   a2p:'Ich finde Hunde toll, weil sie treu und lustig sind. Wenn ich ein Haustier haben könnte, würde ich mir sofort einen Hund wünschen. Mein Bruder Raf mag lieber Katzen, obwohl ich finde, dass Hunde viel besser sind, weil man mit ihnen draußen spielen kann.',
-   c2p:'weil/obwohl/dass gestapeld, Konjunktiv correct — A2+.'},
-  {t:'Sport',
-   a1:'mein lieblingssport ist fussball. ich spiele in ein team. wir trainieren zwei mal pro woche.',
-   c1:'"in ein Team" moet "in einem Team", "fussball" zonder ß — onder A2.',
-   a2:'Mein Lieblingssport ist Fußball. Ich spiele in einem Team und wir trainieren zwei Mal pro Woche. Ich spiele am liebsten als Stürmer, weil ich gern Tore schieße.',
-   c2:'"in einem Team" correct, weil-zin goed, Stürmer met Umlaut — A2.',
-   a2p:'Mein Lieblingssport ist Fußball, den ich schon seit Jahren spiele. Ich trainiere zwei Mal pro Woche mit meinem Team und spiele am liebsten als Stürmer, weil ich gern Tore schieße. Obwohl wir nicht immer gewinnen, macht es mir trotzdem jedes Mal Spaß.',
-   c2p:'Obwohl-bijzin, relatief voornaamwoord (den), sinds-constructie — A2+.'},
-  {t:'Geburtstag',
-   a1:'mein geburtstag ist am 15 marz. ich feierte mit meine freunde. wir essen pizza.',
-   c1:'"März" zonder Umlaut, "mit meine Freunde" fout (meinen), tempusmix — onder A2.',
-   a2:'Mein Geburtstag ist am 15. März. Letztes Jahr feierte ich meinen Geburtstag mit meinen Freunden. Wir aßen Pizza und spielten Spiele. Es war ein schöner Tag.',
-   c2:'Datum correct (15. März), verleden tijd consequent, meinen correct — A2.',
-   a2p:'Mein Geburtstag ist am 15. März und letztes Jahr habe ich ihn mit meinen besten Freunden gefeiert. Wir aßen Pizza und spielten verschiedene Spiele, was richtig viel Spaß gemacht hat. Ich finde es toll, dass alle gekommen sind, obwohl es ein Schultag war.',
-   c2p:'dass/obwohl correct, Perfekt (habe gefeiert), relatieve bijzin — A2+.'},
-  {t:'Film',
-   a1:'mein lieblingsfilm ist inception. der film ist spannend. die schauspieler sind gut.',
-   c1:'Klopt bijna maar te kort, geen eigen mening, geen voegwoorden — net onder A2.',
-   a2:'Mein Lieblingsfilm ist Inception. Ich finde, dass der Film spannend ist. Die Schauspieler sind gut und die Geschichte ist interessant.',
-   c2:'dass-bijzin correct (werkwoord achteraan), eigen mening — A2.',
-   a2p:'Mein Lieblingsfilm ist Inception, weil ich finde, dass die Geschichte unglaublich spannend ist. Die Schauspieler spielen sehr gut und man muss wirklich aufpassen, obwohl der Film manchmal verwirrend ist. Ich empfehle ihn jedem, der spannende Filme mag.',
-   c2p:'weil + dass gestapeld, relatieve bijzin (der...mag), aanbeveling — A2+.'},
-  {t:'Ferien',
-   a1:'in die sommerferien war ich in frankreich mit mein familie. wir waren am strand. ich schwamm jeden tag.',
-   c1:'"die Sommerferien" moet "den" (Dativ), "mein Familie" fout — onder A2.',
-   a2:'In den Sommerferien war ich mit meiner Familie in Frankreich. Wir waren am Strand und das Wetter war gut. Ich schwamm jeden Tag, aber das Essen war nicht so lecker.',
-   c2:'"den Sommerferien" correct (Dativ), aber als contrast, verleden tijd — A2.',
-   a2p:'In den Sommerferien war ich mit meiner Familie in Frankreich, wo wir am Strand waren. Das Wetter war super und ich schwamm jeden Tag im Meer, obwohl das Wasser manchmal kalt war. Das Essen fand ich nicht so lecker, weil ich französisches Essen nicht so mag.',
-   c2p:'wo-bijzin, obwohl/weil correct, persoonlijke mening met reden — A2+.'},
-  {t:'Spiel',
-   a1:'mein lieblingsspiel ist fifa. ich spiele es oft mit mein bruder raf. er verliert meistens.',
-   c1:'"mein Bruder" moet "meinem Bruder" (met), geen hoofdletters — onder A2.',
-   a2:'Mein Lieblingsspiel ist FIFA. Ich spiele es oft mit meinem Bruder Raf. Er verliert meistens, weil ich besser bin. Manchmal spielen wir auch online mit Freunden.',
-   c2:'"meinem Bruder" correct (Dativ), weil-zin goed — A2.',
-   a2p:'Mein Lieblingsspiel ist FIFA, das ich am liebsten mit meinem Bruder Raf spiele. Er verliert meistens, weil ich einfach besser bin und mehr Erfahrung habe. Manchmal spielen wir auch online mit Freunden, obwohl das Internet dann manchmal langsam ist.',
-   c2p:'Relatief voornaamwoord (das), obwohl-bijzin, humor — A2+.'},
-  {t:'Stadt',
-   a1:'ich wohne in utrecht. utrecht ist ein schone stadt. es gibt viele geschafte.',
-   c1:'"ein schöne Stadt" moet "eine schöne", "Geschäfte" met Umlaut — onder A2.',
-   a2:'Ich wohne in Utrecht. Utrecht ist eine schöne Stadt in den Niederlanden. Es gibt viele Geschäfte und Restaurants. Der Dom ist sehr bekannt.',
-   c2:'eine schöne Stadt correct, Umlaut goed, goede beschrijving — A2.',
-   a2p:'Ich wohne in Utrecht, das eine wunderschöne Stadt in den Niederlanden ist. Es gibt viele Geschäfte und Restaurants, obwohl ich am liebsten einfach im Park Fußball spiele. Der Dom ist sehr bekannt und ich finde es cool, dass er mitten in der Stadt steht.',
-   c2p:'Relatieve bijzin (das...ist), obwohl + dass, persoonlijk — A2+.'},
-  {t:'Traumhaus',
-   a1:'wenn ich gross bin ich will ein grosses haus. in mein traumhaus gibt es ein zimmer fur gaming.',
-   c1:'Woordvolgorde fout na wenn, "groß/für" zonder Umlaut/ß — onder A2.',
-   a2:'Wenn ich groß bin, möchte ich ein großes Haus mit einem Garten haben. In meinem Traumhaus gibt es ein Zimmer nur für Gaming. Und einen großen Fernseher.',
-   c2:'wenn-zin correct, möchte goed, meinem Traumhaus (Dativ) — A2.',
-   a2p:'Wenn ich groß bin, möchte ich ein großes Haus mit einem Garten haben, weil ich gern draußen bin. In meinem Traumhaus würde es ein Zimmer nur für Gaming geben, obwohl mein Vater das wahrscheinlich nicht so toll finden würde. Außerdem hätte ich gern einen riesigen Fernseher.',
-   c2p:'weil/obwohl correct, Konjunktiv (würde, hätte), humor — A2+.'},
-  {t:'Musik',
-   a1:'ich hore gern rap. mein lieblingskünstler ist stormzy. ich hore musik im bus.',
-   c1:'"höre" zonder Umlaut, te kort, geen voegwoorden — onder A2.',
-   a2:'Ich höre gern Rap und Hip-Hop. Mein Lieblingskünstler ist Stormzy. Ich höre Musik, wenn ich im Bus sitze, aber auch zu Hause. Raf hört andere Musik.',
-   c2:'wenn-bijzin correct, Umlauts goed, aber als contrast — A2.',
-   a2p:'Ich höre am liebsten Rap und Hip-Hop, weil mir der Beat gefällt. Mein Lieblingskünstler ist Stormzy, obwohl ich auch andere Künstler gut finde. Ich höre Musik, wenn ich im Bus sitze oder zu Hause bin, weil es mich entspannt. Raf hört lieber andere Musik, was ich manchmal nervig finde.',
-   c2p:'weil/obwohl/wenn, relatieve bijzin (was...finde), mening — A2+.'},
-  {t:'Buch',
-   a1:'ich lese nicht gern. comics sind am besten. raf liest mehr als ich.',
-   c1:'Te kort, geen eigen mening met uitleg, geen voegwoorden — onder A2.',
-   a2:'Ich lese nicht so gern, obwohl ich ein paar Bücher gut finde. Ich finde, dass Comics am besten sind. Mein Bruder Raf liest mehr als ich.',
-   c2:'obwohl + dass correct, vergelijking (mehr als) goed — A2.',
-   a2p:'Ich lese nicht so gern, obwohl ich zugeben muss, dass einige Bücher wirklich gut sind. Ich finde, dass Comics am besten sind, weil man die Bilder sieht und es schneller geht. Mein Bruder Raf liest viel mehr als ich, was ich manchmal bewundere.',
-   c2p:'obwohl + dass gestapeld, weil-bijzin, relatief (was...bewundere) — A2+.'},
-  {t:'Haustier',
-   a1:'wir haben kein haustier. ich will gern ein hund. meine eltern sagen wir haben kein platz.',
-   c1:'"einen Hund" (accusatief), "keinen Platz", geen bijzin na sagen — onder A2.',
-   a2:'Wir haben kein Haustier zu Hause. Ich hätte gern einen Hund, aber meine Eltern sagen, dass wir keinen Platz haben. Vielleicht später.',
-   c2:'dass-bijzin correct, Konjunktiv (hätte), keinen goed — A2.',
-   a2p:'Wir haben leider kein Haustier zu Hause, obwohl ich mir das sehr wünschen würde. Ich hätte am liebsten einen Hund, aber meine Eltern sagen, dass wir nicht genug Platz haben. Ich hoffe, dass ich später, wenn ich ein eigenes Haus habe, einen Hund bekomme.',
-   c2p:'obwohl/dass/wenn gestapeld, Konjunktiv, toekomstperspectief — A2+.'},
-  {t:'Fähigkeiten',
-   a1:'ich bin gut in sport und gaming. ich kann schnell laufen. am computer bin ich auch gut.',
-   c1:'Klopt bijna maar geen persoonlijke mening of verbinding — net onder A2.',
-   a2:'Ich bin gut in Sport und Gaming. Ich kann schnell laufen und ich schieße gern Tore. Am Computer bin ich auch gut. Mein Bruder sagt, dass ich zu viel game.',
-   c2:'dass-bijzin correct, inversie na Am Computer, Modalverb kann — A2.',
-   a2p:'Ich bin gut in Sport und Gaming, weil ich beides seit Jahren mache. Ich kann schnell laufen und schieße gern Tore, obwohl ich auch manchmal danebenschieße. Am Computer bin ich auch gut, obwohl mein Bruder sagt, dass ich zu viel game.',
-   c2p:'weil/obwohl/dass, zelfspot (danebenschieße), humor — A2+.'},
-  {t:'Land',
-   a1:'mein lieblingsland ist spanien. das wetter ist immer schon. ich war zwei mal in spanien.',
-   c1:'"schön" zonder Umlaut, geen voegwoorden, geen hoofdletters — onder A2.',
-   a2:'Mein Lieblingsland ist Spanien, weil das Wetter dort immer schön ist. Ich war schon zwei Mal in Spanien mit meiner Familie. Das Essen dort ist auch lecker.',
-   c2:'weil-zin correct (werkwoord achteraan), Umlaut goed — A2.',
-   a2p:'Mein Lieblingsland ist Spanien, weil das Wetter dort immer schön und warm ist. Ich war schon zwei Mal mit meiner Familie dort und fand es jedes Mal toll. Das Essen in Spanien ist auch lecker, obwohl ich Pizza trotzdem am liebsten esse.',
-   c2p:'weil/obwohl, vergelijking (am liebsten), persoonlijk detail — A2+.'},
-  {t:'Brief',
-   a1:'hallo anna. ich heisse tom. ich habe 15 jahre. ich wohne utrecht. meine hobbys sind fussball und gaming. tschuss tom',
-   c1:'Geen aanhef (Liebe), "habe 15 Jahre" fout, "wohne Utrecht" mist "in" — ver onder A2.',
-   a2:'Liebe Anna, danke für deinen Post. Ich heiße Tom und ich bin 15 Jahre alt. Ich wohne in Utrecht und meine Hobbys sind Fußball und Gaming. Was spielst du gern? Viele Grüße, Tom',
-   c2:'Aanhef + afsluiting correct, vraag aan de lezer, Boodschap compleet — A2.',
-   a2p:'Liebe Anna, vielen Dank für deinen tollen Post! Ich heiße Tom und bin 15 Jahre alt. Ich wohne in Utrecht, das eine schöne Stadt in den Niederlanden ist. Meine Hobbys sind Fußball und Gaming, weil mir beides viel Spaß macht. Was spielst du am liebsten? Liebe Grüße, Tom',
-   c2p:'Relatieve bijzin, weil correct, persoonlijke toon, specifieke vraag — A2+.'},
-  {t:'Morgen',
-   a1:'ich stehe um sieben uhr auf. dann fruhstucke ich und gehe zu schule. ich fahre mit fahrrad.',
-   c1:'"frühstücke" zonder Umlaut, "zur Schule", "mit dem Fahrrad" — onder A2.',
-   a2:'Ich stehe um sieben Uhr auf. Dann frühstücke ich und ich gehe zur Schule. Ich fahre mit dem Fahrrad, weil die Schule nicht weit ist. Der Unterricht beginnt um acht Uhr.',
-   c2:'zur Schule, mit dem Fahrrad correct, weil-zin goed — A2.',
-   a2p:'Ich stehe jeden Morgen um sieben Uhr auf, obwohl ich manchmal lieber länger schlafen würde. Dann frühstücke ich schnell und fahre mit dem Fahrrad zur Schule, weil sie nicht weit weg ist. Der Unterricht beginnt um acht Uhr und dauert bis halb vier.',
-   c2p:'obwohl + Konjunktiv (würde), weil correct, extra detail — A2+.'},
-  {t:'Abend',
-   a1:'gestern abend ich ass mit meine familie. dann machte ich hausaufgaben. dann spielte ich fifa.',
-   c1:'Woordvolgorde fout, "aß" verkeerd gespeld, "meine Familie" fout (meiner) — onder A2.',
-   a2:'Gestern Abend aß ich mit meiner Familie. Danach machte ich meine Hausaufgaben, aber es dauerte nicht lange. Dann spielte ich noch eine Stunde FIFA und ging ins Bett.',
-   c2:'Inversie correct, verleden tijd consequent, meiner Familie goed — A2.',
-   a2p:'Gestern Abend aß ich zusammen mit meiner Familie, was ich immer schön finde. Danach machte ich meine Hausaufgaben, obwohl es nicht lange dauerte, weil ich nur Deutsch hatte. Dann spielte ich noch eine Stunde FIFA und ging ins Bett, weil ich müde war.',
-   c2p:'Relatieve bijzin (was...finde), obwohl/weil gestapeld — A2+.'},
-  {t:'Morgen Plan',
-   a1:'morgen habe ich schule. nach die schule trainiere ich fussball. am abend esse ich mit meine familie.',
-   c1:'"nach der Schule" (Dativ), "mit meiner Familie", geen ß — onder A2.',
-   a2:'Morgen habe ich Schule. Nach der Schule trainiere ich Fußball, weil wir am Samstag ein Spiel haben. Am Abend esse ich mit meiner Familie und dann game ich mit Raf.',
-   c2:'nach der Schule correct (Dativ), weil-zin goed — A2.',
-   a2p:'Morgen habe ich Schule und danach Fußballtraining, weil wir am Samstag ein wichtiges Spiel haben. Am Abend esse ich mit meiner Familie, obwohl ich wahrscheinlich nicht viel Hunger haben werde. Danach game ich noch mit Raf, wenn ich nicht zu müde bin.',
-   c2p:'weil/obwohl/wenn correct, Futur (werde), conditie — A2+.'}
+  {t:'Familie', prompt:'Schrijf een bericht over je familie. Vertel wie er in je gezin zitten en waar jullie wonen.',
+   // A1+ (bad)
+   fail:'meine familie hat vier personen. mein vater heisst wilfred und mein mutter heisst maria. ich habe ein bruder raf. er hat 13 jahre. wir wohne in utrecht.',
+   failErrors:[
+     {w:'mein mutter', c:'meine Mutter', e:'Vrouwelijk → meine (niet mein).'},
+     {w:'hat vier personen', c:'ist vier Personen groß', e:'Grootte van een familie: "ist ... groß" (niet "hat").'},
+     {w:'er hat 13 jahre', c:'er ist 13 Jahre alt', e:'Leeftijd = sein + Jahre alt. Niet "haben".'},
+     {w:'heisst', c:'heißt', e:'ß na lange klinker, niet ss.'},
+     {w:'ich habe ein bruder', c:'ich habe einen Bruder', e:'Accusatief mannelijk → einen. Hoofdletter op Bruder.'},
+     {w:'wir wohne', c:'wir wohnen', e:'Wir → stam + en. Niet "wohne".'}
+   ],
+   failSummary:'Geen aanhef, verkeerde vervoeging, "haben" voor leeftijd, geen hoofdletters op Substantive — dit is duidelijk onder A2.',
+   // A2 (pass)
+   pass:'<span class="hl-boodschap">Meine Familie ist vier Personen groß.</span> <span class="hl-grammatik">Mein Vater heißt Wilfred</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">meine Mutter heißt Maria</span>. <span class="hl-grammatik">Ich habe einen Bruder</span>, <span class="hl-grammatik">er heißt Raf</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">er ist 13 Jahre alt</span>. <span class="hl-boodschap">Wir wohnen zusammen in <span class="hl-woord">Utrecht</span>.</span>',
+   passR:{
+     boodschap:'Je geeft alle gevraagde info: wie er in je gezin zitten, leeftijden, woonplaats. De boodschap is compleet.',
+     woord:'Correcte woordenschat: Familie, Personen, Vater, Mutter, Bruder, Jahre. Samengesteld naamwoord goed.',
+     samenhang:'Je verbindt zinnen met "und". Logische volgorde: ouders → broer → woonplaats. Meer variatie (aber, weil) zou sterker zijn.',
+     grammatik:'Werkwoorden correct vervoegd (heißt, habe, ist, wohnen). "Mein/meine" klopt (mein Vater, meine Mutter, einen Bruder).',
+     spelling:'Hoofdletters op alle Substantive (Vater, Mutter, Bruder, Jahre, Utrecht). ß correct bij heißt. Geen spelfouten.'
+   },
+   // A2+ (great)
+   great:'<span class="hl-boodschap">Meine Familie besteht aus vier Personen</span> <span class="hl-samenhang">und</span> <span class="hl-boodschap">wir wohnen zusammen in <span class="hl-woord">Utrecht</span>.</span> <span class="hl-grammatik">Mein Vater heißt Wilfred</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">meine Mutter heißt Maria</span>. <span class="hl-grammatik">Ich habe einen jüngeren Bruder</span>, <span class="hl-samenhang">der</span> <span class="hl-grammatik">Raf heißt</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">13 Jahre alt ist</span>. <span class="hl-boodschap">Ich finde es schön, <span class="hl-samenhang">dass</span> wir alle zusammen wohnen, <span class="hl-samenhang">weil</span> wir uns gut <span class="hl-grammatik">verstehen</span>.</span>',
+   greatR:{
+     boodschap:'Je geeft alle info én voegt een persoonlijke mening toe ("ich finde es schön"). Je maakt verbinding met het onderwerp.',
+     woord:'Bredere woordenschat: "besteht aus" (in plaats van simpel "ist"), "jüngeren" (comparatief), "verstehen".',
+     samenhang:'Gevarieerde voegwoorden: und, der (relatief), dass, weil. Bij weil staat het werkwoord correct achteraan ("weil wir uns gut verstehen").',
+     grammatik:'Bijzin met dass en weil correct opgebouwd (werkwoord achteraan). Relatieve bijzin (der...heißt). "Einen jüngeren Bruder" — accusatief + comparatief.',
+     spelling:'Alle Substantive met hoofdletter, ß correct, Umlauts correct (jüngeren, Grüße). Geen fouten.'
+   }},
+
+  {t:'Vorstellung', prompt:'Stel je voor aan iemand. Vertel hoe je heet, hoe oud je bent en waar je woont.',
+   fail:'ich heisse tom und ich habe 15 jahre. ich wohne utrecht. ich gehe auf unic.',
+   failErrors:[
+     {w:'ich habe 15 jahre', c:'ich bin 15 Jahre alt', e:'Leeftijd = sein + Jahre alt. "Haben" is Frans/Spaans, niet Duits.'},
+     {w:'ich wohne utrecht', c:'ich wohne in Utrecht', e:'Woonplaats → wohne IN + stad.'},
+     {w:'unic', c:'das UniC', e:'Schoolnamen met lidwoord: das UniC (het is een zelfstandig naamwoord).'},
+     {w:'heisse', c:'heiße', e:'ß na tweeklank ei, niet ss.'}
+   ],
+   failSummary:'"ich habe 15 Jahre" is de #1 fout die Nederlandse leerlingen maken. Geen voorzetsel bij woonplaats, geen ß.',
+   pass:'<span class="hl-boodschap">Ich heiße Tom</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">ich bin 15 Jahre alt</span>. <span class="hl-grammatik">Ich wohne in <span class="hl-woord">Utrecht</span></span>, das ist eine <span class="hl-woord">Stadt</span> in den <span class="hl-woord">Niederlanden</span>. <span class="hl-boodschap">Ich gehe auf das <span class="hl-woord">UniC</span>.</span>',
+   passR:{
+     boodschap:'Je stelt je voor met naam, leeftijd, woonplaats en school. Alle basisinformatie is er.',
+     woord:'Correcte woordkeuze: Stadt, Niederlanden, UniC. "Eine Stadt in den Niederlanden" geeft extra context.',
+     samenhang:'Logische volgorde: naam → leeftijd → woonplaats → school. Verbonden met "und" en bijstelling ("das ist...").',
+     grammatik:'"bin 15 Jahre alt" correct. "Wohne in", "gehe auf das" — voorzetsels kloppen. Vervoegingen goed.',
+     spelling:'Hauptletters correct (Utrecht, Stadt, Niederlanden, UniC). ß bij heiße. Geen fouten.'
+   },
+   great:'<span class="hl-boodschap">Ich heiße Tom</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">ich bin 15 Jahre alt</span>. <span class="hl-grammatik">Ich wohne in <span class="hl-woord">Utrecht</span></span>, <span class="hl-samenhang">das</span> eine schöne <span class="hl-woord">Stadt</span> in den <span class="hl-woord">Niederlanden</span> <span class="hl-grammatik">ist</span>. <span class="hl-boodschap">Ich gehe auf das <span class="hl-woord">UniC</span></span>, <span class="hl-samenhang">obwohl</span> die <span class="hl-woord">Schule</span> manchmal <span class="hl-woord">anstrengend</span> <span class="hl-grammatik">ist</span>. <span class="hl-boodschap">In meiner <span class="hl-woord">Freizeit</span> spiele ich am liebsten <span class="hl-woord">Fußball</span></span>, <span class="hl-samenhang">weil</span> es mir viel Spaß <span class="hl-grammatik">macht</span>.',
+   greatR:{
+     boodschap:'Je stelt je volledig voor én voegt hobby toe. Persoonlijke noot ("obwohl manchmal anstrengend") maakt het levendig.',
+     woord:'Brede woordenschat: anstrengend, Freizeit, am liebsten. "Eine schöne Stadt" — bijvoeglijk naamwoord erbij.',
+     samenhang:'Vier voegwoorden: und, das (relatief), obwohl, weil. Allemaal met correct werkwoord achteraan.',
+     grammatik:'Bijzinnen correct: "das...ist", "obwohl...ist", "weil...macht" — werkwoord steeds achteraan. Inversie bij "In meiner Freizeit spiele ich".',
+     spelling:'Alles correct: ß (Fußball, heiße), Umlauts (Grüße), hoofdletters op Substantive.'
+   }},
+
+  {t:'Hobbys', prompt:'Vertel over je hobby\'s. Wat doe je het liefst in je vrije tijd?',
+   fail:'meine hobbys sind fussball und gaming. ich spiele gern fussball. am wochenende game ich.',
+   failErrors:[
+     {w:'fussball', c:'Fußball', e:'ß na lange u, en hoofdletter (Substantiv).'},
+     {w:'meine hobbys', c:'Meine Hobbys', e:'Begin van de zin → hoofdletter. Hobbys = Substantiv → hoofdletter.'},
+     {w:'am wochenende', c:'Am Wochenende', e:'Zinbegin + Substantiv → twee keer hoofdletter nodig.'}
+   ],
+   failSummary:'Inhoudelijk te kort, geen voegwoorden, geen ß, geen hoofdletters. Dit haalt geen A2.',
+   pass:'<span class="hl-boodschap"><span class="hl-grammatik">Meine Hobbys sind</span> <span class="hl-woord">Fußball</span> <span class="hl-samenhang">und</span> <span class="hl-woord">Gaming</span>.</span> In <span class="hl-woord">meiner Freizeit</span> <span class="hl-grammatik">spiele ich</span> am liebsten <span class="hl-woord">Fußball</span>, <span class="hl-samenhang">weil</span> es Spaß <span class="hl-grammatik">macht</span>. <span class="hl-boodschap">Am <span class="hl-woord">Wochenende</span> game ich auch gern mit meinen <span class="hl-woord">Freunden</span>.</span>',
+   passR:{
+     boodschap:'Je vertelt wat je hobby\'s zijn en wat je wanneer doet. Volledig antwoord op de vraag.',
+     woord:'Goede woordenschat: Freizeit, Wochenende, Freunden. "Am liebsten" is een mooie uitdrukking.',
+     samenhang:'"und" en "weil" als voegwoorden. Logische opbouw: hobby\'s → doordeweeks → weekend.',
+     grammatik:'"spiele ich" — correcte inversie na "In meiner Freizeit". weil-bijzin goed (macht achteraan). "meinen Freunden" — Dativ correct.',
+     spelling:'Fußball met ß en hoofdletter, Wochenende, Freunden — alles correct.'
+   },
+   great:'<span class="hl-boodschap"><span class="hl-grammatik">Meine Hobbys sind</span> <span class="hl-woord">Fußball</span> <span class="hl-samenhang">und</span> <span class="hl-woord">Gaming</span></span>, <span class="hl-samenhang">wobei</span> ich Fußball am meisten <span class="hl-grammatik">mag</span>. In <span class="hl-woord">meiner Freizeit</span> <span class="hl-grammatik">spiele ich</span> am liebsten draußen, <span class="hl-samenhang">weil</span> ich mich gern <span class="hl-grammatik">bewege</span>. <span class="hl-boodschap">Am <span class="hl-woord">Wochenende</span> game ich auch mit meinen <span class="hl-woord">Freunden</span> online</span>, <span class="hl-samenhang">obwohl</span> mein <span class="hl-woord">Vater</span> <span class="hl-grammatik">findet</span>, <span class="hl-samenhang">dass</span> ich zu viel <span class="hl-grammatik">spiele</span>.',
+   greatR:{
+     boodschap:'Je geeft een persoonlijk beeld met voorkeur en humor ("mein Vater findet, dass..."). Dit is communicatie.',
+     woord:'Rijke woordenschat: wobei, draußen, bewege, online. Gevarieerde uitdrukkingen.',
+     samenhang:'Vijf voegwoorden: und, wobei, weil, obwohl, dass. Complexe zinsstructuur met gestapelde bijzinnen.',
+     grammatik:'Alle bijzinnen correct: "weil ich mich gern bewege", "obwohl...findet", "dass ich...spiele". Reflexief werkwoord (mich bewege).',
+     spelling:'Alles foutloos: ß, Umlauts, hoofdletters, interpunctie.'
+   }},
+
+  {t:'Essen', prompt:'Vertel over je lievelingseten. Wat eet je graag en wat vind je niet lekker?',
+   fail:'mein lieblingsessen ist pizza. ich esse auch pfannkuchen. ich mag nicht fisch.',
+   failErrors:[
+     {w:'ich mag nicht fisch', c:'ich mag keinen Fisch', e:'"Niet houden van" = mögen + kein. Niet "nicht" + zelfstandig naamwoord.'},
+     {w:'mein lieblingsessen', c:'Mein Lieblingsessen', e:'Zinbegin + samengesteld Substantiv → twee keer hoofdletter.'},
+     {w:'pfannkuchen', c:'Pfannkuchen', e:'Substantiv → hoofdletter.'},
+     {w:'fisch', c:'Fisch', e:'Substantiv → hoofdletter.'}
+   ],
+   failSummary:'"mag nicht Fisch" is een typische fout — het moet "keinen Fisch" zijn. Plus: geen hoofdletters, geen voegwoorden.',
+   pass:'<span class="hl-boodschap"><span class="hl-woord">Mein Lieblingsessen</span> ist <span class="hl-woord">Pizza</span>.</span> <span class="hl-grammatik">Ich esse</span> auch gern <span class="hl-woord">Pfannkuchen</span>, <span class="hl-samenhang">aber</span> <span class="hl-grammatik">ich mag</span> <span class="hl-woord">keinen Fisch</span>. <span class="hl-boodschap">Meine <span class="hl-woord">Mutter</span> kocht oft <span class="hl-woord">Pasta</span> <span class="hl-samenhang">und</span> das finde ich auch lecker.</span>',
+   passR:{
+     boodschap:'Je vertelt wat je lekker vindt én wat niet. Je noemt ook wat je moeder kookt — persoonlijk detail.',
+     woord:'Samengesteld woord "Lieblingsessen" goed. "keinen Fisch" — ontkenning met kein correct.',
+     samenhang:'"aber" voor contrast (wel pfannkuchen, niet fisch) en "und" — twee voegwoorden.',
+     grammatik:'"Ich esse", "ich mag", "kocht" — correct vervoegd. "keinen" — accusatief mannelijk correct.',
+     spelling:'Alle Substantive met hoofdletter (Pizza, Pfannkuchen, Fisch, Pasta, Mutter). Geen fouten.'
+   },
+   great:'<span class="hl-boodschap"><span class="hl-woord">Mein Lieblingsessen</span> ist <span class="hl-woord">Pizza</span></span>, <span class="hl-samenhang">weil</span> sie einfach immer lecker <span class="hl-grammatik">schmeckt</span>. <span class="hl-grammatik">Ich esse</span> auch gern <span class="hl-woord">Pfannkuchen</span>, <span class="hl-samenhang">aber</span> <span class="hl-grammatik">ich mag</span> <span class="hl-woord">keinen Fisch</span>, <span class="hl-samenhang">obwohl</span> meine <span class="hl-woord">Mutter</span> <span class="hl-grammatik">sagt</span>, <span class="hl-samenhang">dass</span> er gesund <span class="hl-grammatik">ist</span>. <span class="hl-boodschap"><span class="hl-samenhang">Wenn</span> meine Mutter <span class="hl-woord">Pasta</span> <span class="hl-grammatik">kocht</span>, finde ich das auch sehr lecker.</span>',
+   greatR:{
+     boodschap:'Je geeft redenen (weil), nuance (obwohl) en conditie (wenn). Dit is echte communicatie met diepgang.',
+     woord:'Breed: schmeckt, gesund, einfach. Gevarieerde zinsbouw met bijwoordelijke bepalingen.',
+     samenhang:'Vier voegwoorden: weil, aber, obwohl, dass, wenn. Complexe maar leesbare structuur.',
+     grammatik:'Alle bijzinnen correct: "weil sie...schmeckt", "obwohl...sagt", "dass er...ist", "wenn...kocht". Werkwoord telkens achteraan.',
+     spelling:'Foutloos. Alle hoofdletters, ß en Umlauts correct.'
+   }},
+
+  {t:'Schule', prompt:'Vertel over je school. Wat is bijzonder aan jouw school?',
+   fail:'ich gehe auf das unic in utrecht. mein schule ist anders. mein lieblingsfach ist sport.',
+   failErrors:[
+     {w:'mein schule', c:'meine Schule', e:'Schule is vrouwelijk (die Schule) → meine.'},
+     {w:'unic', c:'UniC', e:'Eigennaam → hoofdletter.'},
+     {w:'ist anders', c:'ist anders als andere Schulen', e:'Vergelijking mist: anders ALS + vergelijking.'}
+   ],
+   failSummary:'Mein/meine fout, geen vergelijking uitgewerkt, te weinig inhoud — onder A2.',
+   pass:'<span class="hl-boodschap">Ich gehe auf das <span class="hl-woord">UniC</span> in <span class="hl-woord">Utrecht</span>.</span> <span class="hl-grammatik">Meine Schule ist</span> anders als andere <span class="hl-woord">Schulen</span>, <span class="hl-samenhang">weil</span> wir viel <span class="hl-woord">selbstständig</span> <span class="hl-grammatik">arbeiten</span>. <span class="hl-boodschap">Mein <span class="hl-woord">Lieblingsfach</span> ist <span class="hl-woord">Sport</span>.</span>',
+   passR:{
+     boodschap:'Je vertelt welke school, wat bijzonder is, en je favoriete vak. Complete boodschap.',
+     woord:'Goede woorden: selbstständig, Lieblingsfach. "anders als andere Schulen" — correcte vergelijking.',
+     samenhang:'"weil" geeft een reden. Logische opbouw: school → wat bijzonder is → lievelingsvak.',
+     grammatik:'"Meine Schule" correct (vrouwelijk). weil-bijzin goed: "weil wir...arbeiten".',
+     spelling:'UniC, Schulen, Lieblingsfach, Sport — alle hoofdletters correct.'
+   },
+   great:'<span class="hl-boodschap">Ich gehe auf das <span class="hl-woord">UniC</span> in <span class="hl-woord">Utrecht</span></span>, <span class="hl-samenhang">das</span> eine besondere <span class="hl-woord">Schule</span> <span class="hl-grammatik">ist</span>. <span class="hl-grammatik">Meine Schule ist</span> anders als andere <span class="hl-woord">Schulen</span>, <span class="hl-samenhang">weil</span> wir viel <span class="hl-woord">selbstständig</span> <span class="hl-grammatik">arbeiten</span> <span class="hl-samenhang">und</span> unsere eigenen <span class="hl-woord">Projekte</span> <span class="hl-grammatik">machen</span>. <span class="hl-boodschap">Ich finde das gut</span>, <span class="hl-samenhang">obwohl</span> es manchmal schwierig <span class="hl-grammatik">ist</span>, <span class="hl-samenhang">weil</span> man viel <span class="hl-woord">Disziplin</span> <span class="hl-grammatik">braucht</span>.',
+   greatR:{
+     boodschap:'Je legt uit wat bijzonder is met eigen mening ("ich finde das gut") en nuance ("obwohl manchmal schwierig").',
+     woord:'Breed: besondere, selbstständig, Projekte, Disziplin. Veel variatie.',
+     samenhang:'das (relatief), weil, und, obwohl, weil — vijf verbindingswoorden. Gestapelde bijzinnen.',
+     grammatik:'Dubbele bijzin: "obwohl es...ist, weil man...braucht". Werkwoord achteraan in beide. Relatieve bijzin correct.',
+     spelling:'Alles correct inclusief selbstständig (dubbel s), Disziplin, Projekte.'
+   }},
+
+  {t:'Bester Freund', prompt:'Vertel over je beste vriend. Hoe heet hij/zij en wat doen jullie samen?',
+   fail:'mein bester freund heisst lars. er hat auch 15 jahre. wir spielen fussball zusammen.',
+   failErrors:[
+     {w:'er hat auch 15 jahre', c:'er ist auch 15 Jahre alt', e:'Leeftijd = sein. Niet haben.'},
+     {w:'heisst', c:'heißt', e:'ß na tweeklank ei.'},
+     {w:'fussball', c:'Fußball', e:'Substantiv → hoofdletter. ß na lange u.'},
+     {w:'freund', c:'Freund', e:'Substantiv → hoofdletter.'}
+   ],
+   failSummary:'Weer "hat 15 Jahre" in plaats van "ist 15 Jahre alt", geen ß, geen hoofdletters — onder A2.',
+   pass:'<span class="hl-boodschap">Mein bester <span class="hl-woord">Freund</span> heißt <span class="hl-woord">Lars</span>.</span> <span class="hl-grammatik">Er ist</span> auch 15 <span class="hl-woord">Jahre</span> alt <span class="hl-samenhang">und</span> <span class="hl-grammatik">er geht</span> auf das <span class="hl-woord">UniC</span>. <span class="hl-boodschap">Wir spielen zusammen <span class="hl-woord">Fußball</span>.</span> <span class="hl-grammatik">Er ist</span> lustig <span class="hl-samenhang">und</span> wir lachen viel.',
+   passR:{
+     boodschap:'Je vertelt wie je vriend is, wat jullie gemeen hebben (school, leeftijd) en wat jullie doen.',
+     woord:'Correcte woorden: Freund, Jahre, Fußball. "Lustig" als karaktereigenschap.',
+     samenhang:'Twee keer "und" als verbinding. Logische opbouw: wie → school → activiteit → karakter.',
+     grammatik:'"Er ist" correct voor leeftijd en eigenschap. "Geht auf das" — voorzetsel klopt.',
+     spelling:'Freund, Lars, UniC, Fußball — alle hoofdletters en ß correct.'
+   },
+   great:'<span class="hl-boodschap">Mein bester <span class="hl-woord">Freund</span> heißt <span class="hl-woord">Lars</span></span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">er geht</span> auch auf das <span class="hl-woord">UniC</span>. <span class="hl-boodschap">Wir kennen uns schon lange</span> <span class="hl-samenhang">und</span> spielen zusammen <span class="hl-woord">Fußball</span>, <span class="hl-samenhang">weil</span> wir beide den <span class="hl-woord">Sport</span> <span class="hl-grammatik">lieben</span>. <span class="hl-boodschap">Ich finde es toll, <span class="hl-samenhang">dass</span> er so lustig <span class="hl-grammatik">ist</span>, <span class="hl-samenhang">weil</span> wir zusammen immer viel <span class="hl-grammatik">lachen</span>.</span>',
+   greatR:{
+     boodschap:'Persoonlijk en warm: "ich finde es toll, dass..." Laat echte vriendschap zien, niet alleen feiten.',
+     woord:'"Kennen uns schon lange", "lieben" — sterkere woordkeuze dan A2.',
+     samenhang:'und, weil, dass, weil — vier voegwoorden. Gestapelde bijzinnen vloeien goed.',
+     grammatik:'Bijzinnen correct: "weil wir...lieben", "dass er...ist", "weil wir...lachen". Reflexief: "kennen uns".',
+     spelling:'Alles correct.'
+   }},
+
+  {t:'Ferien', prompt:'Vertel over je vakantie. Waar was je en wat heb je gedaan?',
+   fail:'in die sommerferien war ich in frankreich mit mein familie. wir waren am strand. ich schwamm jeden tag.',
+   failErrors:[
+     {w:'in die sommerferien', c:'In den Sommerferien', e:'Na "in" + tijdsbepaling → Dativ: den (niet die). Plus hoofdletters.'},
+     {w:'mit mein familie', c:'mit meiner Familie', e:'"mit" vereist Dativ → meiner Familie.'},
+     {w:'frankreich', c:'Frankreich', e:'Landnaam = eigennaam → hoofdletter.'}
+   ],
+   failSummary:'"die" moet "den" (Dativ), "mein Familie" moet "meiner" — naamvallen zijn een struikelblok.',
+   pass:'<span class="hl-boodschap">In den <span class="hl-woord">Sommerferien</span> war ich mit meiner <span class="hl-woord">Familie</span> in <span class="hl-woord">Frankreich</span>.</span> <span class="hl-boodschap">Wir waren am <span class="hl-woord">Strand</span></span> <span class="hl-samenhang">und</span> das <span class="hl-woord">Wetter</span> war gut. <span class="hl-grammatik">Ich schwamm</span> jeden Tag, <span class="hl-samenhang">aber</span> das <span class="hl-woord">Essen</span> war nicht so lecker.',
+   passR:{
+     boodschap:'Je vertelt waar, met wie, en wat je deed. Plus een persoonlijke mening over het eten.',
+     woord:'Goede themawoorden: Sommerferien, Strand, Wetter, Essen. Gevarieerd.',
+     samenhang:'"und" en "aber" — twee voegwoorden. "aber" voor contrast (strand leuk, eten niet).',
+     grammatik:'"In den Sommerferien" (Dativ correct), "meiner Familie" (Dativ na mit), "schwamm" (onregelmatig verleden tijd).',
+     spelling:'Frankreich, Sommerferien, Strand, Wetter, Essen — alles met hoofdletter.'
+   },
+   great:'<span class="hl-boodschap">In den <span class="hl-woord">Sommerferien</span> war ich mit meiner <span class="hl-woord">Familie</span> in <span class="hl-woord">Frankreich</span></span>, <span class="hl-samenhang">wo</span> wir am <span class="hl-woord">Strand</span> <span class="hl-grammatik">waren</span>. Das <span class="hl-woord">Wetter</span> war super <span class="hl-samenhang">und</span> <span class="hl-grammatik">ich schwamm</span> jeden Tag im Meer, <span class="hl-samenhang">obwohl</span> das Wasser manchmal kalt <span class="hl-grammatik">war</span>. <span class="hl-boodschap">Das <span class="hl-woord">Essen</span> fand ich nicht so lecker, <span class="hl-samenhang">weil</span> ich französisches Essen nicht so <span class="hl-grammatik">mag</span>.</span>',
+   greatR:{
+     boodschap:'Gedetailleerd met reden waarom je het eten niet lekker vond. Persoonlijk en specifiek.',
+     woord:'"Französisches Essen", "im Meer" — extra details. "super" als informeel synoniem voor "sehr gut".',
+     samenhang:'wo (relatief), und, obwohl, weil — vier voegwoorden. Vloeiende structuur.',
+     grammatik:'wo-bijzin correct, obwohl + werkwoord achteraan, weil + werkwoord achteraan. Alles klopt.',
+     spelling:'Foutloos inclusief französisches (bijv. naamwoord met kleine letter, correct!).'
+   }},
+
+  {t:'Sport', prompt:'Vertel over je favoriete sport. Wat doe je en waarom vind je het leuk?',
+   fail:'mein lieblingssport ist fussball. ich spiele in ein team. wir trainieren zwei mal pro woche.',
+   failErrors:[
+     {w:'in ein team', c:'in einem Team', e:'"in" + waar je bent → Dativ: einem. Team = Substantiv → hoofdletter.'},
+     {w:'fussball', c:'Fußball', e:'ß na lange u + hoofdletter.'},
+     {w:'lieblingssport', c:'Lieblingssport', e:'Substantiv → hoofdletter.'}
+   ],
+   failSummary:'"in ein Team" moet "in einem Team" (Dativ) — naamvallen zitten er nog niet in.',
+   pass:'<span class="hl-boodschap">Mein <span class="hl-woord">Lieblingssport</span> ist <span class="hl-woord">Fußball</span>.</span> <span class="hl-grammatik">Ich spiele</span> in einem <span class="hl-woord">Team</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">wir trainieren</span> zwei Mal pro <span class="hl-woord">Woche</span>. <span class="hl-boodschap">Ich spiele am liebsten als <span class="hl-woord">Stürmer</span></span>, <span class="hl-samenhang">weil</span> ich gern Tore <span class="hl-grammatik">schieße</span>.',
+   passR:{
+     boodschap:'Sport, positie, frequentie en reden — alles erin. Complete boodschap.',
+     woord:'Sportwoordenschat: Lieblingssport, Team, Stürmer, Tore. "Am liebsten" als uitdrukking.',
+     samenhang:'"und" en "weil" — twee voegwoorden. weil geeft reden.',
+     grammatik:'"in einem Team" (Dativ correct), "weil...schieße" (werkwoord achteraan).',
+     spelling:'Fußball met ß, Stürmer met Umlaut, Tore met hoofdletter. Alles goed.'
+   },
+   great:'<span class="hl-boodschap">Mein <span class="hl-woord">Lieblingssport</span> ist <span class="hl-woord">Fußball</span></span>, <span class="hl-samenhang">den</span> ich schon seit Jahren <span class="hl-grammatik">spiele</span>. <span class="hl-grammatik">Ich trainiere</span> zwei Mal pro <span class="hl-woord">Woche</span> mit meinem <span class="hl-woord">Team</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">spiele</span> am liebsten als <span class="hl-woord">Stürmer</span>, <span class="hl-samenhang">weil</span> ich gern Tore <span class="hl-grammatik">schieße</span>. <span class="hl-boodschap"><span class="hl-samenhang">Obwohl</span> wir nicht immer <span class="hl-grammatik">gewinnen</span>, macht es mir trotzdem jedes Mal Spaß.</span>',
+   greatR:{
+     boodschap:'Nuance met "obwohl wir nicht immer gewinnen" — laat zien dat het om de lol gaat, niet alleen winnen.',
+     woord:'"seit Jahren", "trotzdem", "jedes Mal" — rijke uitdrukkingen.',
+     samenhang:'den (relatief), und, weil, obwohl — vier voegwoorden. Goed gebalanceerde structuur.',
+     grammatik:'Relatieve bijzin "den ich...spiele". Obwohl-bijzin inversie correct. "seit Jahren" — tijdsbepaling.',
+     spelling:'Alles correct.'
+   }},
+
+  {t:'Film', prompt:'Vertel over je lievelingsfilm. Waarom vind je die film goed?',
+   fail:'mein lieblingsfilm ist inception. der film ist spannend. die schauspieler sind gut.',
+   failErrors:[
+     {w:'mein lieblingsfilm', c:'Mein Lieblingsfilm', e:'Zinbegin + samengesteld Substantiv → hoofdletters.'},
+     {w:'schauspieler', c:'Schauspieler', e:'Substantiv → hoofdletter.'},
+     {w:'Geen eigen mening', c:'Ich finde, dass...', e:'Je somt alleen feiten op — geen "ik vind" of voegwoorden.'}
+   ],
+   failSummary:'Inhoudelijk te oppervlakkig, geen voegwoorden, geen "dass"-constructie — onder A2.',
+   pass:'<span class="hl-boodschap">Mein <span class="hl-woord">Lieblingsfilm</span> ist Inception.</span> <span class="hl-boodschap">Ich finde, <span class="hl-samenhang">dass</span> der <span class="hl-woord">Film</span> spannend <span class="hl-grammatik">ist</span>.</span> Die <span class="hl-woord">Schauspieler</span> <span class="hl-grammatik">sind</span> gut <span class="hl-samenhang">und</span> die <span class="hl-woord">Geschichte</span> ist interessant.',
+   passR:{
+     boodschap:'Je vertelt welke film en waarom. "Ich finde, dass..." geeft je eigen mening.',
+     woord:'Lieblingsfilm, Schauspieler, Geschichte — goede themawoorden.',
+     samenhang:'"dass" en "und" — twee voegwoorden. "Ich finde, dass..." is een sterke constructie.',
+     grammatik:'dass-bijzin correct: "dass der Film spannend ist" (werkwoord achteraan).',
+     spelling:'Alle Substantive met hoofdletter. Geen fouten.'
+   },
+   great:'<span class="hl-boodschap">Mein <span class="hl-woord">Lieblingsfilm</span> ist Inception</span>, <span class="hl-samenhang">weil</span> ich finde, <span class="hl-samenhang">dass</span> die <span class="hl-woord">Geschichte</span> unglaublich spannend <span class="hl-grammatik">ist</span>. Die <span class="hl-woord">Schauspieler</span> <span class="hl-grammatik">spielen</span> sehr gut <span class="hl-samenhang">und</span> man muss wirklich aufpassen, <span class="hl-samenhang">obwohl</span> der <span class="hl-woord">Film</span> manchmal verwirrend <span class="hl-grammatik">ist</span>. <span class="hl-boodschap">Ich empfehle ihn jedem, <span class="hl-samenhang">der</span> spannende Filme <span class="hl-grammatik">mag</span>.</span>',
+   greatR:{
+     boodschap:'Aanbeveling aan de lezer ("ich empfehle ihn jedem") — interactief en persoonlijk.',
+     woord:'unglaublich, verwirrend, empfehle — gevorderde woordenschat.',
+     samenhang:'weil, dass, und, obwohl, der (relatief) — vijf voegwoorden. Gestapelde bijzinnen.',
+     grammatik:'weil + dass gestapeld. Relatieve bijzin "der...mag". Obwohl correct met werkwoord achteraan.',
+     spelling:'Alles correct.'
+   }},
+
+  {t:'Brief', prompt:'Reageer op dit bericht: "Hallo! Ich bin Anna, 14 Jahre alt, aus Berlin. Meine Hobbys sind Schwimmen und Lesen. Was sind deine Hobbys? Schreib mir!"',
+   fail:'hallo anna. ich heisse tom. ich habe 15 jahre. ich wohne utrecht. meine hobbys sind fussball und gaming. tschuss tom',
+   failErrors:[
+     {w:'hallo anna', c:'Liebe Anna,', e:'Aanhef: Liebe (vrouwelijk) + naam + komma.'},
+     {w:'ich habe 15 jahre', c:'ich bin 15 Jahre alt', e:'Leeftijd = sein + Jahre alt.'},
+     {w:'ich wohne utrecht', c:'ich wohne in Utrecht', e:'Woonplaats → wohne IN + stad.'},
+     {w:'fussball', c:'Fußball', e:'ß + hoofdletter.'},
+     {w:'tschuss tom', c:'Viele Grüße, Tom', e:'Afsluiting: Viele Grüße of Liebe Grüße + naam.'}
+   ],
+   failSummary:'Geen aanhef (Liebe), geen afsluiting (Viele Grüße), "habe 15 Jahre" fout, "wohne Utrecht" mist "in" — dit scoort onvoldoende.',
+   pass:'<span class="hl-boodschap">Liebe Anna,</span><br><br><span class="hl-boodschap">Danke für deinen Post!</span> <span class="hl-grammatik">Ich heiße Tom</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">ich bin 15 Jahre alt</span>. <span class="hl-grammatik">Ich wohne in <span class="hl-woord">Utrecht</span></span>, das ist in den <span class="hl-woord">Niederlanden</span>.<br><br><span class="hl-grammatik">Meine Hobbys sind</span> <span class="hl-woord">Fußball</span> <span class="hl-samenhang">und</span> <span class="hl-woord">Gaming</span>. <span class="hl-boodschap">Du schwimmst gern, das finde ich cool!</span> <span class="hl-woord">Mein Lieblingsessen</span> ist Pizza. <span class="hl-grammatik">Ich mag</span> <span class="hl-samenhang">aber</span> <span class="hl-woord">keinen Fisch</span>.<br><br><span class="hl-boodschap">Viele Grüße,</span><br>Tom',
+   passR:{
+     boodschap:'Aanhef ("Liebe Anna,") en afsluiting ("Viele Grüße"). Je reageert op Anna ("Du schwimmst gern, das finde ich cool!"). Complete boodschap.',
+     woord:'Correcte woorden: Niederlanden, Fußball, Lieblingsessen, keinen Fisch. Samengestelde woorden goed.',
+     samenhang:'"und" en "aber" als voegwoorden. Logische alinea-indeling: intro → hobby\'s → afsluiting.',
+     grammatik:'Alle vervoegingen correct. "keinen Fisch" (accusatief). "Du schwimmst" — correcte du-vorm.',
+     spelling:'Grüße met ß en Umlaut, Fußball, Niederlanden — alles correct.'
+   },
+   great:'<span class="hl-boodschap">Liebe Anna,</span><br><br><span class="hl-boodschap">Vielen Dank für deinen tollen Post!</span> <span class="hl-boodschap">Es ist schön, mehr über dich zu erfahren.</span><br><br><span class="hl-grammatik">Ich heiße Tom</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">ich bin 15 Jahre alt</span>. <span class="hl-grammatik">Ich wohne in <span class="hl-woord">Utrecht</span></span> — das ist <span class="hl-woord">eine schöne Stadt</span> in den <span class="hl-woord">Niederlanden</span>.<br><br><span class="hl-woord">In meiner Freizeit</span> <span class="hl-grammatik">spiele ich</span> <span class="hl-samenhang">am liebsten</span> <span class="hl-woord">Fußball</span>, <span class="hl-samenhang">weil</span> es Spaß <span class="hl-grammatik">macht</span>. <span class="hl-boodschap">Du liest gern — das finde ich auch toll!</span><br><br><span class="hl-woord">Mein Lieblingsessen</span> ist Pizza, <span class="hl-samenhang">aber</span> <span class="hl-grammatik">ich esse</span> <span class="hl-samenhang">auch</span> gern <span class="hl-woord">Pfannkuchen</span>. <span class="hl-boodschap">Was isst du am liebsten außer Pasta?</span><br><br><span class="hl-boodschap">Liebe Grüße,</span><br>Tom',
+   greatR:{
+     boodschap:'Reageert uitgebreid op Anna, stelt een specifieke vraag ("Was isst du am liebsten außer Pasta?"), maakt persoonlijke verbinding ("Du liest gern — das finde ich auch toll!").',
+     woord:'Breed: Freizeit, am liebsten, außer, eine schöne Stadt. "Vielen Dank für deinen tollen Post" — natuurlijke uitdrukking.',
+     samenhang:'und, weil, aber, auch — gevarieerd. Alinea-indeling: begroeting → intro → hobby\'s → eten → vraag → afsluiting.',
+     grammatik:'weil-bijzin correct ("weil es Spaß macht"). Inversie na "In meiner Freizeit spiele ich". "Was isst du" — correcte vraagzin.',
+     spelling:'Foutloos. Grüße, Fußball, außer — ß en Umlauts correct.'
+   }}
 ];
+
+let currentStoryIdx = 0;
 
 function renderStoryCards() {
   const container = document.getElementById('story-scroll');
   if (!container) return;
-  container.innerHTML = STORIES.map((s, i) => `
-    <div class="story-card" id="sc-${i}">
-      <span class="story-tag">${s.t.toUpperCase()}</span>
-      <div class="story-tabs">
-        <button class="story-tab act-a2" onclick="showSL(${i},'a2')">A2</button>
-        <button class="story-tab" onclick="showSL(${i},'a1')">A1+</button>
-        <button class="story-tab" onclick="showSL(${i},'a2p')">A2+</button>
-      </div>
-      <div class="story-level active" data-lv="a2">
-        <div class="story-text">${s.a2}</div>
-        <div class="story-cmt story-cmt-a2">${s.c2}</div>
-      </div>
-      <div class="story-level" data-lv="a1">
-        <div class="story-text story-text-bad">${s.a1}</div>
-        <div class="story-cmt story-cmt-a1">${s.c1}</div>
-      </div>
-      <div class="story-level" data-lv="a2p">
-        <div class="story-text">${s.a2p}</div>
-        <div class="story-cmt story-cmt-a2p">${s.c2p}</div>
-      </div>
-    </div>
-  `).join('');
+  container.innerHTML = STORIES.map((s, i) =>
+    '<div class="story-card' + (i === 0 ? ' story-card-active' : '') + '" onclick="selectStory(' + i + ')" id="sc-' + i + '">' +
+      '<span class="story-tag">' + s.t.toUpperCase() + '</span>' +
+      '<div style="padding:8px 16px 14px;font-size:12px;color:#495057;line-height:1.5">' + s.prompt + '</div>' +
+    '</div>'
+  ).join('');
+  loadStory(0);
 }
 
-function showSL(idx, level) {
-  const card = document.getElementById('sc-' + idx);
-  if (!card) return;
-  card.querySelectorAll('.story-tab').forEach(t => t.className = 'story-tab');
-  card.querySelectorAll('.story-level').forEach(l => l.classList.remove('active'));
-  const tabIdx = level === 'a2' ? 0 : level === 'a1' ? 1 : 2;
-  const tabs = card.querySelectorAll('.story-tab');
-  tabs[tabIdx].classList.add(level === 'a2' ? 'act-a2' : level === 'a1' ? 'act-a1' : 'act-a2p');
-  card.querySelector('.story-level[data-lv="' + level + '"]').classList.add('active');
+function selectStory(idx) {
+  document.querySelectorAll('.story-card').forEach(c => c.classList.remove('story-card-active'));
+  document.getElementById('sc-' + idx).classList.add('story-card-active');
+  currentStoryIdx = idx;
+  loadStory(idx);
+  // scroll niveaus block into view
+  document.getElementById('niveaus-block').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function loadStory(idx) {
+  const s = STORIES[idx];
+  // Update post
+  document.getElementById('post-text').innerHTML = s.prompt;
+  // A1+ (fail)
+  document.getElementById('text-fail').innerHTML = s.fail;
+  const errHtml = s.failErrors.map(e =>
+    '<div class="error-item"><span class="error-wrong">' + e.w + '</span> → <span class="error-correct">' + e.c + '</span><div class="error-explain">' + e.e + '</div></div>'
+  ).join('');
+  document.getElementById('errors-fail').innerHTML = errHtml;
+  document.getElementById('rubric-fail-summary').innerHTML = '<strong>Samenvatting:</strong> ' + s.failSummary;
+  // A2 (pass)
+  document.getElementById('text-pass').innerHTML = s.pass;
+  const passRubrics = ['boodschap','woord','samenhang','grammatik','spelling'].map((cat,i) =>
+    '<div class="rubric-section rubric-' + cat + '" id="rubric-pass-' + cat + '"' + (i > 0 ? ' style="display:none"' : '') + '><strong>' + ({boodschap:'Boodschap',woord:'Woordenschat',samenhang:'Samenhang',grammatik:'Grammatica',spelling:'Spelling'})[cat] + ':</strong> ' + s.passR[cat] + '</div>'
+  ).join('');
+  document.getElementById('rubrics-pass').innerHTML = passRubrics;
+  // A2+ (great)
+  document.getElementById('text-great').innerHTML = s.great;
+  const greatRubrics = ['boodschap','woord','samenhang','grammatik','spelling'].map((cat,i) =>
+    '<div class="rubric-section rubric-' + cat + '" id="rubric-great-' + cat + '"' + (i > 0 ? ' style="display:none"' : '') + '><strong>' + ({boodschap:'Boodschap',woord:'Woordenschat',samenhang:'Samenhang',grammatik:'Grammatica',spelling:'Spelling'})[cat] + ':</strong> ' + s.greatR[cat] + '</div>'
+  ).join('');
+  document.getElementById('rubrics-great').innerHTML = greatRubrics;
+  // Reset to A2 tab and boodschap chip
+  showNiveau('pass');
+  // Reset chip state
+  ['pass','great'].forEach(level => {
+    const textEl = document.getElementById('text-' + level);
+    if (!textEl) return;
+    ['woord','samenhang','grammatik','spelling'].forEach(cat => {
+      textEl.querySelectorAll('.hl-' + cat).forEach(sp => { sp.style.background = 'transparent'; });
+    });
+    const legend = document.getElementById('legend-' + level);
+    if (legend) {
+      legend.querySelectorAll('.beo-chip').forEach(c => c.classList.remove('active'));
+      legend.querySelector('.bc-boodschap').classList.add('active');
+    }
+  });
 }
 
 // ── STATE & STORAGE ──────────────────────────────────────────────────────
