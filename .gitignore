@@ -2,3 +2,12 @@
 .env*.local
 .auth/
 node_modules/
+
+# Persoonlijke configuratie (bevat PII — namen, school, etc.)
+config.js
+
+# Dev artefacten (niet nodig voor deployment)
+.claude/
+data/
+curriculum/
+.DS_Store

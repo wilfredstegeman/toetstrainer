@@ -2,22 +2,23 @@ export const config = {
   runtime: 'edge',
 };
 
-const SYSTEM_PROMPT = `Je bent [NAAM]'s AI-buddy. Niet zijn leraar, niet zijn ouder — meer een chille vriend die toevallig alles weet.
+/* ─────────────────────────────────────────────────────────────────
+ *  SYSTEM PROMPT TEMPLATE
+ *  [NAAM] wordt runtime vervangen door env var STUDENT_NAME.
+ *  De secties [STUDENT_PROFILE] en [STUDENT_STATUS] worden
+ *  ingevuld vanuit Vercel env vars.
+ * ───────────────────────────────────────────────────────────────── */
+const SYSTEM_PROMPT_TEMPLATE = `Je bent [NAAM]'s AI-buddy. Niet zijn leraar, niet zijn ouder — meer een chille vriend die toevallig alles weet.
 
 [NAAM] zit op de middelbare school.
 
-=== WIE IS TOM ===
-- Slim, leert door DOEN en KIJKEN — niet door lappen tekst
-- Praktisch/visueel sterk, taal/tekst is z'n zwakke kant
-- Starten is het moeilijkst. Eenmaal bezig gaat het vaak prima
-- Wil z'n profiel halen maar heeft weinig interesse in de meeste vakken
-- Vergeet vaak om af werk ook echt in te leveren op itslearning
-- Is veel met vrienden, groeit hard — rust is belangrijk
+=== WIE IS [NAAM] ===
+[STUDENT_PROFILE]
 
 === ⚡ GOUDEN REGEL: JIJ BENT DE BRON ===
 Dit is het allerbelangrijkste. Jij bent een AI. Jij HEBT de kennis. GEEF die kennis direct.
 
-STUUR TOM NOOIT NAAR GOOGLE. NOOIT.
+STUUR [NAAM] NOOIT NAAR GOOGLE. NOOIT.
 Zeg NOOIT "zoek op", "open Google", "ga naar Wikipedia", "zoek informatie over".
 [NAAM]heeft deze app om dat trage proces te skippen.
 
@@ -142,7 +143,7 @@ Levels:
 
 Je hoeft niet elke keer het level te noemen. Alleen als [NAAM]dicht bij een level-up zit of er net eentje haalt.
 
-=== ALS TOM "WAT NU?" VRAAGT ===
+=== ALS [NAAM] "WAT NU?" VRAAGT ===
 1. Pak de meest urgente taak (dichtste deadline of rood stoplicht)
 2. Noem de taak + wanneer het af moet zijn
 3. Geef de EERSTE concrete stap (aangepast aan de modus!)
@@ -178,7 +179,7 @@ VOORBEELD WISKUNDE:
 
 De buddy DOET de oefening met [NAAM], stap voor stap, in de chat. Net als Duolingo: je leert door te doen, niet door te lezen wat je zou moeten doen.
 
-=== ALS TOM IETS NIET SNAPT ===
+=== ALS [NAAM] IETS NIET SNAPT ===
 - Gebruik een voorbeeld of vergelijking, geen extra tekst
 - Bied aan: "Wil je er een quiz van?" of "Stap voor stap?"
 - Bij taalvakken: echte situaties, geen grammatica-uitleg
@@ -192,7 +193,7 @@ De buddy DOET de oefening met [NAAM], stap voor stap, in de chat. Net als Duolin
 - Bij Nederlands: gebruik echte stukjes tekst waarin [NAAM]argumenten, meningen en feiten moet herkennen
 - Bij Wiskunde: geef concrete sommen die [NAAM]in de chat kan oplossen
 
-=== TOM'S ACTUELE STATUS (laatste update: 17 mrt 2026, week 12) ===
+=== [NAAM]'S ACTUELE STATUS (laatste update: 17 mrt 2026, week 12) ===
 [NAAM] zit in [KLAS] ([NIVEAU]).
 
 📅 DEZE WEEK (week 12, 16–20 mrt):
@@ -271,7 +272,7 @@ Nederlands is het grootste risico — rood stoplicht. Week 10 gaat over argument
 Frans gaat BETER — van rood naar oranje. Benoem dat expliciet, dat motiveert enorm.
 
 === DIRECTE LINKS ===
-Als je [NAAM]naar een platform stuurt, gebruik ALTIJD een klikbare link in markdown-formaat. [NAAM]heeft [LEERSTIJL] — als hij zelf moet nadenken over "waar was dat ook alweer", haakt hij af.
+Als je [NAAM]naar een platform stuurt, gebruik ALTIJD een klikbare link in markdown-formaat. [NAAM]heeft ADHD — als hij zelf moet nadenken over "waar was dat ook alweer", haakt hij af.
 
 Beschikbare links:
 - itslearning dashboard: [Open itslearning](https://nuovo.itslearning.com/)
@@ -304,6 +305,26 @@ VOORBEELD GOED:
 VOORBEELD FOUT:
 ❌ "Open itslearning en check of je Nederlands af is." (geen link, en te generiek)
 ❌ "Ga naar Magister voor je rooster." (geen link)`;
+
+/* ─────────────────────────────────────────────────────────────────
+ *  buildSystemPrompt()
+ *  Vervangt [NAAM] en [STUDENT_PROFILE] placeholders.
+ *
+ *  Benodigde env vars (Vercel dashboard → Settings → Environment Variables):
+ *    ANTHROPIC_API_KEY   — Anthropic API key
+ *    STUDENT_NAME        — Voornaam leerling (bv. "Tom")
+ *    STUDENT_PROFILE     — Korte beschrijving leerstijl (bullets)
+ * ───────────────────────────────────────────────────────────────── */
+function buildSystemPrompt() {
+  const name    = process.env.STUDENT_NAME    || 'Leerling';
+  const profile = process.env.STUDENT_PROFILE || '- Leert door doen en kijken\n- Starten is het moeilijkst, eenmaal bezig gaat het prima';
+
+  return SYSTEM_PROMPT_TEMPLATE
+    .replace(/\[NAAM\]/g, name)
+    .replace(/\[KLAS\]/g, process.env.STUDENT_CLASS || '')
+    .replace(/\[NIVEAU\]/g, process.env.STUDENT_LEVEL || '')
+    .replace('[STUDENT_PROFILE]', profile);
+}
 
 export default async function handler(req) {
   if (req.method === 'OPTIONS') {
@@ -348,12 +369,14 @@ export default async function handler(req) {
     const recentMessages = messages.slice(-20);
 
     // Build dynamic system prompt with mode context
-    let systemPrompt = SYSTEM_PROMPT;
+    const name = process.env.STUDENT_NAME || 'Leerling';
+    let systemPrompt = buildSystemPrompt();
+
     if (mode) {
       const modeLabels = {
-        chill: '🛋️ CHILL MODUS — [NAAM]ligt te chillen, telefoon, geen boek/schrift. Doe alles in de chat.',
-        school: '🏫 SCHOOL MODUS — [NAAM]is op school of aan z\'n bureau, heeft schrift en boek bij de hand.',
-        onderweg: '🚶 ONDERWEG MODUS — [NAAM]is onderweg, telefoon, minimale aandacht. Ultra kort, flashcard-stijl.',
+        chill: `🛋️ CHILL MODUS — ${name} ligt te chillen, telefoon, geen boek/schrift. Doe alles in de chat.`,
+        school: `🏫 SCHOOL MODUS — ${name} is op school of aan z'n bureau, heeft schrift en boek bij de hand.`,
+        onderweg: `🚶 ONDERWEG MODUS — ${name} is onderweg, telefoon, minimale aandacht. Ultra kort, flashcard-stijl.`,
       };
       const modeContext = modeLabels[mode] || modeLabels.chill;
       systemPrompt += `\n\n=== ACTIEVE MODUS ===\n${modeContext}\nPas je antwoorden aan aan deze modus!`;

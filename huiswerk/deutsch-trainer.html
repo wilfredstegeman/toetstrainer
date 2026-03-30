@@ -150,7 +150,7 @@
     .readiness p { font-size: 13px; color: #495057; }
     /* NIVEAUS VOORBEELDEN */
     .niveaus-block { margin: 16px 12px; background: #fff; border-radius: 14px; border: 1px solid #e9ecef; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-    .niveaus-intro { padding: 16px 16px 12px; font-size: 13px; color: #495057; line-height: 1.6; border-bottom: 1px solid #f1f3f5; }
+    .niveaus-intro { padding: 8px 16px 12px; margin: 0 12px; font-size: 13px; color: #495057; line-height: 1.6; }
     .niveaus-intro strong { color: #212529; }
     .niveaus-post { margin: 12px 16px; padding: 14px; background: #f8f9fa; border-radius: 12px; border: 1px solid #e9ecef; font-size: 13px; line-height: 1.6; }
     .niveaus-post .post-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-weight: 700; font-size: 13px; color: #495057; }
@@ -163,7 +163,7 @@
     .niveau-tab.nt-pass.active { color: #e67700; border-bottom-color: #e67700; }
     .niveau-tab.nt-great { color: #adb5bd; }
     .niveau-tab.nt-great.active { color: #2b8a3e; border-bottom-color: #2b8a3e; }
-    .niveau-content { display: none; padding: 14px 16px; }
+    .niveau-content { display: none; padding: 14px 16px 8px; }
     .niveau-content.active { display: block; }
     .niveau-label { display: inline-block; padding: 3px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; margin-bottom: 10px; }
     .nl-fail { background: #fff5f5; color: #e03131; }
@@ -205,12 +205,15 @@
     .story-section .section-header { padding: 18px 20px 8px; }
     .story-scroll { display: flex; gap: 12px; overflow-x: auto; padding: 0 16px 16px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
     .story-scroll::-webkit-scrollbar { display: none; }
-    .story-card { flex: 0 0 calc(100vw - 32px); max-width: 448px; background: #fff; border-radius: 14px; border: 1px solid #e9ecef; box-shadow: 0 1px 4px rgba(0,0,0,.06); scroll-snap-align: start; overflow: hidden; }
+    .story-card { flex: 0 0 calc(100vw - 48px); max-width: 432px; background: #fff; border-radius: 14px; border: 1px solid #e9ecef; box-shadow: 0 1px 4px rgba(0,0,0,.06); scroll-snap-align: start; overflow: hidden; }
     .story-tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 8px; margin: 14px 16px 0; background: #e7f5ff; color: #1971c2; }
+    .scroll-dots { display: flex; justify-content: center; gap: 6px; padding: 4px 0 12px; }
+    .scroll-dot { width: 7px; height: 7px; border-radius: 50%; background: #dee2e6; transition: all .2s; }
+    .scroll-dot.active { background: #228be6; width: 18px; border-radius: 4px; }
 
 
     /* RUBRIC SECTION */
-    .rubric-section { margin-top: 8px; padding: 10px 14px; background: #f1f3f5; border-radius: 8px; font-size: 13px; line-height: 1.6; color: #495057; }
+    .rubric-section { margin-top: 8px; margin-bottom: 0; padding: 10px 14px; background: #f1f3f5; border-radius: 8px; font-size: 13px; line-height: 1.6; color: #495057; }
     .rubric-section strong { font-weight: 700; color: #212529; }
     .rubric-section:first-of-type { margin-top: 14px; }
 
@@ -315,7 +318,9 @@
 
   <!-- VOORBEELDANTWOORDEN -->
   <div class="section-header">Zo scoor je op de toets</div>
+  <div class="niveaus-intro">Elk verhaal zie je in <strong>drie niveaus</strong>: 😬 A1+ (onvoldoende), 👍 A2 (voldoende) en 🔥 A2+ (goed). Tik op de <strong>gekleurde chips</strong> om te zien waar de docent op let. Swipe voor meer verhalen →</div>
   <div class="story-scroll" id="story-scroll"></div>
+  <div class="scroll-dots" id="scroll-dots"></div>
 
   <div class="section-header">📚 A2 — Dit moet je weten voor een voldoende</div>
   <div id="stof-cards-a2"></div>
@@ -466,7 +471,18 @@
   </div>
 </div>
 
+<script src="../config.js"></script>
 <script>
+// ── HELPERS: haal namen uit CONFIG ──────────────────────────────────────
+const C = typeof CONFIG !== 'undefined' ? CONFIG : {};
+const _N  = (C.student && C.student.name)     || 'Leerling';
+const _U  = (C.student && C.student.username)  || 'leerling';
+const _P1 = (C.family  && C.family.parent1)    || {name:'Papa', role:'Vater'};
+const _P2 = (C.family  && C.family.parent2)    || {name:'Mama', role:'Mutter'};
+const _SB = (C.family  && C.family.siblings && C.family.siblings[0]) || {name:'Broer', age:13, role:'Bruder'};
+const _SC = (C.school   || {});
+const _IN = (C.interests || {});
+
 // ── DATA ────────────────────────────────────────────────────────────────
 const TOPICS = [
   // ── A2: Nodig voor een voldoende ──
@@ -912,6 +928,33 @@ const QUIZ_POOL = [
 
 const QUIZ_SIZE = 15;
 
+// ── PERSONALISATIE: vervang hardcoded namen door CONFIG-waarden ────────────
+function personalize(s) {
+  if (!s) return s;
+  return s
+    .replace(/\btom_utrecht\b/gi, _U)
+    .replace(/\bTom\b/g, _N)
+    .replace(/\btom\b/g, _N.toLowerCase())
+    .replace(/\bWilfred\b/g, _P1.name)
+    .replace(/\bwilfred\b/g, _P1.name.toLowerCase())
+    .replace(/\bIris\b/g, _P2.name)
+    .replace(/\biris\b/g, _P2.name.toLowerCase())
+    .replace(/\bRaf\b/g, _SB.name)
+    .replace(/\braf\b/g, _SB.name.toLowerCase())
+    .replace(/ist 13 Jahre/g, 'ist ' + _SB.age + ' Jahre')
+    .replace(/hat 13 Jahre/g, 'hat ' + _SB.age + ' Jahre')
+    .replace(/\bUtrecht\b/g, _SC.city || 'Utrecht')
+    .replace(/\butrecht\b/g, (_SC.city || 'Utrecht').toLowerCase())
+    .replace(/\bUniC\b/g, _SC.name || 'UniC')
+    .replace(/\bunic\b/g, (_SC.name || 'UniC').toLowerCase());
+}
+function pObj(obj) {
+  if (!obj) return obj;
+  const out = {};
+  for (const k in obj) out[k] = personalize(obj[k]);
+  return out;
+}
+
 // ── STORY CARDS (25 German writing themes) ────────────────────────────────
 const STORIES = [
   {t:'Familie', prompt:'Schrijf een bericht over je familie. Vertel wie er in je gezin zitten en waar jullie wonen.',
@@ -927,7 +970,7 @@ const STORIES = [
    ],
    failSummary:'Geen aanhef, verkeerde vervoeging, "haben" voor leeftijd, geen hoofdletters op Substantive — dit is duidelijk onder A2.',
    // A2 (pass)
-   pass:'<span class="hl-boodschap">Meine Familie ist vier Personen groß.</span> <span class="hl-grammatik">Mein Vater heißt Wilfred</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">meine Mutter heißt Maria</span>. <span class="hl-grammatik">Ich habe einen Bruder</span>, <span class="hl-grammatik">er heißt Raf</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">er ist 13 Jahre alt</span>. <span class="hl-boodschap">Wir wohnen zusammen in <span class="hl-woord">Utrecht</span>.</span>',
+   pass:'<span class="hl-boodschap">Meine Familie ist vier Personen groß.</span> <span class="hl-grammatik">Mein Vater heißt Wilfred</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">meine Mutter heißt Iris</span>. <span class="hl-grammatik">Ich habe einen Bruder</span>, <span class="hl-grammatik">er heißt Raf</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">er ist 13 Jahre alt</span>. <span class="hl-boodschap">Wir wohnen zusammen in <span class="hl-woord">Utrecht</span>.</span>',
    passR:{
      boodschap:'Je geeft alle gevraagde info: wie er in je gezin zitten, leeftijden, woonplaats. De boodschap is compleet.',
      woord:'Correcte woordenschat: Familie, Personen, Vater, Mutter, Bruder, Jahre. Samengesteld naamwoord goed.',
@@ -936,7 +979,7 @@ const STORIES = [
      spelling:'Hoofdletters op alle Substantive (Vater, Mutter, Bruder, Jahre, Utrecht). ß correct bij heißt. Geen spelfouten.'
    },
    // A2+ (great)
-   great:'<span class="hl-boodschap">Meine Familie besteht aus vier Personen</span> <span class="hl-samenhang">und</span> <span class="hl-boodschap">wir wohnen zusammen in <span class="hl-woord">Utrecht</span>.</span> <span class="hl-grammatik">Mein Vater heißt Wilfred</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">meine Mutter heißt Maria</span>. <span class="hl-grammatik">Ich habe einen jüngeren Bruder</span>, <span class="hl-samenhang">der</span> <span class="hl-grammatik">Raf heißt</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">13 Jahre alt ist</span>. <span class="hl-boodschap">Ich finde es schön, <span class="hl-samenhang">dass</span> wir alle zusammen wohnen, <span class="hl-samenhang">weil</span> wir uns gut <span class="hl-grammatik">verstehen</span>.</span>',
+   great:'<span class="hl-boodschap">Meine Familie besteht aus vier Personen</span> <span class="hl-samenhang">und</span> <span class="hl-boodschap">wir wohnen zusammen in <span class="hl-woord">Utrecht</span>.</span> <span class="hl-grammatik">Mein Vater heißt Wilfred</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">meine Mutter heißt Iris</span>. <span class="hl-grammatik">Ich habe einen jüngeren Bruder</span>, <span class="hl-samenhang">der</span> <span class="hl-grammatik">Raf heißt</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">13 Jahre alt ist</span>. <span class="hl-boodschap">Ich finde es schön, <span class="hl-samenhang">dass</span> wir alle zusammen wohnen, <span class="hl-samenhang">weil</span> wir uns gut <span class="hl-grammatik">verstehen</span>.</span>',
    greatR:{
      boodschap:'Je geeft alle info én voegt een persoonlijke mening toe ("ich finde es schön"). Je maakt verbinding met het onderwerp.',
      woord:'Bredere woordenschat: "besteht aus" (in plaats van simpel "ist"), "jüngeren" (comparatief), "verstehen".',
@@ -1186,21 +1229,25 @@ function renderStoryCards() {
 
   container.innerHTML = STORIES.map((s, i) => {
     const errHtml = s.failErrors.map(e =>
-      '<div class="error-item"><span class="error-wrong">' + e.w + '</span> → <span class="error-correct">' + e.c + '</span><div class="error-explain">' + e.e + '</div></div>'
+      '<div class="error-item"><span class="error-wrong">' + personalize(e.w) + '</span> → <span class="error-correct">' + personalize(e.c) + '</span><div class="error-explain">' + personalize(e.e) + '</div></div>'
     ).join('');
 
+    const pR = pObj(s.passR);
+    const gR = pObj(s.greatR);
     const passRubrics = cats.map((cat, ci) =>
-      '<div class="rubric-section rubric-' + cat + '" id="rubric-pass-' + i + '-' + cat + '"' + (ci > 0 ? ' style="display:none"' : '') + '><strong>' + catNames[cat] + ':</strong> ' + s.passR[cat] + '</div>'
+      '<div class="rubric-section rubric-' + cat + '" id="rubric-pass-' + i + '-' + cat + '"' + (ci > 0 ? ' style="display:none"' : '') + '><strong>' + catNames[cat] + ':</strong> ' + pR[cat] + '</div>'
     ).join('');
 
     const greatRubrics = cats.map((cat, ci) =>
-      '<div class="rubric-section rubric-' + cat + '" id="rubric-great-' + i + '-' + cat + '"' + (ci > 0 ? ' style="display:none"' : '') + '><strong>' + catNames[cat] + ':</strong> ' + s.greatR[cat] + '</div>'
+      '<div class="rubric-section rubric-' + cat + '" id="rubric-great-' + i + '-' + cat + '"' + (ci > 0 ? ' style="display:none"' : '') + '><strong>' + catNames[cat] + ':</strong> ' + gR[cat] + '</div>'
     ).join('');
+
+    const avatar = _N.charAt(0).toUpperCase();
 
     return '<div class="story-card" id="sc-' + i + '">' +
       '<div style="padding:14px 16px 0"><span class="story-tag">' + s.t.toUpperCase() + '</span></div>' +
       '<div class="niveaus-post" style="margin:10px 12px">' +
-        '<div class="post-header"><div class="post-avatar">T</div> tom_utrecht</div>' +
+        '<div class="post-header"><div class="post-avatar">' + avatar + '</div> ' + _U + '</div>' +
         s.prompt +
       '</div>' +
       '<div class="niveau-tabs" style="margin:0 12px" id="tabs-' + i + '">' +
@@ -1211,7 +1258,7 @@ function renderStoryCards() {
       // A2 (default)
       '<div class="niveau-content active" id="nc-' + i + '-pass">' +
         '<span class="niveau-label nl-pass">A2 — Havo (voldoende)</span>' +
-        '<div class="exemple-text" id="text-pass-' + i + '">' + s.pass + '</div>' +
+        '<div class="exemple-text" id="text-pass-' + i + '">' + personalize(s.pass) + '</div>' +
         '<div class="beo-legend" id="legend-pass-' + i + '">' +
           cats.map(c => '<span class="beo-chip bc-' + c + (c==='boodschap'?' active':'') + '" onclick="toggleSB('+i+',\'pass\',\''+c+'\')">' + catNames[c] + '</span>').join('') +
         '</div>' +
@@ -1220,14 +1267,14 @@ function renderStoryCards() {
       // A1+
       '<div class="niveau-content" id="nc-' + i + '-fail">' +
         '<span class="niveau-label nl-fail">A1+ — Onder havo</span>' +
-        '<div class="exemple-text" style="color:#868e96;font-style:italic">' + s.fail + '</div>' +
+        '<div class="exemple-text" style="color:#868e96;font-style:italic">' + personalize(s.fail) + '</div>' +
         '<div class="error-list">' + errHtml + '</div>' +
-        '<div class="rubric-section"><strong>Samenvatting:</strong> ' + s.failSummary + '</div>' +
+        '<div class="rubric-section"><strong>Samenvatting:</strong> ' + personalize(s.failSummary) + '</div>' +
       '</div>' +
       // A2+
       '<div class="niveau-content" id="nc-' + i + '-great">' +
         '<span class="niveau-label nl-great">A2+ — Vwo (goed)</span>' +
-        '<div class="exemple-text" id="text-great-' + i + '">' + s.great + '</div>' +
+        '<div class="exemple-text" id="text-great-' + i + '">' + personalize(s.great) + '</div>' +
         '<div class="beo-legend" id="legend-great-' + i + '">' +
           cats.map(c => '<span class="beo-chip bc-' + c + (c==='boodschap'?' active':'') + '" onclick="toggleSB('+i+',\'great\',\''+c+'\')">' + catNames[c] + '</span>').join('') +
         '</div>' +
@@ -1668,6 +1715,27 @@ function resetAll() {
 // ── INIT ──────────────────────────────────────────────────────────────────
 renderOverview();
 renderStoryCards();
+// Scroll dots for story carousel
+(function(){
+  const scroll = document.getElementById('story-scroll');
+  const dotsC = document.getElementById('scroll-dots');
+  if (!scroll || !dotsC) return;
+  const n = STORIES.length;
+  dotsC.innerHTML = Array.from({length:n}, (_,i) => '<div class="scroll-dot' + (i===0?' active':'') + '" data-i="'+i+'"></div>').join('');
+  const dots = dotsC.querySelectorAll('.scroll-dot');
+  scroll.addEventListener('scroll', () => {
+    const cardW = scroll.firstElementChild ? scroll.firstElementChild.offsetWidth + 12 : 1;
+    const idx = Math.round(scroll.scrollLeft / cardW);
+    dots.forEach((d,i) => d.classList.toggle('active', i===idx));
+  });
+  dotsC.addEventListener('click', e => {
+    const dot = e.target.closest('.scroll-dot');
+    if (!dot) return;
+    const i = parseInt(dot.dataset.i);
+    const cardW = scroll.firstElementChild.offsetWidth + 12;
+    scroll.scrollTo({left: i * cardW, behavior: 'smooth'});
+  });
+})();
 initFlash();
 
 // ── CHAT ──────────────────────────────────────────────────────────────

@@ -295,7 +295,9 @@ body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; mi
   <button class="reset-btn" onclick="resetAll()">🔄 Alles resetten</button>
 </div>
 
+<script src="../config.js"></script>
 <script>
+const _city = (typeof CONFIG !== 'undefined' && CONFIG.school && CONFIG.school.city) || 'Utrecht';
 // ===== DATA =====
 const topics = [
   // TIER 1 — KERN (must know for a 7)
@@ -335,7 +337,7 @@ const topics = [
 
 // ===== QUIZ QUESTIONS — POOL (25 vragen, 15 per toets) =====
 const quizPool = [
-  { q:'"Het is vandaag 25 graden in Utrecht." Gaat dit over weer of klimaat?', options:['Klimaat','Weer','Allebei','Geen van beide'], correct:1, explain:'Dit is weer, want het gaat over een specifiek moment (vandaag). Klimaat gaat over een gemiddelde over minimaal 30 jaar.' },
+  { q:'"Het is vandaag 25 graden in '+_city+'." Gaat dit over weer of klimaat?', options:['Klimaat','Weer','Allebei','Geen van beide'], correct:1, explain:'Dit is weer, want het gaat over een specifiek moment (vandaag). Klimaat gaat over een gemiddelde over minimaal 30 jaar.' },
   { q:'Klimaat is het gemiddelde weer over een periode van minimaal...', options:['1 jaar','10 jaar','30 jaar','100 jaar'], correct:2, explain:'Klimaat = gemiddelde weer over minimaal 30 jaar.' },
   { q:'Wat gebeurt er bij stuwingsregen als lucht tegen een berg wordt geduwd?', options:['Lucht daalt en warmt op','Lucht stijgt en koelt af','Lucht stijgt en warmt op','Lucht blijft op dezelfde hoogte'], correct:1, explain:'Bij stuwingsregen wordt lucht omhoog geduwd (gestuwd), en stijgende lucht koelt af.' },
   { q:'Aan welke kant van de berg valt de meeste neerslag bij stuwingsregen?', options:['Lijzijde','Loefzijde','Allebei evenveel','De top'], correct:1, explain:'De loefzijde (windzijde) krijgt de meeste neerslag. De lijzijde (luwezijde) is droog.' },
