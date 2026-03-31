@@ -264,6 +264,44 @@
 
     #panel-chat { padding-bottom: 0; max-width: 480px; margin: 0 auto; width: 100%; }
     #panel-chat.active { display: block; }
+
+    /* NULMETING */
+    .nm-intro { padding: 28px 20px; text-align: center; }
+    .nm-intro .nm-emoji { font-size: 48px; margin-bottom: 12px; }
+    .nm-intro h2 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    .nm-intro p { font-size: 14px; color: #495057; line-height: 1.6; margin-bottom: 20px; }
+    .nm-intro .nm-skip { display: block; margin-top: 12px; font-size: 12px; color: #adb5bd; text-decoration: underline; cursor: pointer; background: none; border: none; font-family: inherit; }
+    .nm-start-btn { padding: 14px 32px; background: #228be6; color: #fff; border: none; border-radius: 12px; font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+    .nm-q-block { padding: 20px; }
+    .nm-q-progress { display: flex; gap: 4px; margin-bottom: 16px; }
+    .nm-q-dot { flex: 1; height: 4px; border-radius: 2px; background: #e9ecef; transition: background .3s; }
+    .nm-q-dot.done { background: #228be6; }
+    .nm-q-dot.current { background: #74c0fc; }
+    .nm-q-cat { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 8px; margin-bottom: 12px; background: #e7f5ff; color: #1971c2; }
+    .nm-q-text { font-size: 17px; font-weight: 600; line-height: 1.5; margin-bottom: 18px; color: #212529; }
+    .nm-q-options { display: flex; flex-direction: column; gap: 10px; }
+    .nm-q-opt { background: #fff; border: 2px solid #e9ecef; border-radius: 12px; padding: 14px 16px; font-family: inherit; font-size: 14px; font-weight: 500; color: #212529; cursor: pointer; text-align: left; transition: border-color .15s, background .15s; }
+    .nm-q-opt:hover:not(:disabled) { border-color: #74c0fc; background: #e7f5ff; }
+    .nm-q-opt.correct { border-color: #40c057; background: #ebfbee; color: #2f9e44; pointer-events: none; }
+    .nm-q-opt.wrong { border-color: #fa5252; background: #fff5f5; color: #c92a2a; pointer-events: none; }
+    .nm-q-opt:disabled { pointer-events: none; opacity: .6; }
+    .nm-result { padding: 28px 20px; text-align: center; }
+    .nm-result h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+    .nm-result .nm-sub { font-size: 14px; color: #868e96; margin-bottom: 20px; }
+    .nm-cats { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; padding: 0 4px; }
+    .nm-cat-row { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 12px; padding: 14px 16px; border: 1px solid #e9ecef; }
+    .nm-cat-icon { font-size: 24px; flex-shrink: 0; }
+    .nm-cat-info { flex: 1; text-align: left; }
+    .nm-cat-name { font-size: 14px; font-weight: 700; color: #212529; }
+    .nm-cat-score { font-size: 12px; color: #868e96; }
+    .nm-cat-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 8px; flex-shrink: 0; }
+    .nm-cat-badge.red { background: #fff5f5; color: #e03131; }
+    .nm-cat-badge.orange { background: #fff9db; color: #e67700; }
+    .nm-cat-badge.green { background: #ebfbee; color: #2b8a3e; }
+    .nm-go-btn { padding: 14px 32px; background: #228be6; color: #fff; border: none; border-radius: 12px; font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+    .nm-redo { display: block; margin: 12px auto 0; font-size: 12px; color: #adb5bd; text-decoration: underline; cursor: pointer; background: none; border: none; font-family: inherit; }
+    .nav-badge { position: absolute; top: 6px; right: calc(50% - 16px); width: 8px; height: 8px; border-radius: 50%; background: #e03131; }
+    nav button { position: relative; }
   </style>
 </head>
 <body>
@@ -280,8 +318,8 @@
   <button onclick="showPanel('toets')" id="nav-toets">
     <span class="nav-icon">✍️</span>Toets
   </button>
-  <button onclick="showPanel('score')" id="nav-score">
-    <span class="nav-icon">📊</span>Score
+  <button onclick="showPanel('check')" id="nav-check">
+    <span class="nav-icon">🎯</span>Check
   </button>
   <button class="nav-btn" onclick="showPanel('chat')" id="nav-chat">
     <span class="nav-icon">💬</span>Chat
@@ -380,61 +418,17 @@
   <div id="quiz-area" style="display:none"></div>
 </div>
 
-<!-- SCORE PANEL -->
-<div class="panel" id="panel-score">
-  <div class="score-section">
-    <h3>Flashcards gekend</h3>
-    <div class="progress-block">
-      <div class="pb-label"><span>0%</span><span id="sc-flash-pct">0 / —</span><span>100%</span></div>
-      <div class="pb-bar"><div class="pb-fill" id="sc-flash-bar" style="background:#40c057;width:0%"></div></div>
-    </div>
+<!-- CHECK / NULMETING PANEL -->
+<div class="panel" id="panel-check">
+  <div id="nm-intro" class="nm-intro">
+    <div class="nm-emoji">🎯</div>
+    <h2>Even checken</h2>
+    <p>8 snelle vragen over de 4 belangrijkste onderdelen van de schrijftoets. Duurt 2 minuten. Dan zie je meteen wat je al goed kunt en waar je het snelst punten pakt.</p>
+    <button class="nm-start-btn" onclick="startNulmeting()">Start check →</button>
+    <button class="nm-skip" onclick="skipNulmeting()">Overslaan — ik wil direct oefenen</button>
   </div>
-  <div class="score-section">
-    <h3>Laatste toetsscore</h3>
-    <div class="progress-block">
-      <div class="pb-label"><span>0%</span><span id="sc-quiz-pct">Nog niet gemaakt</span><span>100%</span></div>
-      <div class="pb-bar"><div class="pb-fill" id="sc-quiz-bar" style="background:#228be6;width:0%"></div></div>
-    </div>
-  </div>
-  <div class="score-section">
-    <h3>Totale paraatheid</h3>
-    <div class="progress-block">
-      <div class="pb-label"><span>0%</span><span>Jij kiest je doel ↓</span><span>100%</span></div>
-      <div class="pb-bar"><div class="pb-fill" id="sc-total-bar" style="background:#7950f2;width:0%"></div></div>
-    </div>
-  </div>
-
-  <div class="grade-indicator" id="grade-indicator">
-    <div class="grade-box" id="grade-fail">
-      <span class="grade-emoji">😬</span>
-      <span class="grade-label">Onder 5,5</span>
-      <span class="grade-desc">Onvoldoende</span>
-    </div>
-    <div class="grade-box" id="grade-pass">
-      <span class="grade-emoji">👍</span>
-      <span class="grade-label">5,5 - 7</span>
-      <span class="grade-desc">Voldoende</span>
-    </div>
-    <div class="grade-box" id="grade-great">
-      <span class="grade-emoji">🔥</span>
-      <span class="grade-label">7 of meer</span>
-      <span class="grade-desc">Goed!</span>
-    </div>
-  </div>
-
-  <div id="readiness-box" class="readiness ready-fail">
-    <div class="emoji">🎯</div>
-    <h2 id="ready-title">Nog even oefenen</h2>
-    <p id="ready-text">Doe de flashcards en de toets om je score op te bouwen.</p>
-  </div>
-
-  <div class="score-section">
-    <h3>📈 Voortgang over tijd</h3>
-  </div>
-  <div class="history-list" id="history-list"><p style="font-size:13px;color:#868e96">Nog geen toetsen gemaakt.</p></div>
-  <div class="reset-area">
-    <button class="reset-btn" onclick="resetAll()">🔄 Alles resetten</button>
-  </div>
+  <div id="nm-questions" style="display:none"></div>
+  <div id="nm-result" style="display:none" class="nm-result"></div>
 </div>
 
 <!-- CHAT PANEL -->
@@ -539,8 +533,8 @@ ich spiel<strong>te</strong>, du spiel<strong>test</strong>, er spiel<strong>te<
     detail:`In het Duits schrijf je meer woorden met een hoofdletter dan in het Nederlands!<br><br>
 <span class="key">ALTIJD hoofdletter:</span><br>
 • Alle <strong>Substantive</strong> (zelfstandige naamwoorden): der Name, die Schule, das Hobby<br>
-• <strong>Namen</strong> van personen: Tom, Mandy, Frau Schmidt<br>
-• <strong>Plaatsnamen</strong>: Berlin, Deutschland, Utrecht<br>
+• <strong>Namen</strong> van personen: Max, Lisa, Frau Schmidt<br>
+• <strong>Plaatsnamen</strong>: Berlin, Deutschland, München<br>
 • <strong>Feestdagen</strong>: Weihnachten, Ostern<br>
 • <strong>Begin van een zin</strong><br><br>
 <span class="key">GEEN hoofdletter:</span><br>
@@ -582,14 +576,14 @@ ich spiel<strong>te</strong>, du spiel<strong>test</strong>, er spiel<strong>te<
     short:'Hoe begin en eindig je een brief/bericht?',
     detail:`Bij een brief, kaart of bericht in het Duits gebruik je vaste formules:<br><br>
 <span class="key">Aanhef:</span><br>
-• <strong>Lieber</strong> Tom (voor een jongen/man)<br>
+• <strong>Lieber</strong> Max (voor een jongen/man)<br>
 • <strong>Liebe</strong> Anna (voor een meisje/vrouw)<br>
 • <strong>Liebe</strong> Freunde (voor meervoud)<br><br>
 <span class="key">Afsluiting:</span><br>
 • <strong>Viele Grüße</strong> (veel groeten — standaard)<br>
 • <strong>Liebe Grüße</strong> (lieve groeten — informeel)<br>
 • <strong>Mit freundlichen Grüßen</strong> (met vriendelijke groeten — formeel)<br><br>
-<div class="warn">Na de aanhef komt een komma en dan schrijf je KLEIN verder: "Lieber Tom, ich bin..." (niet "Ich").</div>`,
+<div class="warn">Na de aanhef komt een komma en dan schrijf je KLEIN verder: "Lieber Max, ich bin..." (niet "Ich").</div>`,
     answer:'Aanhef: Lieber (m) / Liebe (v/mv) + naam. Afsluiting: Viele Grüße / Liebe Grüße + je naam.'
   },
   {
@@ -597,10 +591,10 @@ ich spiel<strong>te</strong>, du spiel<strong>test</strong>, er spiel<strong>te<
     term:'Sich vorstellen — Jezelf voorstellen',
     short:'De basiszinnen die je altijd nodig hebt',
     detail:`Bij de toets moet je bijna altijd iets over jezelf schrijven. Deze zinnen moet je uit je hoofd kennen:<br><br>
-<span class="key">Naam:</span> Ich heiße Tom. / Mein Name ist Tom.<br>
+<span class="key">Naam:</span> Ich heiße Max. / Mein Name ist Max.<br>
 <span class="key">Leeftijd:</span> Ich bin 15 Jahre alt.<br>
-<span class="key">Woonplaats:</span> Ich wohne in Utrecht.<br>
-<span class="key">School:</span> Ich gehe auf das UniC in Utrecht.<br>
+<span class="key">Woonplaats:</span> Ich wohne in Berlin.<br>
+<span class="key">School:</span> Ich gehe auf die Goethe-Schule in Berlin.<br>
 <span class="key">Hobby's:</span> Meine Hobbys sind Fußball und Gaming. / In meiner Freizeit spiele ich Fußball.<br>
 <span class="key">Familie:</span> Meine Familie ist … Personen groß. Ich habe einen Bruder.<br><br>
 <div class="warn">Let op: "Ich bin 15 Jahre alt" — niet "Ich habe 15 Jahre" (dat is Spaans/Frans, niet Duits!).</div>`,
@@ -681,9 +675,9 @@ ich <strong>habe</strong>, du <strong>hast</strong>, er/sie/es <strong>hat</stro
     short:'Complete zinnen die je direct kunt gebruiken',
     detail:`Deze zinnen kun je bijna letterlijk overnemen bij de toets:<br><br>
 <span class="key">Over jezelf:</span><br>
-• Ich heiße Tom und ich bin 15 Jahre alt.<br>
-• Ich wohne in Utrecht, in den Niederlanden.<br>
-• Ich gehe auf das UniC.<br><br>
+• Ich heiße Max und ich bin 15 Jahre alt.<br>
+• Ich wohne in Berlin, in Deutschland.<br>
+• Ich gehe auf die Goethe-Schule.<br><br>
 <span class="key">Over hobby's:</span><br>
 • Meine Hobbys sind Fußball und Gaming.<br>
 • In meiner Freizeit spiele ich gern Fußball.<br><br>
@@ -692,7 +686,7 @@ ich <strong>habe</strong>, du <strong>hast</strong>, er/sie/es <strong>hat</stro
 • Ich esse gern Pizza, aber ich mag keinen Fisch.<br><br>
 <span class="key">Over familie:</span><br>
 • Meine Familie ist vier Personen groß.<br>
-• Ich habe einen Bruder. Er heißt Raf und er ist 13 Jahre alt.<br><br>
+• Ich habe einen Bruder. Er heißt Lukas und er ist 13 Jahre alt.<br><br>
 <span class="key">Over school:</span><br>
 • Mein Lieblingsfach ist Sport, weil es Spaß macht.<br>
 • Ich finde Mathe schwierig, aber interessant.<br><br>
@@ -718,13 +712,13 @@ const QUIZ_POOL = [
     explain: 'er/sie/es + stam + t = er wohnt. De stam van wohnen is "wohn", plus -t.'
   },
   {
-    q: 'Wat is de juiste vervoeging? "Wir _____ in Utrecht." (wohnen)',
+    q: 'Wat is de juiste vervoeging? "Wir _____ in Berlin." (wohnen)',
     options: ['wohne', 'wohnst', 'wohnt', 'wohnen'],
     correct: 3,
     explain: 'wir + stam + en = wir wohnen. Bij wir en sie/Sie gebruik je altijd de volledige infinitief.'
   },
   {
-    q: 'Wat is de juiste vervoeging? "Ich _____ Tom." (heißen)',
+    q: 'Wat is de juiste vervoeging? "Ich _____ Max." (heißen)',
     options: ['heiße', 'heißt', 'heißen', 'heißst'],
     correct: 0,
     explain: 'ich + stam + e = ich heiße. De stam van heißen is "heiß".'
@@ -764,7 +758,7 @@ const QUIZ_POOL = [
     explain: 'er hat. "Haben" is onregelmatig: ich habe, du hast, er hat, wir haben, ihr habt, sie haben.'
   },
   {
-    q: 'Wat is de juiste vorm? "Wir _____ aus den Niederlanden." (sein)',
+    q: 'Wat is de juiste vorm? "Wir _____ aus den Deutschland." (sein)',
     options: ['bin', 'bist', 'ist', 'sind'],
     correct: 3,
     explain: 'wir sind. Bij wir en sie/Sie is de vorm van sein altijd "sind".'
@@ -772,7 +766,7 @@ const QUIZ_POOL = [
 
   // Mein / Meine
   {
-    q: 'Wat is juist? "_____ Bruder heißt Raf." (mein/meine)',
+    q: 'Wat is juist? "_____ Bruder heißt Lukas." (mein/meine)',
     options: ['Meine Bruder', 'Mein Bruder', 'Meinen Bruder', 'Meiner Bruder'],
     correct: 1,
     explain: 'Bruder is mannelijk (der Bruder) → mein Bruder. Zonder -e bij mannelijke en onzijdige woorden.'
@@ -800,13 +794,13 @@ const QUIZ_POOL = [
   {
     q: 'Welke zin is GOED geschreven qua hoofdletters?',
     options: [
-      'ich wohne in utrecht und gehe auf das unic.',
-      'Ich Wohne in Utrecht und Gehe auf das UniC.',
-      'Ich wohne in Utrecht und gehe auf das UniC.',
-      'ich Wohne in utrecht und gehe auf das Unic.'
+      'ich wohne in berlin und gehe auf die goethe-schule.',
+      'Ich Wohne in Berlin und Gehe auf die Goethe-Schule.',
+      'Ich wohne in Berlin und gehe auf die Goethe-Schule.',
+      'ich Wohne in berlin und gehe auf die goethe-Schule.'
     ],
     correct: 2,
-    explain: 'Regel: zin begint met hoofdletter, plaatsnamen (Utrecht, UniC) met hoofdletter, werkwoorden (wohne, gehe) NIET.'
+    explain: 'Regel: zin begint met hoofdletter, plaatsnamen (Berlin, Goethe-Schule) met hoofdletter, werkwoorden (wohne, gehe) NIET.'
   },
   {
     q: 'Welk woord moet een hoofdletter krijgen? "mein bruder spielt fußball."',
@@ -873,10 +867,10 @@ const QUIZ_POOL = [
   {
     q: 'Hoe sluit je een informeel bericht af in het Duits?',
     options: [
-      'Met vriendelijke groet, Tom',
-      'Viele Grüße, Tom',
-      'Yours sincerely, Tom',
-      'Groetjes, Tom'
+      'Met vriendelijke groet, Max',
+      'Viele Grüße, Max',
+      'Yours sincerely, Max',
+      'Groetjes, Max'
     ],
     correct: 1,
     explain: '"Viele Grüße" of "Liebe Grüße" is de standaard informele afsluiting in het Duits.'
@@ -932,7 +926,7 @@ const QUIZ_SIZE = 15;
 function personalize(s) {
   if (!s) return s;
   return s
-    .replace(/\btom_utrecht\b/gi, _U)
+    .replace(/\bmax_berlin\b/gi, _U)
     .replace(/\bTom\b/g, _N)
     .replace(/\btom\b/g, _N.toLowerCase())
     .replace(/\bWilfred\b/g, _P1.name)
@@ -943,10 +937,10 @@ function personalize(s) {
     .replace(/\braf\b/g, _SB.name.toLowerCase())
     .replace(/ist 13 Jahre/g, 'ist ' + _SB.age + ' Jahre')
     .replace(/hat 13 Jahre/g, 'hat ' + _SB.age + ' Jahre')
-    .replace(/\bUtrecht\b/g, _SC.city || 'Utrecht')
-    .replace(/\butrecht\b/g, (_SC.city || 'Utrecht').toLowerCase())
-    .replace(/\bUniC\b/g, _SC.name || 'UniC')
-    .replace(/\bunic\b/g, (_SC.name || 'UniC').toLowerCase());
+    .replace(/\bUtrecht\b/g, _SC.city || 'Berlin')
+    .replace(/\butrecht\b/g, (_SC.city || 'Berlin').toLowerCase())
+    .replace(/\bUniC\b/g, _SC.name || 'Goethe-Schule')
+    .replace(/\bunic\b/g, (_SC.name || 'Goethe-Schule').toLowerCase());
 }
 function pObj(obj) {
   if (!obj) return obj;
@@ -959,7 +953,7 @@ function pObj(obj) {
 const STORIES = [
   {t:'Familie', prompt:'Schrijf een bericht over je familie. Vertel wie er in je gezin zitten en waar jullie wonen.',
    // A1+ (bad)
-   fail:'meine familie hat vier personen. mein vater heisst wilfred und mein mutter heisst maria. ich habe ein bruder raf. er hat 13 jahre. wir wohne in utrecht.',
+   fail:'meine familie hat vier personen. mein vater heisst peter und mein mutter heisst sophie. ich habe ein bruder lukas. er hat 13 jahre. wir wohne in berlin.',
    failErrors:[
      {w:'mein mutter', c:'meine Mutter', e:'Vrouwelijk → meine (niet mein).'},
      {w:'hat vier personen', c:'ist vier Personen groß', e:'Grootte van een familie: "ist ... groß" (niet "hat").'},
@@ -970,16 +964,16 @@ const STORIES = [
    ],
    failSummary:'Geen aanhef, verkeerde vervoeging, "haben" voor leeftijd, geen hoofdletters op Substantive — dit is duidelijk onder A2.',
    // A2 (pass)
-   pass:'<span class="hl-boodschap">Meine Familie ist vier Personen groß.</span> <span class="hl-grammatik">Mein Vater heißt Wilfred</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">meine Mutter heißt Iris</span>. <span class="hl-grammatik">Ich habe einen Bruder</span>, <span class="hl-grammatik">er heißt Raf</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">er ist 13 Jahre alt</span>. <span class="hl-boodschap">Wir wohnen zusammen in <span class="hl-woord">Utrecht</span>.</span>',
+   pass:'<span class="hl-boodschap">Meine Familie ist vier Personen groß.</span> <span class="hl-grammatik">Mein Vater heißt Peter</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">meine Mutter heißt Sophie</span>. <span class="hl-grammatik">Ich habe einen Bruder</span>, <span class="hl-grammatik">er heißt Lukas</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">er ist 13 Jahre alt</span>. <span class="hl-boodschap">Wir wohnen zusammen in <span class="hl-woord">Berlin</span>.</span>',
    passR:{
      boodschap:'Je geeft alle gevraagde info: wie er in je gezin zitten, leeftijden, woonplaats. De boodschap is compleet.',
      woord:'Correcte woordenschat: Familie, Personen, Vater, Mutter, Bruder, Jahre. Samengesteld naamwoord goed.',
      samenhang:'Je verbindt zinnen met "und". Logische volgorde: ouders → broer → woonplaats. Meer variatie (aber, weil) zou sterker zijn.',
      grammatik:'Werkwoorden correct vervoegd (heißt, habe, ist, wohnen). "Mein/meine" klopt (mein Vater, meine Mutter, einen Bruder).',
-     spelling:'Hoofdletters op alle Substantive (Vater, Mutter, Bruder, Jahre, Utrecht). ß correct bij heißt. Geen spelfouten.'
+     spelling:'Hoofdletters op alle Substantive (Vater, Mutter, Bruder, Jahre, Berlin). ß correct bij heißt. Geen spelfouten.'
    },
    // A2+ (great)
-   great:'<span class="hl-boodschap">Meine Familie besteht aus vier Personen</span> <span class="hl-samenhang">und</span> <span class="hl-boodschap">wir wohnen zusammen in <span class="hl-woord">Utrecht</span>.</span> <span class="hl-grammatik">Mein Vater heißt Wilfred</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">meine Mutter heißt Iris</span>. <span class="hl-grammatik">Ich habe einen jüngeren Bruder</span>, <span class="hl-samenhang">der</span> <span class="hl-grammatik">Raf heißt</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">13 Jahre alt ist</span>. <span class="hl-boodschap">Ich finde es schön, <span class="hl-samenhang">dass</span> wir alle zusammen wohnen, <span class="hl-samenhang">weil</span> wir uns gut <span class="hl-grammatik">verstehen</span>.</span>',
+   great:'<span class="hl-boodschap">Meine Familie besteht aus vier Personen</span> <span class="hl-samenhang">und</span> <span class="hl-boodschap">wir wohnen zusammen in <span class="hl-woord">Berlin</span>.</span> <span class="hl-grammatik">Mein Vater heißt Peter</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">meine Mutter heißt Sophie</span>. <span class="hl-grammatik">Ich habe einen jüngeren Bruder</span>, <span class="hl-samenhang">der</span> <span class="hl-grammatik">Lukas heißt</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">13 Jahre alt ist</span>. <span class="hl-boodschap">Ich finde es schön, <span class="hl-samenhang">dass</span> wir alle zusammen wohnen, <span class="hl-samenhang">weil</span> wir uns gut <span class="hl-grammatik">verstehen</span>.</span>',
    greatR:{
      boodschap:'Je geeft alle info én voegt een persoonlijke mening toe ("ich finde es schön"). Je maakt verbinding met het onderwerp.',
      woord:'Bredere woordenschat: "besteht aus" (in plaats van simpel "ist"), "jüngeren" (comparatief), "verstehen".',
@@ -989,23 +983,23 @@ const STORIES = [
    }},
 
   {t:'Vorstellung', prompt:'Stel je voor aan iemand. Vertel hoe je heet, hoe oud je bent en waar je woont.',
-   fail:'ich heisse tom und ich habe 15 jahre. ich wohne utrecht. ich gehe auf unic.',
+   fail:'ich heisse max und ich habe 15 jahre. ich wohne berlin. ich gehe auf goethe-schule.',
    failErrors:[
      {w:'ich habe 15 jahre', c:'ich bin 15 Jahre alt', e:'Leeftijd = sein + Jahre alt. "Haben" is Frans/Spaans, niet Duits.'},
-     {w:'ich wohne utrecht', c:'ich wohne in Utrecht', e:'Woonplaats → wohne IN + stad.'},
-     {w:'unic', c:'das UniC', e:'Schoolnamen met lidwoord: das UniC (het is een zelfstandig naamwoord).'},
+     {w:'ich wohne berlin', c:'ich wohne in Berlin', e:'Woonplaats → wohne IN + stad.'},
+     {w:'goethe-schule', c:'die Goethe-Schule', e:'Schoolnamen met lidwoord: die Goethe-Schule (het is een zelfstandig naamwoord).'},
      {w:'heisse', c:'heiße', e:'ß na tweeklank ei, niet ss.'}
    ],
    failSummary:'"ich habe 15 Jahre" is de #1 fout die Nederlandse leerlingen maken. Geen voorzetsel bij woonplaats, geen ß.',
-   pass:'<span class="hl-boodschap">Ich heiße Tom</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">ich bin 15 Jahre alt</span>. <span class="hl-grammatik">Ich wohne in <span class="hl-woord">Utrecht</span></span>, das ist eine <span class="hl-woord">Stadt</span> in den <span class="hl-woord">Niederlanden</span>. <span class="hl-boodschap">Ich gehe auf das <span class="hl-woord">UniC</span>.</span>',
+   pass:'<span class="hl-boodschap">Ich heiße Max</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">ich bin 15 Jahre alt</span>. <span class="hl-grammatik">Ich wohne in <span class="hl-woord">Berlin</span></span>, das ist eine <span class="hl-woord">Stadt</span> in <span class="hl-woord">Deutschland</span>. <span class="hl-boodschap">Ich gehe auf die <span class="hl-woord">Goethe-Schule</span>.</span>',
    passR:{
      boodschap:'Je stelt je voor met naam, leeftijd, woonplaats en school. Alle basisinformatie is er.',
-     woord:'Correcte woordkeuze: Stadt, Niederlanden, UniC. "Eine Stadt in den Niederlanden" geeft extra context.',
+     woord:'Correcte woordkeuze: Stadt, Deutschland, Goethe-Schule. "Eine Stadt in Deutschland" geeft extra context.',
      samenhang:'Logische volgorde: naam → leeftijd → woonplaats → school. Verbonden met "und" en bijstelling ("das ist...").',
      grammatik:'"bin 15 Jahre alt" correct. "Wohne in", "gehe auf das" — voorzetsels kloppen. Vervoegingen goed.',
-     spelling:'Hauptletters correct (Utrecht, Stadt, Niederlanden, UniC). ß bij heiße. Geen fouten.'
+     spelling:'Hauptletters correct (Berlin, Stadt, Deutschland, Goethe-Schule). ß bij heiße. Geen fouten.'
    },
-   great:'<span class="hl-boodschap">Ich heiße Tom</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">ich bin 15 Jahre alt</span>. <span class="hl-grammatik">Ich wohne in <span class="hl-woord">Utrecht</span></span>, <span class="hl-samenhang">das</span> eine schöne <span class="hl-woord">Stadt</span> in den <span class="hl-woord">Niederlanden</span> <span class="hl-grammatik">ist</span>. <span class="hl-boodschap">Ich gehe auf das <span class="hl-woord">UniC</span></span>, <span class="hl-samenhang">obwohl</span> die <span class="hl-woord">Schule</span> manchmal <span class="hl-woord">anstrengend</span> <span class="hl-grammatik">ist</span>. <span class="hl-boodschap">In meiner <span class="hl-woord">Freizeit</span> spiele ich am liebsten <span class="hl-woord">Fußball</span></span>, <span class="hl-samenhang">weil</span> es mir viel Spaß <span class="hl-grammatik">macht</span>.',
+   great:'<span class="hl-boodschap">Ich heiße Max</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">ich bin 15 Jahre alt</span>. <span class="hl-grammatik">Ich wohne in <span class="hl-woord">Berlin</span></span>, <span class="hl-samenhang">das</span> eine schöne <span class="hl-woord">Stadt</span> in <span class="hl-woord">Deutschland</span> <span class="hl-grammatik">ist</span>. <span class="hl-boodschap">Ich gehe auf die <span class="hl-woord">Goethe-Schule</span></span>, <span class="hl-samenhang">obwohl</span> die <span class="hl-woord">Schule</span> manchmal <span class="hl-woord">anstrengend</span> <span class="hl-grammatik">ist</span>. <span class="hl-boodschap">In meiner <span class="hl-woord">Freizeit</span> spiele ich am liebsten <span class="hl-woord">Fußball</span></span>, <span class="hl-samenhang">weil</span> es mir viel Spaß <span class="hl-grammatik">macht</span>.',
    greatR:{
      boodschap:'Je stelt je volledig voor én voegt hobby toe. Persoonlijke noot ("obwohl manchmal anstrengend") maakt het levendig.',
      woord:'Brede woordenschat: anstrengend, Freizeit, am liebsten. "Eine schöne Stadt" — bijvoeglijk naamwoord erbij.',
@@ -1066,22 +1060,22 @@ const STORIES = [
    }},
 
   {t:'Schule', prompt:'Vertel over je school. Wat is bijzonder aan jouw school?',
-   fail:'ich gehe auf das unic in utrecht. mein schule ist anders. mein lieblingsfach ist sport.',
+   fail:'ich gehe auf die goethe-schule in berlin. mein schule ist anders. mein lieblingsfach ist sport.',
    failErrors:[
      {w:'mein schule', c:'meine Schule', e:'Schule is vrouwelijk (die Schule) → meine.'},
-     {w:'unic', c:'UniC', e:'Eigennaam → hoofdletter.'},
+     {w:'goethe-schule', c:'Goethe-Schule', e:'Eigennaam → hoofdletter.'},
      {w:'ist anders', c:'ist anders als andere Schulen', e:'Vergelijking mist: anders ALS + vergelijking.'}
    ],
    failSummary:'Mein/meine fout, geen vergelijking uitgewerkt, te weinig inhoud — onder A2.',
-   pass:'<span class="hl-boodschap">Ich gehe auf das <span class="hl-woord">UniC</span> in <span class="hl-woord">Utrecht</span>.</span> <span class="hl-grammatik">Meine Schule ist</span> anders als andere <span class="hl-woord">Schulen</span>, <span class="hl-samenhang">weil</span> wir viel <span class="hl-woord">selbstständig</span> <span class="hl-grammatik">arbeiten</span>. <span class="hl-boodschap">Mein <span class="hl-woord">Lieblingsfach</span> ist <span class="hl-woord">Sport</span>.</span>',
+   pass:'<span class="hl-boodschap">Ich gehe auf die <span class="hl-woord">Goethe-Schule</span> in <span class="hl-woord">Berlin</span>.</span> <span class="hl-grammatik">Meine Schule ist</span> anders als andere <span class="hl-woord">Schulen</span>, <span class="hl-samenhang">weil</span> wir viel <span class="hl-woord">selbstständig</span> <span class="hl-grammatik">arbeiten</span>. <span class="hl-boodschap">Mein <span class="hl-woord">Lieblingsfach</span> ist <span class="hl-woord">Sport</span>.</span>',
    passR:{
      boodschap:'Je vertelt welke school, wat bijzonder is, en je favoriete vak. Complete boodschap.',
      woord:'Goede woorden: selbstständig, Lieblingsfach. "anders als andere Schulen" — correcte vergelijking.',
      samenhang:'"weil" geeft een reden. Logische opbouw: school → wat bijzonder is → lievelingsvak.',
      grammatik:'"Meine Schule" correct (vrouwelijk). weil-bijzin goed: "weil wir...arbeiten".',
-     spelling:'UniC, Schulen, Lieblingsfach, Sport — alle hoofdletters correct.'
+     spelling:'Goethe-Schule, Schulen, Lieblingsfach, Sport — alle hoofdletters correct.'
    },
-   great:'<span class="hl-boodschap">Ich gehe auf das <span class="hl-woord">UniC</span> in <span class="hl-woord">Utrecht</span></span>, <span class="hl-samenhang">das</span> eine besondere <span class="hl-woord">Schule</span> <span class="hl-grammatik">ist</span>. <span class="hl-grammatik">Meine Schule ist</span> anders als andere <span class="hl-woord">Schulen</span>, <span class="hl-samenhang">weil</span> wir viel <span class="hl-woord">selbstständig</span> <span class="hl-grammatik">arbeiten</span> <span class="hl-samenhang">und</span> unsere eigenen <span class="hl-woord">Projekte</span> <span class="hl-grammatik">machen</span>. <span class="hl-boodschap">Ich finde das gut</span>, <span class="hl-samenhang">obwohl</span> es manchmal schwierig <span class="hl-grammatik">ist</span>, <span class="hl-samenhang">weil</span> man viel <span class="hl-woord">Disziplin</span> <span class="hl-grammatik">braucht</span>.',
+   great:'<span class="hl-boodschap">Ich gehe auf die <span class="hl-woord">Goethe-Schule</span> in <span class="hl-woord">Berlin</span></span>, <span class="hl-samenhang">das</span> eine besondere <span class="hl-woord">Schule</span> <span class="hl-grammatik">ist</span>. <span class="hl-grammatik">Meine Schule ist</span> anders als andere <span class="hl-woord">Schulen</span>, <span class="hl-samenhang">weil</span> wir viel <span class="hl-woord">selbstständig</span> <span class="hl-grammatik">arbeiten</span> <span class="hl-samenhang">und</span> unsere eigenen <span class="hl-woord">Projekte</span> <span class="hl-grammatik">machen</span>. <span class="hl-boodschap">Ich finde das gut</span>, <span class="hl-samenhang">obwohl</span> es manchmal schwierig <span class="hl-grammatik">ist</span>, <span class="hl-samenhang">weil</span> man viel <span class="hl-woord">Disziplin</span> <span class="hl-grammatik">braucht</span>.',
    greatR:{
      boodschap:'Je legt uit wat bijzonder is met eigen mening ("ich finde das gut") en nuance ("obwohl manchmal schwierig").',
      woord:'Breed: besondere, selbstständig, Projekte, Disziplin. Veel variatie.',
@@ -1099,15 +1093,15 @@ const STORIES = [
      {w:'freund', c:'Freund', e:'Substantiv → hoofdletter.'}
    ],
    failSummary:'Weer "hat 15 Jahre" in plaats van "ist 15 Jahre alt", geen ß, geen hoofdletters — onder A2.',
-   pass:'<span class="hl-boodschap">Mein bester <span class="hl-woord">Freund</span> heißt <span class="hl-woord">Lars</span>.</span> <span class="hl-grammatik">Er ist</span> auch 15 <span class="hl-woord">Jahre</span> alt <span class="hl-samenhang">und</span> <span class="hl-grammatik">er geht</span> auf das <span class="hl-woord">UniC</span>. <span class="hl-boodschap">Wir spielen zusammen <span class="hl-woord">Fußball</span>.</span> <span class="hl-grammatik">Er ist</span> lustig <span class="hl-samenhang">und</span> wir lachen viel.',
+   pass:'<span class="hl-boodschap">Mein bester <span class="hl-woord">Freund</span> heißt <span class="hl-woord">Lars</span>.</span> <span class="hl-grammatik">Er ist</span> auch 15 <span class="hl-woord">Jahre</span> alt <span class="hl-samenhang">und</span> <span class="hl-grammatik">er geht</span> auf die <span class="hl-woord">Goethe-Schule</span>. <span class="hl-boodschap">Wir spielen zusammen <span class="hl-woord">Fußball</span>.</span> <span class="hl-grammatik">Er ist</span> lustig <span class="hl-samenhang">und</span> wir lachen viel.',
    passR:{
      boodschap:'Je vertelt wie je vriend is, wat jullie gemeen hebben (school, leeftijd) en wat jullie doen.',
      woord:'Correcte woorden: Freund, Jahre, Fußball. "Lustig" als karaktereigenschap.',
      samenhang:'Twee keer "und" als verbinding. Logische opbouw: wie → school → activiteit → karakter.',
      grammatik:'"Er ist" correct voor leeftijd en eigenschap. "Geht auf das" — voorzetsel klopt.',
-     spelling:'Freund, Lars, UniC, Fußball — alle hoofdletters en ß correct.'
+     spelling:'Freund, Lars, Goethe-Schule, Fußball — alle hoofdletters en ß correct.'
    },
-   great:'<span class="hl-boodschap">Mein bester <span class="hl-woord">Freund</span> heißt <span class="hl-woord">Lars</span></span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">er geht</span> auch auf das <span class="hl-woord">UniC</span>. <span class="hl-boodschap">Wir kennen uns schon lange</span> <span class="hl-samenhang">und</span> spielen zusammen <span class="hl-woord">Fußball</span>, <span class="hl-samenhang">weil</span> wir beide den <span class="hl-woord">Sport</span> <span class="hl-grammatik">lieben</span>. <span class="hl-boodschap">Ich finde es toll, <span class="hl-samenhang">dass</span> er so lustig <span class="hl-grammatik">ist</span>, <span class="hl-samenhang">weil</span> wir zusammen immer viel <span class="hl-grammatik">lachen</span>.</span>',
+   great:'<span class="hl-boodschap">Mein bester <span class="hl-woord">Freund</span> heißt <span class="hl-woord">Lars</span></span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">er geht</span> auch auf die <span class="hl-woord">Goethe-Schule</span>. <span class="hl-boodschap">Wir kennen uns schon lange</span> <span class="hl-samenhang">und</span> spielen zusammen <span class="hl-woord">Fußball</span>, <span class="hl-samenhang">weil</span> wir beide den <span class="hl-woord">Sport</span> <span class="hl-grammatik">lieben</span>. <span class="hl-boodschap">Ich finde es toll, <span class="hl-samenhang">dass</span> er so lustig <span class="hl-grammatik">ist</span>, <span class="hl-samenhang">weil</span> wir zusammen immer viel <span class="hl-grammatik">lachen</span>.</span>',
    greatR:{
      boodschap:'Persoonlijk en warm: "ich finde es toll, dass..." Laat echte vriendschap zien, niet alleen feiten.',
      woord:'"Kennen uns schon lange", "lieben" — sterkere woordkeuze dan A2.',
@@ -1192,24 +1186,24 @@ const STORIES = [
    }},
 
   {t:'Brief', prompt:'Reageer op dit bericht: "Hallo! Ich bin Anna, 14 Jahre alt, aus Berlin. Meine Hobbys sind Schwimmen und Lesen. Was sind deine Hobbys? Schreib mir!"',
-   fail:'hallo anna. ich heisse tom. ich habe 15 jahre. ich wohne utrecht. meine hobbys sind fussball und gaming. tschuss tom',
+   fail:'hallo anna. ich heisse max. ich habe 15 jahre. ich wohne berlin. meine hobbys sind fussball und gaming. tschuss max',
    failErrors:[
      {w:'hallo anna', c:'Liebe Anna,', e:'Aanhef: Liebe (vrouwelijk) + naam + komma.'},
      {w:'ich habe 15 jahre', c:'ich bin 15 Jahre alt', e:'Leeftijd = sein + Jahre alt.'},
-     {w:'ich wohne utrecht', c:'ich wohne in Utrecht', e:'Woonplaats → wohne IN + stad.'},
+     {w:'ich wohne berlin', c:'ich wohne in Berlin', e:'Woonplaats → wohne IN + stad.'},
      {w:'fussball', c:'Fußball', e:'ß + hoofdletter.'},
-     {w:'tschuss tom', c:'Viele Grüße, Tom', e:'Afsluiting: Viele Grüße of Liebe Grüße + naam.'}
+     {w:'tschuss max', c:'Viele Grüße, Max', e:'Afsluiting: Viele Grüße of Liebe Grüße + naam.'}
    ],
-   failSummary:'Geen aanhef (Liebe), geen afsluiting (Viele Grüße), "habe 15 Jahre" fout, "wohne Utrecht" mist "in" — dit scoort onvoldoende.',
-   pass:'<span class="hl-boodschap">Liebe Anna,</span><br><br><span class="hl-boodschap">Danke für deinen Post!</span> <span class="hl-grammatik">Ich heiße Tom</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">ich bin 15 Jahre alt</span>. <span class="hl-grammatik">Ich wohne in <span class="hl-woord">Utrecht</span></span>, das ist in den <span class="hl-woord">Niederlanden</span>.<br><br><span class="hl-grammatik">Meine Hobbys sind</span> <span class="hl-woord">Fußball</span> <span class="hl-samenhang">und</span> <span class="hl-woord">Gaming</span>. <span class="hl-boodschap">Du schwimmst gern, das finde ich cool!</span> <span class="hl-woord">Mein Lieblingsessen</span> ist Pizza. <span class="hl-grammatik">Ich mag</span> <span class="hl-samenhang">aber</span> <span class="hl-woord">keinen Fisch</span>.<br><br><span class="hl-boodschap">Viele Grüße,</span><br>Tom',
+   failSummary:'Geen aanhef (Liebe), geen afsluiting (Viele Grüße), "habe 15 Jahre" fout, "wohne Berlin" mist "in" — dit scoort onvoldoende.',
+   pass:'<span class="hl-boodschap">Liebe Anna,</span><br><br><span class="hl-boodschap">Danke für deinen Post!</span> <span class="hl-grammatik">Ich heiße Max</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">ich bin 15 Jahre alt</span>. <span class="hl-grammatik">Ich wohne in <span class="hl-woord">Berlin</span></span>, das ist in <span class="hl-woord">Deutschland</span>.<br><br><span class="hl-grammatik">Meine Hobbys sind</span> <span class="hl-woord">Fußball</span> <span class="hl-samenhang">und</span> <span class="hl-woord">Gaming</span>. <span class="hl-boodschap">Du schwimmst gern, das finde ich cool!</span> <span class="hl-woord">Mein Lieblingsessen</span> ist Pizza. <span class="hl-grammatik">Ich mag</span> <span class="hl-samenhang">aber</span> <span class="hl-woord">keinen Fisch</span>.<br><br><span class="hl-boodschap">Viele Grüße,</span><br>Max',
    passR:{
      boodschap:'Aanhef ("Liebe Anna,") en afsluiting ("Viele Grüße"). Je reageert op Anna ("Du schwimmst gern, das finde ich cool!"). Complete boodschap.',
-     woord:'Correcte woorden: Niederlanden, Fußball, Lieblingsessen, keinen Fisch. Samengestelde woorden goed.',
+     woord:'Correcte woorden: Deutschland, Fußball, Lieblingsessen, keinen Fisch. Samengestelde woorden goed.',
      samenhang:'"und" en "aber" als voegwoorden. Logische alinea-indeling: intro → hobby\'s → afsluiting.',
      grammatik:'Alle vervoegingen correct. "keinen Fisch" (accusatief). "Du schwimmst" — correcte du-vorm.',
-     spelling:'Grüße met ß en Umlaut, Fußball, Niederlanden — alles correct.'
+     spelling:'Grüße met ß en Umlaut, Fußball, Deutschland — alles correct.'
    },
-   great:'<span class="hl-boodschap">Liebe Anna,</span><br><br><span class="hl-boodschap">Vielen Dank für deinen tollen Post!</span> <span class="hl-boodschap">Es ist schön, mehr über dich zu erfahren.</span><br><br><span class="hl-grammatik">Ich heiße Tom</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">ich bin 15 Jahre alt</span>. <span class="hl-grammatik">Ich wohne in <span class="hl-woord">Utrecht</span></span> — das ist <span class="hl-woord">eine schöne Stadt</span> in den <span class="hl-woord">Niederlanden</span>.<br><br><span class="hl-woord">In meiner Freizeit</span> <span class="hl-grammatik">spiele ich</span> <span class="hl-samenhang">am liebsten</span> <span class="hl-woord">Fußball</span>, <span class="hl-samenhang">weil</span> es Spaß <span class="hl-grammatik">macht</span>. <span class="hl-boodschap">Du liest gern — das finde ich auch toll!</span><br><br><span class="hl-woord">Mein Lieblingsessen</span> ist Pizza, <span class="hl-samenhang">aber</span> <span class="hl-grammatik">ich esse</span> <span class="hl-samenhang">auch</span> gern <span class="hl-woord">Pfannkuchen</span>. <span class="hl-boodschap">Was isst du am liebsten außer Pasta?</span><br><br><span class="hl-boodschap">Liebe Grüße,</span><br>Tom',
+   great:'<span class="hl-boodschap">Liebe Anna,</span><br><br><span class="hl-boodschap">Vielen Dank für deinen tollen Post!</span> <span class="hl-boodschap">Es ist schön, mehr über dich zu erfahren.</span><br><br><span class="hl-grammatik">Ich heiße Max</span> <span class="hl-samenhang">und</span> <span class="hl-grammatik">ich bin 15 Jahre alt</span>. <span class="hl-grammatik">Ich wohne in <span class="hl-woord">Berlin</span></span> — das ist <span class="hl-woord">eine schöne Stadt</span> in <span class="hl-woord">Deutschland</span>.<br><br><span class="hl-woord">In meiner Freizeit</span> <span class="hl-grammatik">spiele ich</span> <span class="hl-samenhang">am liebsten</span> <span class="hl-woord">Fußball</span>, <span class="hl-samenhang">weil</span> es Spaß <span class="hl-grammatik">macht</span>. <span class="hl-boodschap">Du liest gern — das finde ich auch toll!</span><br><br><span class="hl-woord">Mein Lieblingsessen</span> ist Pizza, <span class="hl-samenhang">aber</span> <span class="hl-grammatik">ich esse</span> <span class="hl-samenhang">auch</span> gern <span class="hl-woord">Pfannkuchen</span>. <span class="hl-boodschap">Was isst du am liebsten außer Pasta?</span><br><br><span class="hl-boodschap">Liebe Grüße,</span><br>Max',
    greatR:{
      boodschap:'Reageert uitgebreid op Anna, stelt een specifieke vraag ("Was isst du am liebsten außer Pasta?"), maakt persoonlijke verbinding ("Du liest gern — das finde ich auch toll!").',
      woord:'Breed: Freizeit, am liebsten, außer, eine schöne Stadt. "Vielen Dank für deinen tollen Post" — natuurlijke uitdrukking.',
@@ -1374,7 +1368,7 @@ function showPanel(name) {
   document.getElementById('nav-' + name).classList.add('active');
   if (name === 'overzicht')   renderOverview();
   if (name === 'flashcards')  initFlash();
-  if (name === 'score')       updateScorePanel();
+  if (name === 'check')       showNulmetingState();
 }
 
 // ── OVERVIEW ──────────────────────────────────────────────────────────────
@@ -1439,7 +1433,7 @@ let flashIdx   = 0;
 let flashFlipped = false;
 
 function initFlash() {
-  flashOrder = shuffleArray(TOPICS.map((_, i) => i));
+  flashOrder = getNmSortedOrder();
   flashIdx   = 0;
   flashFlipped = false;
   document.getElementById('flash-done').style.display = 'none';
@@ -1631,68 +1625,252 @@ function retryQuiz() {
   document.getElementById('quiz-area').innerHTML      = '';
 }
 
-// ── SCORE PANEL ───────────────────────────────────────────────────────────
-function updateScorePanel() {
-  const fp    = getFlashPct();
-  const qp    = getQuizPct();
-  const total = getTotalPct();
-  const known = TOPICS.filter(t => flashKnown[t.id]).length;
+// ── NULMETING ─────────────────────────────────────────────────────────────
+const LS_NM = 'de-nulmeting-v1';
+const NM_CATEGORIES = [
+  {id:'werkwoorden', label:'Werkwoorden', icon:'📝', topicIds:['verben-praesens','verben-vergangenheit','sein-haben']},
+  {id:'mein-meine',  label:'Mein / Meine', icon:'👤', topicIds:['mein-meine']},
+  {id:'hoofdletters', label:'Hauptletters', icon:'🔠', topicIds:['grossbuchstaben']},
+  {id:'bindwoerter', label:'Bindewörter', icon:'🔗', topicIds:['bindwoerter']}
+];
 
-  document.getElementById('sc-flash-bar').style.width  = fp + '%';
-  document.getElementById('sc-flash-pct').textContent  = `${known} / ${TOPICS.length}`;
+const NM_QUESTIONS = [
+  // Werkwoorden (2)
+  {cat:'werkwoorden', q:'Wat is de juiste vorm? "Du _____ in Berlin." (wohnen, Präsens)',
+   opts:['wohne','wohnst','wohnt','wohnen'], correct:1,
+   explain:'du + stam + st = du wohnst. Bij "du" is de uitgang altijd -st.'},
+  {cat:'werkwoorden', q:'Wat is de juiste vorm? "Er _____ gestern Fußball." (spielen, Vergangenheit)',
+   opts:['spielte','spielten','spieltest','spieltet'], correct:0,
+   explain:'er + stam + te = er spielte. In de verleden tijd krijgt er/sie/es altijd -te.'},
+  // Mein/Meine (2)
+  {cat:'mein-meine', q:'Wat is juist? "_____ Schule ist groß."',
+   opts:['Mein Schule','Meine Schule','Meinen Schule','Meiner Schule'], correct:1,
+   explain:'Schule is vrouwelijk (die Schule) → meine. Met -e bij vrouwelijke woorden.'},
+  {cat:'mein-meine', q:'Wat is juist? "_____ Hobby ist Gaming."',
+   opts:['Meine Hobby','Mein Hobby','Meinen Hobby','Meinem Hobby'], correct:1,
+   explain:'Hobby is onzijdig (das Hobby) → mein. Zonder -e bij onzijdige woorden.'},
+  // Hauptletters (2)
+  {cat:'hoofdletters', q:'Welke zin is GOED qua hoofdletters?',
+   opts:['mein bruder spielt fußball.','Mein Bruder spielt Fußball.','Mein bruder Spielt Fußball.','mein Bruder Spielt fußball.'], correct:1,
+   explain:'Substantive (Bruder, Fußball) altijd met hoofdletter. Werkwoorden (spielt) niet.'},
+  {cat:'hoofdletters', q:'Welk woord moet een hoofdletter? "ich esse gern pizza."',
+   opts:['ich','esse','gern','pizza'], correct:3,
+   explain:'Pizza is een zelfstandig naamwoord → altijd hoofdletter in het Duits.'},
+  // Bindewörter (2)
+  {cat:'bindwoerter', q:'Welke zin is juist na "weil"?',
+   opts:['...weil ich bin krank.','...weil bin ich krank.','...weil ich krank bin.','...krank weil ich bin.'], correct:2,
+   explain:'Na "weil" gaat het werkwoord naar het EINDE: "...weil ich krank bin."'},
+  {cat:'bindwoerter', q:'Welk Bindewort past? "Ich mag Pizza, _____ sie lecker ist." (omdat)',
+   opts:['und','aber','weil','oder'], correct:2,
+   explain:'"weil" = omdat. Het geeft een reden. Let op: na weil staat het werkwoord achteraan.'}
+];
 
-  if (qp !== null) {
-    document.getElementById('sc-quiz-bar').style.width  = qp + '%';
-    document.getElementById('sc-quiz-pct').textContent  = qp + '%';
-  }
-  document.getElementById('sc-total-bar').style.width = total + '%';
+let nmResult = JSON.parse(localStorage.getItem(LS_NM) || 'null');
+let nmIdx = 0;
+let nmAnswers = {};
 
-  const gf = document.getElementById('grade-fail');
-  const gp = document.getElementById('grade-pass');
-  const gg = document.getElementById('grade-great');
-  gf.className = 'grade-box'; gp.className = 'grade-box'; gg.className = 'grade-box';
-  if (total >= 70) { gg.className = 'grade-box active-great'; }
-  else if (total >= 37) { gp.className = 'grade-box active-pass'; }
-  else { gf.className = 'grade-box active-fail'; }
+function getNmDone() { return nmResult !== null; }
 
-  const box = document.getElementById('readiness-box');
-  const readyTitle = document.getElementById('ready-title');
-  const readyText = document.getElementById('ready-text');
-  if (total >= 70) {
-    box.className = 'readiness ready-great';
-    readyTitle.textContent = 'Du bist bereit!';
-    readyText.textContent = 'Je beheerst de stof goed. Vertrouw op jezelf bij de Schreibtest.';
-  } else if (total >= 37) {
-    box.className = 'readiness ready-pass';
-    readyTitle.textContent = 'Je bent op de goede weg';
-    readyText.textContent = 'Je hebt al een basis. Oefen de kaarten die je nog niet kent voor een betere score.';
-  } else if (total > 0) {
-    box.className = 'readiness ready-fail';
-    readyTitle.textContent = 'Noch ein bisschen üben';
-    readyText.textContent = 'Loop de flashcards door en doe daarna de toets. Je komt er!';
+function showNulmetingState() {
+  if (nmResult) {
+    showNmResult();
   } else {
-    box.className = 'readiness ready-fail';
-    readyTitle.textContent = 'Nog even oefenen';
-    readyText.textContent = 'Doe de flashcards en de toets om je score op te bouwen.';
+    document.getElementById('nm-intro').style.display = '';
+    document.getElementById('nm-questions').style.display = 'none';
+    document.getElementById('nm-result').style.display = 'none';
   }
-
-  renderHistory();
 }
 
-function renderHistory() {
-  const el = document.getElementById('history-list');
-  if (history.length === 0) {
-    el.innerHTML = '<p style="font-size:13px;color:#868e96">Nog geen toetsen gemaakt.</p>';
-    return;
+function startNulmeting() {
+  nmIdx = 0;
+  nmAnswers = {};
+  document.getElementById('nm-intro').style.display = 'none';
+  document.getElementById('nm-questions').style.display = 'block';
+  document.getElementById('nm-result').style.display = 'none';
+  renderNmQuestion();
+}
+
+function renderNmQuestion() {
+  const el = document.getElementById('nm-questions');
+  const q = NM_QUESTIONS[nmIdx];
+  const dots = NM_QUESTIONS.map((_,i) => {
+    const cls = i < nmIdx ? 'nm-q-dot done' : i === nmIdx ? 'nm-q-dot current' : 'nm-q-dot';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+
+  const catLabel = NM_CATEGORIES.find(c => c.id === q.cat)?.label || q.cat;
+
+  el.innerHTML = `
+    <div class="nm-q-block">
+      <div class="nm-q-progress">${dots}</div>
+      <div class="nm-q-cat">${catLabel}</div>
+      <div class="nm-q-text">${q.q}</div>
+      <div class="nm-q-options">
+        ${q.opts.map((o,i) => `<button class="nm-q-opt" onclick="answerNm(${i})">${o}</button>`).join('')}
+      </div>
+    </div>`;
+}
+
+function answerNm(chosen) {
+  const q = NM_QUESTIONS[nmIdx];
+  const btns = document.querySelectorAll('.nm-q-opt');
+  const isCorrect = chosen === q.correct;
+
+  btns.forEach((b,i) => {
+    b.disabled = true;
+    if (i === q.correct) b.classList.add('correct');
+    if (i === chosen && !isCorrect) b.classList.add('wrong');
+  });
+
+  if (!nmAnswers[q.cat]) nmAnswers[q.cat] = {correct:0, total:0};
+  nmAnswers[q.cat].total++;
+  if (isCorrect) nmAnswers[q.cat].correct++;
+
+  // Show explanation on wrong answer, auto-advance on correct
+  if (isCorrect) {
+    setTimeout(() => { advanceNm(); }, 600);
+  } else {
+    // Show explanation below the options
+    const block = document.querySelector('.nm-q-block');
+    const explainDiv = document.createElement('div');
+    explainDiv.className = 'quiz-explain show';
+    explainDiv.style.marginTop = '14px';
+    explainDiv.innerHTML = `<strong>💡 ${q.opts[q.correct]}</strong> — ${q.explain}`;
+    block.appendChild(explainDiv);
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'quiz-next-btn show';
+    nextBtn.textContent = nmIdx < NM_QUESTIONS.length - 1 ? 'Volgende →' : 'Bekijk resultaat →';
+    nextBtn.onclick = () => advanceNm();
+    block.appendChild(nextBtn);
   }
-  el.innerHTML = history.map(h => {
-    const pct = Math.round(h.score / h.total * 100);
-    const color = pct >= 70 ? '#40c057' : pct >= 37 ? '#f59f00' : '#fa5252';
-    return `<div class="history-entry">
-      <span class="hdate">${h.date}</span>
-      <span class="hscore" style="color:${color}">${h.score}/${h.total} (${pct}%)</span>
+}
+
+function advanceNm() {
+  nmIdx++;
+  if (nmIdx < NM_QUESTIONS.length) {
+    renderNmQuestion();
+  } else {
+    finishNulmeting();
+  }
+}
+
+function finishNulmeting() {
+  // Build result per category
+  nmResult = {};
+  NM_CATEGORIES.forEach(cat => {
+    const a = nmAnswers[cat.id] || {correct:0, total:0};
+    const score = a.correct; // 0, 1, or 2
+    nmResult[cat.id] = {correct: a.correct, total: a.total, level: score === 2 ? 'green' : score === 1 ? 'orange' : 'red'};
+  });
+  localStorage.setItem(LS_NM, JSON.stringify(nmResult));
+
+  // Update nav badge
+  updateNmBadge();
+
+  showNmResult();
+}
+
+function showNmResult() {
+  document.getElementById('nm-intro').style.display = 'none';
+  document.getElementById('nm-questions').style.display = 'none';
+  const el = document.getElementById('nm-result');
+  el.style.display = 'block';
+
+  const totalCorrect = Object.values(nmResult).reduce((s,c) => s + c.correct, 0);
+  const totalQs = Object.values(nmResult).reduce((s,c) => s + c.total, 0);
+
+  const catRows = NM_CATEGORIES.map(cat => {
+    const r = nmResult[cat.id] || {correct:0, total:2, level:'red'};
+    const levelText = r.level === 'green' ? 'Top!' : r.level === 'orange' ? 'Bijna' : 'Hier scoor je snel';
+    const emoji = r.level === 'green' ? '✅' : r.level === 'orange' ? '⚠️' : '❌';
+    return `<div class="nm-cat-row">
+      <div class="nm-cat-icon">${cat.icon}</div>
+      <div class="nm-cat-info">
+        <div class="nm-cat-name">${cat.label}</div>
+        <div class="nm-cat-score">${r.correct}/${r.total} goed</div>
+      </div>
+      <span class="nm-cat-badge ${r.level}">${emoji} ${levelText}</span>
     </div>`;
   }).join('');
+
+  const redCats = NM_CATEGORIES.filter(c => nmResult[c.id]?.level === 'red');
+  const orangeCats = NM_CATEGORIES.filter(c => nmResult[c.id]?.level === 'orange');
+  const greenCats = NM_CATEGORIES.filter(c => nmResult[c.id]?.level === 'green');
+  let tip;
+  if (greenCats.length === NM_CATEGORIES.length) {
+    tip = 'Alles groen — je kunt de stof al goed! De flashcards helpen je om het scherp te houden.';
+  } else if (redCats.length > 0) {
+    tip = `De flashcards beginnen met <strong>${redCats.map(c=>c.label).join(', ')}</strong> — daar pak je het snelst punten.`;
+  } else {
+    tip = `Je bent er bijna! De flashcards focussen op <strong>${orangeCats.map(c=>c.label).join(', ')}</strong>.`;
+  }
+
+  el.innerHTML = `
+    <h2>Jouw resultaat</h2>
+    <div class="nm-sub">${totalCorrect} van ${totalQs} goed</div>
+    <div class="nm-cats">${catRows}</div>
+    <p style="font-size:13px;color:#495057;margin-bottom:20px;line-height:1.6">${tip}</p>
+    <button class="nm-go-btn" onclick="showPanel('flashcards')">Ga oefenen →</button>
+    <button class="nm-redo" onclick="redoNulmeting()">Check opnieuw doen</button>
+    <button class="nm-redo" onclick="resetAll()" style="margin-top:8px;color:#fa5252">Alles resetten</button>`;
+}
+
+function skipNulmeting() {
+  showPanel('overzicht');
+}
+
+function redoNulmeting() {
+  nmResult = null;
+  localStorage.removeItem(LS_NM);
+  updateNmBadge();
+  showNulmetingState();
+}
+
+function updateNmBadge() {
+  const btn = document.getElementById('nav-check');
+  const existing = btn.querySelector('.nav-badge');
+  if (existing) existing.remove();
+  if (!getNmDone()) {
+    const badge = document.createElement('span');
+    badge.className = 'nav-badge';
+    btn.appendChild(badge);
+  }
+}
+
+// Nulmeting-aware flashcard sorting
+function getNmSortedOrder() {
+  if (!nmResult) return shuffleArray(TOPICS.map((_,i) => i));
+
+  // Map topic IDs to their nulmeting category level
+  const topicPriority = {};
+  NM_CATEGORIES.forEach(cat => {
+    const level = nmResult[cat.id]?.level || 'green';
+    const prio = level === 'red' ? 0 : level === 'orange' ? 1 : 2;
+    cat.topicIds.forEach(tid => { topicPriority[tid] = prio; });
+  });
+
+  // Sort: red categories first, then orange, then green, then the rest
+  const indices = TOPICS.map((_,i) => i);
+  indices.sort((a,b) => {
+    const pa = topicPriority[TOPICS[a].id] ?? 2;
+    const pb = topicPriority[TOPICS[b].id] ?? 2;
+    if (pa !== pb) return pa - pb;
+    return 0; // keep original order within same priority
+  });
+
+  // Shuffle within each priority group
+  const groups = {};
+  indices.forEach(i => {
+    const p = topicPriority[TOPICS[i].id] ?? 2;
+    if (!groups[p]) groups[p] = [];
+    groups[p].push(i);
+  });
+  const result = [];
+  [0,1,2].forEach(p => {
+    if (groups[p]) result.push(...shuffleArray(groups[p]));
+  });
+  return result;
 }
 
 // ── RESET ─────────────────────────────────────────────────────────────────
@@ -1701,19 +1879,28 @@ function resetAll() {
   flashKnown = {};
   quizScore  = null;
   history    = [];
+  nmResult   = null;
   localStorage.removeItem(LS_FLASH);
   localStorage.removeItem(LS_QUIZ);
   localStorage.removeItem(LS_HISTORY);
+  localStorage.removeItem(LS_NM);
   renderOverview();
-  updateScorePanel();
   initFlash();
+  updateNmBadge();
+  showNulmetingState();
   document.getElementById('quiz-start').style.display = 'block';
   document.getElementById('quiz-area').style.display  = 'none';
   document.getElementById('quiz-area').innerHTML      = '';
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
-renderOverview();
+updateNmBadge();
+// If nulmeting not done, auto-open the check panel
+if (!getNmDone()) {
+  showPanel('check');
+} else {
+  renderOverview();
+}
 renderStoryCards();
 // Scroll dots for story carousel
 (function(){
