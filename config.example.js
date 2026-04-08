@@ -29,10 +29,10 @@ const CONFIG = {
 
   // ── SCHOOL ────────────────────────────────────────────────────
   school: {
-    name:   'UniC',       // schoolnaam
-    city:   'Utrecht',    // woonplaats
-    class:  '3D',         // klas
-    level:  'havo/vwo',   // niveau
+    name:   'Mijn School',    // schoolnaam
+    city:   'Amsterdam',      // woonplaats
+    class:  '3A',             // klas
+    level:  'havo/vwo',       // niveau
   },
 
   // ── INTERESSES (gebruikt in Duitse verhaaltjes) ───────────────

@@ -152,6 +152,46 @@ body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; mi
 .readiness p { font-size: 13px; color: #495057; }
 .reset-btn { margin-top: 16px; padding: 10px 20px; background: #e9ecef; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; color: #495057; }
 
+/* NULMETING */
+.nm-intro { padding: 28px 20px; text-align: center; }
+.nm-intro .nm-emoji { font-size: 48px; margin-bottom: 12px; }
+.nm-intro h2 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+.nm-intro p { font-size: 14px; color: #495057; line-height: 1.6; margin-bottom: 20px; }
+.nm-intro .nm-skip { display: block; margin-top: 12px; font-size: 12px; color: #adb5bd; text-decoration: underline; cursor: pointer; background: none; border: none; font-family: inherit; }
+.nm-start-btn { padding: 14px 32px; background: #228be6; color: #fff; border: none; border-radius: 12px; font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+.nm-q-block { padding: 20px; }
+.nm-q-progress { display: flex; gap: 4px; margin-bottom: 16px; }
+.nm-q-dot { flex: 1; height: 4px; border-radius: 2px; background: #e9ecef; transition: background .3s; }
+.nm-q-dot.done { background: #228be6; }
+.nm-q-dot.current { background: #74c0fc; }
+.nm-q-cat { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 8px; margin-bottom: 12px; background: #e7f5ff; color: #1971c2; }
+.nm-q-text { font-size: 17px; font-weight: 600; line-height: 1.5; margin-bottom: 18px; color: #212529; }
+.nm-q-options { display: flex; flex-direction: column; gap: 10px; }
+.nm-q-opt { background: #fff; border: 2px solid #e9ecef; border-radius: 12px; padding: 14px 16px; font-family: inherit; font-size: 14px; font-weight: 500; color: #212529; cursor: pointer; text-align: left; transition: border-color .15s, background .15s; }
+.nm-q-opt:hover:not(:disabled) { border-color: #74c0fc; background: #e7f5ff; }
+.nm-q-opt.correct { border-color: #40c057; background: #ebfbee; color: #2f9e44; pointer-events: none; }
+.nm-q-opt.wrong { border-color: #fa5252; background: #fff5f5; color: #c92a2a; pointer-events: none; }
+.nm-q-opt:disabled { pointer-events: none; opacity: .6; }
+.nm-result { padding: 28px 20px; text-align: center; }
+.nm-result h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+.nm-result .nm-sub { font-size: 14px; color: #868e96; margin-bottom: 20px; }
+.nm-cats { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; padding: 0 4px; }
+.nm-cat-row { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 12px; padding: 14px 16px; border: 1px solid #e9ecef; }
+.nm-cat-icon { font-size: 24px; flex-shrink: 0; }
+.nm-cat-info { flex: 1; text-align: left; }
+.nm-cat-name { font-size: 14px; font-weight: 700; color: #212529; }
+.nm-cat-score { font-size: 12px; color: #868e96; }
+.nm-cat-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 8px; flex-shrink: 0; }
+.nm-cat-badge.red { background: #fff5f5; color: #e03131; }
+.nm-cat-badge.orange { background: #fff9db; color: #e67700; }
+.nm-cat-badge.green { background: #ebfbee; color: #2b8a3e; }
+.nm-go-btn { padding: 14px 32px; background: #228be6; color: #fff; border: none; border-radius: 12px; font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+.nm-redo { display: block; margin: 12px auto 0; font-size: 12px; color: #adb5bd; text-decoration: underline; cursor: pointer; background: none; border: none; font-family: inherit; }
+.nm-explain { margin-top: 14px; padding: 12px; background: #fff9db; border-radius: 10px; font-size: 13px; line-height: 1.5; color: #664d03; text-align: left; }
+.nm-next-btn { width: 100%; margin-top: 12px; padding: 14px; background: #228be6; color: #fff; border: none; border-radius: 12px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.nav-badge { position: absolute; top: 6px; right: calc(50% - 16px); width: 8px; height: 8px; border-radius: 50%; background: #e03131; }
+.nav-btn { position: relative; }
+
 /* HISTORY */
 .history-section { margin-top: 16px; }
 .history-section h3 { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #495057; }
@@ -167,7 +207,7 @@ body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; mi
 /* CHAT PANEL */
 #panel-chat { padding-bottom: 0; }
 #panel-chat.active { display: flex; }
-.chat-container { display: flex; flex-direction: column; height: calc(100vh - 60px); }
+.chat-container { display: flex; flex-direction: column; height: calc(100vh - 60px); max-width: 480px; margin: 0 auto; width: 100%; }
 .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 .chat-msg { max-width: min(85%, 380px); padding: 12px 16px; border-radius: 18px; font-size: 15px; line-height: 1.5; animation: chatFade .2s ease; word-wrap: break-word; overflow-wrap: break-word; }
 .chat-msg-user { align-self: flex-end; background: #228be6; color: #fff; border-bottom-right-radius: 6px; }
@@ -208,9 +248,9 @@ body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; mi
 
 <nav class="nav">
   <button class="nav-btn active" onclick="showPanel('overview')"><span class="nav-icon">📋</span>Overzicht</button>
-  <button class="nav-btn" onclick="showPanel('flash')"><span class="nav-icon">🃏</span>Flashcards</button>
-  <button class="nav-btn" onclick="showPanel('quiz')"><span class="nav-icon">✍️</span>Toets</button>
-  <button class="nav-btn" onclick="showPanel('score')"><span class="nav-icon">📊</span>Score</button>
+  <button class="nav-btn" onclick="showPanel('check')" id="nav-check"><span class="nav-icon">🎯</span>Wat ken ik?</button>
+  <button class="nav-btn" onclick="showPanel('flash')"><span class="nav-icon">🃏</span>Leren</button>
+  <button class="nav-btn" onclick="showPanel('quiz')"><span class="nav-icon">✍️</span>Oefentoets</button>
   <button class="nav-btn" onclick="showPanel('chat')"><span class="nav-icon">💬</span>Chat</button>
 </nav>
 
@@ -337,12 +377,25 @@ body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; mi
   <button class="reset-btn" onclick="resetAll()">🔄 Alles resetten</button>
 </div>
 
+<!-- CHECK / NULMETING PANEL -->
+<div class="panel" id="panel-check">
+  <div id="nm-intro" class="nm-intro">
+    <div class="nm-emoji">🎯</div>
+    <h2>Even checken</h2>
+    <p>10 snelle vragen over de 5 belangrijkste onderdelen van de toets. Duurt 2 minuten. Dan zie je meteen wat je al goed kunt en waar je het snelst punten pakt.</p>
+    <button class="nm-start-btn" onclick="startNulmeting()">Start check →</button>
+    <button class="nm-skip" onclick="skipNulmeting()">Overslaan, ik wil direct oefenen</button>
+  </div>
+  <div id="nm-questions" style="display:none"></div>
+  <div id="nm-result" style="display:none" class="nm-result"></div>
+</div>
+
 <!-- CHAT PANEL -->
 <div id="panel-chat" class="panel">
   <div class="chat-container">
     <div class="chat-messages" id="chat-messages">
       <div class="chat-msg chat-msg-ai">
-        <p>Yo! Ik ben je wiskunde buddy. Vraag me alles over de <strong>abc-formule</strong>, <strong>snijpunten</strong>, <strong>parabolen</strong> of de <strong>PSM</strong>. Ik kan je ook quizzen of stap voor stap door een som heen lopen.</p>
+        <p id="chat-welcome">Hi! Ik ben je wiskunde buddy. Vraag me alles over de <strong>abc-formule</strong>, <strong>snijpunten</strong>, <strong>parabolen</strong> of de <strong>PSM</strong>. Ik kan je ook quizzen of stap voor stap door een som heen lopen.</p>
       </div>
     </div>
     <div class="chat-typing" id="chat-typing">
@@ -365,6 +418,9 @@ body { font-family: 'Inter', sans-serif; background: #f8f9fa; color: #1a1a2e; mi
 </div>
 
 <script>
+// ===== CONFIG — Pas deze naam aan voor je eigen kind =====
+const STUDENT_NAME = '[NAAM]'; // ← Pas aan naar de naam van je kind
+
 // ===== DATA =====
 const topics = [
   // TIER 1 — KERN (must know for a 7)
@@ -382,6 +438,9 @@ const topics = [
       {title:'Snijpunten met de coordinaatassen (havo/vwo 3)', url:'https://www.youtube.com/watch?v=T_022sGELfM', src:'WiskundeAcademie'}
     ] },
   { id:'snijpunt-y-as', tier:1, term:'Snijpunt met de y-as', short:'Altijd bij x=0, dus het punt (0, c)', detail:'Het <span class="key">snijpunt met de y-as</span> is het punt waar de grafiek de y-as snijdt.<br><br>Dit is <span class="key">altijd bij x = 0</span>.<br><br>Vul x=0 in de formule in:<br>f(0) = a·0² + b·0 + c = <span class="key">c</span><br><br>Het snijpunt met de y-as is dus altijd <span class="key">(0, c)</span>.<br><br>Voorbeeld: f(x) = 3x²-2x+7 → snijpunt y-as = (0, 7)', answer:'Snijpunt y-as: vul x=0 in. f(0)=c. Het snijpunt is altijd (0, c).',
+    videos:[] },
+
+  { id:'haakjes-wegwerken', tier:1, term:'Haakjes wegwerken', short:'Uitwerken van (x+a)(x+b) en a(x+b)', detail:'<span class="key">Haakjes wegwerken</span> doe je door elk deel uit de ene haakjes te vermenigvuldigen met elk deel uit de andere:<br><br><span class="key">Enkelvoudig</span>: a(x+b) = ax + ab<br>Voorbeeld: 3(x+4) = 3x + 12<br><br><span class="key">Dubbele haakjes</span>: (x+a)(x+b) = x² + bx + ax + ab<br>Voorbeeld: (x+3)(x+2) = x² + 2x + 3x + 6 = x² + 5x + 6<br><br><span class="key">Merkwaardig product</span>: (x+a)² = x² + 2ax + a²<br>Voorbeeld: (x+5)² = x² + 10x + 25<br><div class="warn">Vergeet het middelste stuk niet bij (x+a)²! Het is NIET x²+a².</div>', answer:'Haakjes wegwerken: elk deel maal elk deel. (x+a)(x+b) = x²+bx+ax+ab. Let op: (x+a)² = x²+2ax+a², NIET x²+a².',
     videos:[] },
 
   // TIER 2 — BELANGRIJK
@@ -408,6 +467,8 @@ const topics = [
   { id:'vergelijking-opstellen', tier:3, term:'Vergelijking opstellen', short:'Met top en punt de formule vinden', detail:'Als je de <span class="key">top</span> en een <span class="key">punt</span> op de parabool kent, kun je de vergelijking opstellen.<br><br>Gebruik de <span class="key">topvorm</span>: f(x) = a(x-p)² + q<br><br>Hierbij is (p, q) de top.<br><br><span class="key">Stap 1</span>: Vul de top in: f(x) = a(x-p)² + q<br><span class="key">Stap 2</span>: Vul het andere punt in om a te berekenen<br><span class="key">Stap 3</span>: Schrijf de volledige formule<br><br>Voorbeeld: top (2, -3), punt (4, 5)<br>f(x) = a(x-2)²-3<br>5 = a(4-2)²-3 → 5 = 4a-3 → a=2<br>f(x) = 2(x-2)²-3', answer:'Topvorm: f(x) = a(x-p)²+q met top (p,q). Vul een ander punt in om a te vinden.',
     videos:[] },
   { id:'ongelijkheden', tier:3, term:'Ongelijkheden', short:'f(x)>0 of f(x)<0: nulpunten berekenen, grafiek tekenen, aflezen', detail:'Bij <span class="key">f(x) > 0</span> of <span class="key">f(x) < 0</span>:<br><br><span class="key">Stap 1</span>: Bereken eerst de nulpunten (f(x) = 0)<br><span class="key">Stap 2</span>: Teken de grafiek (of maak een schets)<br><span class="key">Stap 3</span>: Lees af waar de grafiek <span class="key">boven</span> de x-as ligt (f(x)>0) of <span class="key">onder</span> de x-as (f(x)<0)<br><br>Voorbeeld: x²-4>0<br>Nulpunten: x²=4 → x=-2 of x=2<br>Dalparabool, boven x-as als x<-2 of x>2<br>Antwoord: x<-2 of x>2', answer:'Ongelijkheden: nulpunten berekenen, grafiek tekenen/schetsen, aflezen waar de grafiek boven (>0) of onder (<0) de x-as ligt.',
+    videos:[] },
+  { id:'toepassingen', tier:3, term:'Toepassingen (paraboolbrug, worp)', short:'Kwadratische formules in de echte wereld', detail:'In toepassingsopgaven beschrijft een <span class="key">kwadratische formule</span> iets uit de echte wereld:<br><br><span class="key">Paraboolbrug</span>: h = -2,5x² + 6x<br>De brug raakt de grond bij h=0 (snijpunten x-as). De top is het hoogste punt.<br><br><span class="key">Worp/projectiel</span>: h = -0,025x² + x<br>h=0 geeft de landingsafstand. De top geeft de maximale hoogte.<br><br><span class="key">Aanpak</span>:<br>1. Snijpunten x-as → stel h=0 en los op (breedte, afstand)<br>2. Top berekenen → x_top = -b/(2a) voor de maximale hoogte<br>3. Specifieke waarde → vul x in voor h op die plek', answer:'Toepassingen: stel de formule =0 voor snijpunten (breedte, afstand). Top berekenen voor maximum. Specifieke x invullen voor hoogte op een punt.',
     videos:[] },
 ];
 
@@ -459,6 +520,15 @@ const quizPool = [
 
   // Symmetrieas
   { q:'Wat is de symmetrieas van f(x)=2x²-12x+5?', options:['x = 3','x = -3','x = 6','x = 12'], correct:0, explain:'Symmetrieas: x = -b/(2a) = -(-12)/(2·2) = 12/4 = 3. De symmetrieas is x=3.' },
+
+  // Haakjes wegwerken
+  { q:'Werk uit: (x+3)(x+4) = ?', options:['x²+7x+12','x²+12x+7','x²+7x+7','x²+3x+4'], correct:0, explain:'(x+3)(x+4) = x²+4x+3x+12 = x²+7x+12. Elk deel maal elk deel.' },
+  { q:'Werk uit: (x+5)² = ?', options:['x²+25','x²+10x+25','x²+5x+25','x²+10x+5'], correct:1, explain:'(x+5)² = x²+2·5·x+5² = x²+10x+25. Let op: het is NIET x²+25!' },
+  { q:'Werk uit: 3(2x-4) = ?', options:['6x-4','6x-12','6x+12','2x-12'], correct:1, explain:'3·2x = 6x en 3·(-4) = -12. Dus 3(2x-4) = 6x-12.' },
+
+  // Toepassingen
+  { q:'Een brug heeft formule h=-2x²+8x. Hoe breed is de brug (afstand tussen de punten op de grond)?', options:['4 meter','8 meter','2 meter','16 meter'], correct:0, explain:'Op de grond: h=0, dus -2x²+8x=0. x(-2x+8)=0. x=0 of x=4. De brug is 4 meter breed.' },
+  { q:'Een bal volgt h=-x²+6x. Wat is de maximale hoogte?', options:['6','9','3','12'], correct:1, explain:'x_top = -6/(2·-1) = 3. y_top = -(3)²+6·3 = -9+18 = 9. De maximale hoogte is 9.' },
 ];
 
 const QUIZ_SIZE = 15;
@@ -474,9 +544,15 @@ function showPanel(id) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
-  event.currentTarget.classList.add('active');
+  // Find and activate the correct nav button (works from onclick and programmatic calls)
+  const navBtns = document.querySelectorAll('.nav-btn');
+  const panelNames = ['overview','check','flash','quiz','chat'];
+  const idx = panelNames.indexOf(id);
+  if (idx >= 0 && navBtns[idx]) navBtns[idx].classList.add('active');
+  else if (typeof event !== 'undefined' && event?.currentTarget?.classList) event.currentTarget.classList.add('active');
   if(id==='flash') showFlashcard();
   if(id==='score') updateScorePanel();
+  if(id==='check') showNulmetingState();
   updateHero();
 }
 
@@ -818,6 +894,222 @@ function resetAll() {
   updateScorePanel();
 }
 
+// ── NULMETING ─────────────────────────────────────────────────────────
+const LS_NM = 'wiskunde-snijpunten-nulmeting-v1';
+const NM_CATEGORIES = [
+  {id:'abc-formule', label:'ABC-formule', icon:'🔢', topicIds:['abc-formule','discriminant','standaardvorm']},
+  {id:'snijpunten', label:'Snijpunten', icon:'📍', topicIds:['snijpunten-x-as','snijpunt-y-as','snijpunten-twee-grafieken']},
+  {id:'psm-haakjes', label:'PSM & Haakjes', icon:'🧩', topicIds:['product-som-methode','haakjes-wegwerken']},
+  {id:'parabool', label:'Parabool & Top', icon:'📈', topicIds:['kwadratische-grafiek','top-berekenen','symmetrieas']},
+  {id:'toepassingen', label:'Toepassingen', icon:'🌉', topicIds:['toepassingen','vergelijking-opstellen','ongelijkheden']}
+];
+
+const NM_QUESTIONS = [
+  // ABC-formule (2)
+  {cat:'abc-formule', q:'Wat is de abc-formule?',
+   opts:['x = (-b ± √(b²-4ac)) / 2a','x = (-b ± √(b²+4ac)) / 2a','x = (b ± √(b²-4ac)) / 2a','x = -b / 2a'], correct:0,
+   explain:'De abc-formule is x = (-b ± √(b²-4ac)) / 2a. Let op: -b (niet +b), en b²-4ac (niet +4ac).'},
+  {cat:'abc-formule', q:'Bij 3x² = 5x - 2, wat is de eerste stap?',
+   opts:['Discriminant berekenen','In standaardvorm zetten: 3x²-5x+2=0','a, b en c aflezen','Grafiek tekenen'], correct:1,
+   explain:'Altijd eerst in standaardvorm: alles naar links zodat er =0 staat. 3x²-5x+2=0, dan pas a=3, b=-5, c=2.'},
+  // Snijpunten (2)
+  {cat:'snijpunten', q:'Hoe vind je het snijpunt met de y-as van f(x)=2x²-3x+7?',
+   opts:['Stel f(x)=0','Vul x=0 in: f(0)=7','Bereken de top','Discriminant berekenen'], correct:1,
+   explain:'Snijpunt y-as: altijd x=0 invullen. f(0)=2·0-3·0+7=7. Het snijpunt is (0, 7).'},
+  {cat:'snijpunten', q:'Hoe vind je de snijpunten van f(x) en g(x)?',
+   opts:['f(x)=0 en g(x)=0 apart oplossen','f(x)=g(x) stellen en oplossen','f(0) en g(0) berekenen','De toppen vergelijken'], correct:1,
+   explain:'Snijpunten van twee grafieken: stel f(x)=g(x), dan alles naar links en oplossen.'},
+  // PSM & Haakjes (2)
+  {cat:'psm-haakjes', q:'x²+5x+6=0. Welke ontbinding klopt (PSM)?',
+   opts:['(x+2)(x+3)=0','(x+1)(x+6)=0','(x-2)(x-3)=0','(x+5)(x+1)=0'], correct:0,
+   explain:'PSM: p·q=6 en p+q=5. p=2, q=3. (x+2)(x+3)=0, dus x=-2 of x=-3.'},
+  {cat:'psm-haakjes', q:'Werk uit: (x+4)² = ?',
+   opts:['x²+16','x²+4x+16','x²+8x+16','x²+8x+4'], correct:2,
+   explain:'(x+4)² = x²+2·4·x+4² = x²+8x+16. Het is NIET x²+16!'},
+  // Parabool & Top (2)
+  {cat:'parabool', q:'f(x) = -3x²+6x+1. Berg- of dalparabool?',
+   opts:['Dalparabool, want a=-3','Bergparabool, want a=-3','Dalparabool, want c=1','Bergparabool, want b=6'], correct:1,
+   explain:'a=-3, en -3<0, dus bergparabool (opening naar beneden).'},
+  {cat:'parabool', q:'f(x) = x²-6x+5. Wat is x_top?',
+   opts:['x = 6','x = 3','x = -3','x = 5'], correct:1,
+   explain:'x_top = -b/(2a) = -(-6)/(2·1) = 6/2 = 3.'},
+  // Toepassingen (2)
+  {cat:'toepassingen', q:'Een brug: h = -x²+4x. Hoe breed is de brug?',
+   opts:['2 meter','4 meter','8 meter','16 meter'], correct:1,
+   explain:'h=0: -x²+4x=0. x(-x+4)=0. x=0 of x=4. Breedte = 4-0 = 4 meter.'},
+  {cat:'toepassingen', q:'Een bal: h = -2x²+12x. Wat is de maximale hoogte?',
+   opts:['12','18','6','36'], correct:1,
+   explain:'x_top = -12/(2·-2) = 3. h(3) = -2·9+12·3 = -18+36 = 18.'}
+];
+
+let nmResult = JSON.parse(localStorage.getItem(LS_NM) || 'null');
+let nmIdx = 0;
+let nmAnswers = {};
+
+function getNmDone() { return nmResult !== null; }
+
+function showNulmetingState() {
+  if (nmResult) {
+    showNmResult();
+  } else {
+    document.getElementById('nm-intro').style.display = '';
+    document.getElementById('nm-questions').style.display = 'none';
+    document.getElementById('nm-result').style.display = 'none';
+  }
+}
+
+function startNulmeting() {
+  nmIdx = 0;
+  nmAnswers = {};
+  document.getElementById('nm-intro').style.display = 'none';
+  document.getElementById('nm-questions').style.display = 'block';
+  document.getElementById('nm-result').style.display = 'none';
+  renderNmQuestion();
+}
+
+function renderNmQuestion() {
+  const el = document.getElementById('nm-questions');
+  const q = NM_QUESTIONS[nmIdx];
+  const dots = NM_QUESTIONS.map((_,i) => {
+    const cls = i < nmIdx ? 'nm-q-dot done' : i === nmIdx ? 'nm-q-dot current' : 'nm-q-dot';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+  const catLabel = NM_CATEGORIES.find(c => c.id === q.cat)?.label || q.cat;
+  el.innerHTML = `
+    <div class="nm-q-block">
+      <div class="nm-q-progress">${dots}</div>
+      <div class="nm-q-cat">${catLabel}</div>
+      <div class="nm-q-text">${q.q}</div>
+      <div class="nm-q-options">
+        ${q.opts.map((o,i) => `<button class="nm-q-opt" onclick="answerNm(${i})">${o}</button>`).join('')}
+      </div>
+    </div>`;
+}
+
+function answerNm(chosen) {
+  const q = NM_QUESTIONS[nmIdx];
+  const btns = document.querySelectorAll('.nm-q-opt');
+  const isCorrect = chosen === q.correct;
+  btns.forEach((b,i) => {
+    b.disabled = true;
+    if (i === q.correct) b.classList.add('correct');
+    if (i === chosen && !isCorrect) b.classList.add('wrong');
+  });
+  if (!nmAnswers[q.cat]) nmAnswers[q.cat] = {correct:0, total:0};
+  nmAnswers[q.cat].total++;
+  if (isCorrect) nmAnswers[q.cat].correct++;
+
+  if (isCorrect) {
+    setTimeout(() => advanceNm(), 600);
+  } else {
+    const block = document.querySelector('.nm-q-block');
+    const explainDiv = document.createElement('div');
+    explainDiv.className = 'nm-explain';
+    explainDiv.innerHTML = `<strong>${q.opts[q.correct]}</strong> — ${q.explain}`;
+    block.appendChild(explainDiv);
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'nm-next-btn';
+    nextBtn.textContent = nmIdx < NM_QUESTIONS.length - 1 ? 'Volgende →' : 'Bekijk resultaat →';
+    nextBtn.onclick = () => advanceNm();
+    block.appendChild(nextBtn);
+  }
+}
+
+function advanceNm() {
+  nmIdx++;
+  if (nmIdx < NM_QUESTIONS.length) { renderNmQuestion(); }
+  else { finishNulmeting(); }
+}
+
+function finishNulmeting() {
+  nmResult = {};
+  NM_CATEGORIES.forEach(cat => {
+    const a = nmAnswers[cat.id] || {correct:0, total:0};
+    nmResult[cat.id] = {correct: a.correct, total: a.total, level: a.correct === 2 ? 'green' : a.correct === 1 ? 'orange' : 'red'};
+  });
+  localStorage.setItem(LS_NM, JSON.stringify(nmResult));
+  updateNmBadge();
+  showNmResult();
+}
+
+function showNmResult() {
+  document.getElementById('nm-intro').style.display = 'none';
+  document.getElementById('nm-questions').style.display = 'none';
+  const el = document.getElementById('nm-result');
+  el.style.display = 'block';
+  const totalCorrect = Object.values(nmResult).reduce((s,c) => s + c.correct, 0);
+  const totalQs = Object.values(nmResult).reduce((s,c) => s + c.total, 0);
+  const catRows = NM_CATEGORIES.map(cat => {
+    const r = nmResult[cat.id] || {correct:0, total:2, level:'red'};
+    const levelText = r.level === 'green' ? 'Top!' : r.level === 'orange' ? 'Bijna' : 'Hier scoor je snel';
+    const emoji = r.level === 'green' ? '✅' : r.level === 'orange' ? '⚠️' : '❌';
+    return `<div class="nm-cat-row">
+      <div class="nm-cat-icon">${cat.icon}</div>
+      <div class="nm-cat-info">
+        <div class="nm-cat-name">${cat.label}</div>
+        <div class="nm-cat-score">${r.correct}/${r.total} goed</div>
+      </div>
+      <span class="nm-cat-badge ${r.level}">${emoji} ${levelText}</span>
+    </div>`;
+  }).join('');
+
+  const redCats = NM_CATEGORIES.filter(c => nmResult[c.id]?.level === 'red');
+  const orangeCats = NM_CATEGORIES.filter(c => nmResult[c.id]?.level === 'orange');
+  const greenCats = NM_CATEGORIES.filter(c => nmResult[c.id]?.level === 'green');
+  let tip;
+  if (greenCats.length === NM_CATEGORIES.length) {
+    tip = 'Alles groen! Je kent de stof al goed. De flashcards helpen je om het scherp te houden.';
+  } else if (redCats.length > 0) {
+    tip = `De flashcards beginnen met <strong>${redCats.map(c=>c.label).join(', ')}</strong>, daar pak je het snelst punten.`;
+  } else {
+    tip = `Je bent er bijna! De flashcards focussen op <strong>${orangeCats.map(c=>c.label).join(', ')}</strong>.`;
+  }
+
+  el.innerHTML = `
+    <h2>Jouw resultaat</h2>
+    <div class="nm-sub">${totalCorrect} van ${totalQs} goed</div>
+    <div class="nm-cats">${catRows}</div>
+    <p style="font-size:13px;color:#495057;margin-bottom:20px;line-height:1.6">${tip}</p>
+    <button class="nm-go-btn" onclick="showPanel('flash')">Ga oefenen →</button>
+    <button class="nm-redo" onclick="redoNulmeting()">Check opnieuw doen</button>
+    <button class="nm-redo" onclick="resetAll()" style="margin-top:8px;color:#fa5252">Alles resetten</button>`;
+}
+
+function skipNulmeting() { showPanel('overview'); }
+
+function redoNulmeting() {
+  nmResult = null;
+  localStorage.removeItem(LS_NM);
+  updateNmBadge();
+  showNulmetingState();
+}
+
+function updateNmBadge() {
+  const btn = document.getElementById('nav-check');
+  if (!btn) return;
+  const existing = btn.querySelector('.nav-badge');
+  if (existing) existing.remove();
+  if (!getNmDone()) {
+    const badge = document.createElement('span');
+    badge.className = 'nav-badge';
+    btn.appendChild(badge);
+  }
+}
+
+// Nulmeting-aware flashcard sorting
+function getNmSortedOrder() {
+  if (!nmResult) return topics.map((_,i) => i);
+  const topicPriority = {};
+  NM_CATEGORIES.forEach(cat => {
+    const lvl = nmResult[cat.id]?.level || 'red';
+    const pri = lvl === 'red' ? 0 : lvl === 'orange' ? 1 : 2;
+    cat.topicIds.forEach(tid => { topicPriority[tid] = pri; });
+  });
+  const indices = topics.map((_,i) => i);
+  indices.sort((a,b) => (topicPriority[topics[a].id] ?? 1) - (topicPriority[topics[b].id] ?? 1));
+  return indices;
+}
+
 // ── CHAT ──────────────────────────────────────────────────────────────
 const CHAT_CONTEXT = `[CONTEXT: De leerling is bezig met Wiskunde, Thema 4: Snijpunten. De stof gaat over: abc-formule (x = (-b ± √(b²-4ac)) / 2a), discriminant (D = b²-4ac), standaardvorm (ax²+bx+c=0), snijpunten met x-as en y-as, kwadratische grafieken (parabolen), top berekenen (x_top = -b/2a), product-som-methode (PSM), en snijpunten van twee grafieken. Niveau: 3 havo/vwo. Geef concrete oefensommen en uitleg. Doe alles in de chat, Duolingo-stijl.]`;
 
@@ -935,6 +1227,21 @@ function formatChat(text) {
 // ===== INIT =====
 renderOverview();
 updateHero();
+updateNmBadge();
+if (STUDENT_NAME && STUDENT_NAME !== '[NAAM]') {
+  document.getElementById('chat-welcome').innerHTML = document.getElementById('chat-welcome').innerHTML.replace('Hi!', 'Hi ' + STUDENT_NAME + '!');
+}
+
+// If nulmeting not done, auto-open the check panel
+if (!getNmDone()) {
+  setTimeout(() => {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-check').classList.add('active');
+    document.getElementById('nav-check').classList.add('active');
+    showNulmetingState();
+  }, 100);
+}
 </script>
 </body>
 </html>
